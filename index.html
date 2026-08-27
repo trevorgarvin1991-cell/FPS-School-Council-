@@ -356,6 +356,7 @@
       .event-detail-content { grid-template-columns: 1fr; padding-left: 1.45rem; }
       .event-detail-image,
       .event-detail-image-placeholder { width: min(100%, 360px); }
+      .event-detail-meta { grid-template-columns: 1fr; }
     }
     .countdown {
       margin: 1rem 0;
@@ -413,6 +414,17 @@
       font-size: 1rem;
     }
     .event-overview p { margin: 0; }
+    .event-detail-summary { display: grid; grid-template-rows: auto 1fr auto; gap: 0.35rem; align-self: stretch; }
+    .event-detail-summary-heading { margin: 0; color: #625b38; font-size: 0.72rem; text-transform: uppercase; }
+    .event-detail-meta {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.4rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--line);
+    }
     .event-workspace-tabs {
       display: flex;
       gap: 0.25rem;
@@ -626,6 +638,22 @@
       background: #fffbea;
     }
     .member-card + .member-card { margin-top: 0.75rem; }
+    .event-summary-label { display: block; color: #625b38; font-size: 0.72rem; font-weight: bold; text-transform: uppercase; }
+    .event-summary-contact { display: inline-block; margin-top: 0.2rem; font-size: 0.85rem; }
+    .event-sponsor { display: flex; align-items: center; gap: 0.45rem; text-decoration: none; }
+    .event-sponsor-logo {
+      display: grid;
+      width: 2.1rem;
+      height: 2.1rem;
+      place-items: center;
+      border: 1px solid #c9bd8f;
+      border-radius: 4px;
+      background: #fff;
+      color: #7a5b00;
+      font-size: 0.68rem;
+      font-weight: bold;
+    }
+    .event-sponsor-name { color: var(--falcon-black); font-size: 0.85rem; font-weight: bold; }
     .member-card-photo {
       width: 2.7rem;
       height: 2.7rem;
@@ -863,6 +891,7 @@
       body { background-attachment: scroll; }
       h1 { font-size: 1.6rem; }
       main { margin-top: 1rem; }
+      .event-contact-grid { grid-template-columns: 1fr; }
       .school-logo { width: 62px; height: 62px; }
       .header-content { flex-wrap: wrap; }
       .header-actions { width: 100%; justify-content: flex-start; margin-left: 0; }
@@ -1436,29 +1465,29 @@
     }
 
     const eventCatalog = [
-      ['Activities', 'Balloon jars and candy jar guess', 'Guess the number of treats in each jar for a chance to win a sweet prize.'],
-      ['Activities', 'Pumpkin bowling', 'Roll for a strike in this seasonal take on a classic carnival game.'],
-      ['Activities', 'Pencil spoon race', 'Carry a pencil on a spoon and race carefully to the finish line.'],
-      ['Activities', 'Cupcake walk', 'Follow the music and see whether your number wins a cupcake.'],
-      ['Activities', 'Ring toss and Captain Hook zombie hands', 'Test your aim with two playful Halloween tossing challenges.'],
-      ['Activities', 'Halloween Just Dance for kids', 'Join the kid-friendly dance activity with Halloween-themed music and moves.'],
-      ['Activities', 'Bag toss', 'Take turns tossing bean bags toward the target for points.'],
-      ['Activities', 'Fish pond', 'Cast a line into the mystery pond to catch a surprise.'],
-      ['Activities', 'Basketball shoot', 'Take your best shot at the basketball challenge.'],
-      ['Activities', 'Hockey shot', 'Aim for the target in the hockey shooting challenge.'],
-      ['Activities', 'Lollipop guess', 'Make a guess for a chance to win a lollipop-themed prize.'],
-      ['Activities', 'Face painting', 'Choose a fun design and let a volunteer transform your look.'],
-      ['Activities', 'Temporary tattoos', 'Select a temporary tattoo to add a little Halloween flair.'],
-      ['Activities', 'Haunted house', 'Step inside for a spooky, age-appropriate Halloween experience.'],
-      ['Activities', 'Costume parade', 'Show off your costume during the hallway parade at 7:00 PM.'],
-      ['Activities', 'Photo booth', 'Capture a Fun Fair memory with themed props and a photo.'],
-      ['Activities', 'Police mask house', 'Visit the police mask house activity for a creative Halloween stop.'],
-      ['Food', 'BBQ fundraiser', 'Enjoy BBQ food by the gazebo from 5:30 to 7:30 PM in support of school improvements.'],
-      ['Food', 'Unicorn Poop ice cream truck', 'Cool off with a sweet treat from the visiting ice cream truck.'],
-      ['Food', 'Cotton candy', 'Pick up a fluffy fun-fair treat while supplies last.'],
-      ['Food', 'Popcorn', 'Enjoy freshly made popcorn during the Fun Fair.'],
-      ['Adult-Focused Activities', 'Silent auction', 'Browse auction items and place bids before the 7:30 PM close.'],
-      ['Adult-Focused Activities', 'Find the Ace', 'Take part in the Find the Ace draw for a chance at the prize.']
+      ['Activities', 'Balloon jars and candy jar guess', 'Take a close look at the colourful balloon jars and candy jars, then write down your best estimate before time runs out. Every guess gives visitors a chance to win a sweet prize, making this an easy stop for families of all ages. Compare ideas, trust your instincts, and return later to find out which guess came closest to the total.'],
+      ['Activities', 'Pumpkin bowling', 'Put a seasonal spin on a classic carnival game by rolling a pumpkin down the lane toward the pins. Players can take turns, cheer on friends, and see who can earn a strike or clear the most pins. It is a simple, active station that welcomes all skill levels and brings plenty of fall fun to the Fun Fair passport.'],
+      ['Activities', 'Pencil spoon race', 'Balance a pencil on a spoon and make your way carefully to the finish line without letting it fall. This race rewards patience, steady hands, and a little friendly competition, whether you are racing with a sibling or challenging a friend. Try again to improve your time, then collect your passport mark before moving on to the next station.'],
+      ['Activities', 'Cupcake walk', 'Follow the music as you walk around the numbered circle, then stop when the music ends to see whether your number has been selected. Lucky participants can win a cupcake to enjoy during the Fun Fair or take home. It is a cheerful, low-pressure game that gives everyone a chance to win while adding music and movement to the evening.'],
+      ['Activities', 'Ring toss and Captain Hook zombie hands', 'Test your aim at two Halloween tossing challenges in one activity stop. Toss rings toward the targets, then try your luck with the Captain Hook zombie hands challenge for an extra dose of playful spooky fun. Take turns with friends, keep track of your successful throws, and enjoy a station built for quick rounds and lots of encouragement.'],
+      ['Activities', 'Halloween Just Dance for kids', 'Head to the dance area for kid-friendly Halloween music, easy-to-follow moves, and a chance to let loose with friends. Participants can join for one song or stay for several, copying the on-screen routine at their own pace. This welcoming activity is a great way to recharge between games, celebrate costumes, and add some movement to the Fun Fair evening.'],
+      ['Activities', 'Bag toss', 'Take turns tossing bean bags toward the target and see how many points you can collect. Choose your throwing spot, aim carefully, and challenge family members or friends to beat your score. The quick rounds make this an easy activity to revisit, while the simple rules ensure younger participants and experienced players can enjoy the challenge together.'],
+      ['Activities', 'Fish pond', 'Cast your line into the mystery pond and wait to see which surprise you reel in. This classic carnival activity adds a sense of discovery for younger visitors, with each catch offering a small moment of excitement. Take a turn, collect your passport mark, and then head to the next station with your new surprise in hand.'],
+      ['Activities', 'Basketball shoot', 'Step up to the net and see how many baskets you can make before your turn is over. Players can focus on their form, cheer for one another, and try again later to improve their score. Whether you are an experienced shooter or just giving it a try, this station offers a quick, active challenge that fits right into the Fun Fair route.'],
+      ['Activities', 'Hockey shot', 'Grab a stick, line up your shot, and aim for the targets in this hockey challenge. Participants can test their accuracy, compare scores with friends, and practise finding the open spaces. It is an energetic station for hockey fans and first-time players alike, with short turns that keep the line moving and the Fun Fair excitement going.'],
+      ['Activities', 'Lollipop guess', 'Look closely at the lollipop display and make your best estimate of how many treats are waiting inside. Submit your guess for a chance to win a prize, then compare your prediction with family and friends. This easy stop is perfect for all ages because there is no rush, just a little observation, friendly debate, and the anticipation of the final count.'],
+      ['Activities', 'Face painting', 'Choose a playful design and let a volunteer add a little colour and Halloween flair to your look. From simple shapes to fun themed details, face painting gives visitors a creative break between games and activities. Bring your ideas, wait your turn, and leave with a design that is ready for photos, the costume parade, or the rest of the Fun Fair.'],
+      ['Activities', 'Temporary tattoos', 'Pick a fun temporary tattoo to show off your Halloween spirit during the Fun Fair. With a quick application and plenty of themed options, this station is an easy way to add a little extra personality to your costume or outfit. Choose your favourite design, let it set, and then continue through the passport activities with your new bit of festival flair.'],
+      ['Activities', 'Haunted house', 'Step inside for a spooky, age-appropriate Halloween experience designed to deliver friendly frights and memorable fun. Follow the route with your group, take in the decorations, and enjoy the surprises along the way. The haunted house is meant for visitors who enjoy a little suspense without anything too intense, making it a special stop on the Fun Fair adventure.'],
+      ['Activities', 'Costume parade', 'Bring your best costume to the hallway parade beginning at 7:00 PM and join the school community in a colourful celebration of Halloween creativity. Gather in the gym before the parade starts, then walk the route with classmates, families, and friends. This is a chance to show off your costume, enjoy the atmosphere, and be part of an evening highlight.'],
+      ['Activities', 'Photo booth', 'Strike a pose with themed props, gather your friends or family, and capture a Fun Fair memory to take home. The photo booth is a relaxed stop where costumes, smiles, and silly poses are all welcome. Visit early or return later when everyone is together, then use your picture as a keepsake from an evening of games, food, and school community fun.'],
+      ['Activities', 'Police mask house', 'Stop by this creative activity for a chance to make a police-themed mask and add your own personal touches. Participants can choose details, take their time with the design, and leave with something made by hand. It is a calm, imaginative stop that balances the active games and gives children a chance to create a small keepsake during the Fun Fair.'],
+      ['Food', 'BBQ fundraiser', 'Enjoy barbecue by the gazebo from 5:30 to 7:30 PM while supporting improvements for Frankford Public School students. Pick up a meal, take a break with family and friends, and refuel before heading back to the games. Every purchase helps the School Council continue its fundraising work toward outdoor improvements, including Buddy Benches, a sunshade shelter, and technology.'],
+      ['Food', 'Unicorn Poop ice cream truck', 'Cool down with a colourful frozen treat from the visiting Unicorn Poop ice cream truck. This sweet stop brings a little extra fun to the evening, whether you choose something after dinner or as a reward for completing activities. Visit while the truck is on site, enjoy your treat with family and friends, and keep exploring everything the Fun Fair has to offer.'],
+      ['Food', 'Cotton candy', 'Pick up a fluffy carnival classic while supplies last and enjoy a little sweetness during the Fun Fair. Cotton candy is an easy treat to share as you walk between activity stations, watch the costume parade, or take a break with family. Stop by when you are ready for something fun and festive, then continue your evening with a little extra sugar-spun cheer.'],
+      ['Food', 'Popcorn', 'Enjoy freshly popped popcorn as you explore the Fun Fair, catch up with friends, and move between activities. This familiar snack is a great choice for sharing or enjoying while you watch the excitement around the school. Pick up a bag when the popcorn is ready, take a short break, and then head back to the games, food, and Halloween fun waiting nearby.'],
+      ['Adult-Focused Activities', 'Silent auction', 'Browse the auction table, look over the available items, and place your bids before the 7:30 PM closing time. This is a great way for adults to support the School Council while competing for useful, unique, or locally donated prizes. Check your bids as the evening goes on, then return at closing to see whether you have won and arrange payment and pickup before 8:00 PM.'],
+      ['Adult-Focused Activities', 'Find the Ace', 'Take part in the Find the Ace draw for a chance to uncover the winning card and claim the prize. Choose your entry, follow the posted instructions, and enjoy the suspense as the draw progresses. This adult-focused fundraiser adds another way to support School Council goals while keeping the evening lively for parents, caregivers, and community members.']
     ].map(([group, name, summary]) => ({ group, name, summary, key: normalizeEventLabel(name) }));
 
     const eventImages = {
@@ -1529,8 +1558,30 @@
           summary.append(name, createEventPinStatus(event.key));
           const content = document.createElement('div');
           content.className = 'event-detail-content';
+          const eventSummary = document.createElement('div');
+          eventSummary.className = 'event-detail-summary';
+          const eventSummaryHeading = document.createElement('h5');
+          eventSummaryHeading.className = 'event-detail-summary-heading';
+          eventSummaryHeading.textContent = 'Summary';
           const description = document.createElement('p');
           description.textContent = event.summary;
+          const eventMeta = document.createElement('div');
+          eventMeta.className = 'event-detail-meta';
+          const volunteerContact = document.createElement('div');
+          const volunteerLabel = document.createElement('span');
+          volunteerLabel.className = 'event-summary-label';
+          volunteerLabel.textContent = 'Volunteer Point of Contact';
+          const volunteerName = document.createElement('span');
+          volunteerName.className = 'event-summary-contact';
+          volunteerName.textContent = 'TBD';
+          volunteerContact.append(volunteerLabel, volunteerName);
+          const sponsorLink = document.createElement('a');
+          sponsorLink.className = 'event-sponsor';
+          sponsorLink.href = 'mailto:frankford@hpedsb.on.ca?subject=Fun%20Fair%20Sponsorship';
+          sponsorLink.title = 'Contact the council about sponsorship';
+          sponsorLink.innerHTML = '<span class="event-sponsor-logo" aria-hidden="true">FPS</span><span class="event-sponsor-name">Sponsor</span>';
+          eventMeta.append(volunteerContact, sponsorLink);
+          eventSummary.append(eventSummaryHeading, description, eventMeta);
           const imagePath = eventImages[event.key];
           const eventVisual = imagePath
             ? document.createElement('img')
@@ -1545,7 +1596,7 @@
             eventVisual.setAttribute('aria-label', `Image placeholder for ${event.name}`);
             eventVisual.textContent = 'Image';
           }
-          content.append(description, eventVisual);
+          content.append(eventSummary, eventVisual);
           detail.append(summary, content);
           list.appendChild(detail);
         });
@@ -2545,27 +2596,29 @@
     const eventForm = document.getElementById('event-form');
     const eventBody = document.getElementById('event-body');
 
-    appendEventRow(
-      ['Halloween Event', formatDateForDisplay('2026-10-22'), 'Frankford Public School'],
-      eventBody
-    );
+    if (eventBody) {
+      appendEventRow(
+        ['Halloween Event', formatDateForDisplay('2026-10-22'), 'Frankford Public School'],
+        eventBody
+      );
 
-    eventForm.addEventListener('submit', (event) => {
-      event.preventDefault();
+      eventForm.addEventListener('submit', (event) => {
+        event.preventDefault();
 
-      const name = document.getElementById('event-name').value.trim();
-      const date = document.getElementById('event-date').value;
-      const location = document.getElementById('event-location').value.trim();
+        const name = document.getElementById('event-name').value.trim();
+        const date = document.getElementById('event-date').value;
+        const location = document.getElementById('event-location').value.trim();
 
-      if (!name || !date || !location) {
-        return;
-      }
+        if (!name || !date || !location) {
+          return;
+        }
 
-      appendEventRow([name, formatDateForDisplay(date), location], eventBody);
+        appendEventRow([name, formatDateForDisplay(date), location], eventBody);
 
-      eventForm.reset();
-      eventDialog.close();
-    });
+        eventForm.reset();
+        eventDialog.close();
+      });
+    }
   </script>
 </body>
 </html>
