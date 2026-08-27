@@ -247,6 +247,21 @@
     .event-list-group h4 { margin: 0 0 0.45rem; font-size: 0.9rem; }
     .event-list-table { margin: 0; font-size: 0.85rem; }
     .event-list-table th { width: 50%; }
+    .event-list-item { transition: background 160ms ease; }
+    .event-list-item.is-pin-target { background: #fff3a3; }
+    .event-pin-status {
+      display: inline-block;
+      margin-left: 0.45rem;
+      padding: 0.12rem 0.3rem;
+      border-radius: 2px;
+      color: #4a4427;
+      background: #ece8d6;
+      font-size: 0.66rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+    .event-pin-status.is-pinned { color: var(--falcon-black); background: var(--falcon-yellow); }
     .countdown {
       margin: 1rem 0;
       padding: 0.8rem 0;
@@ -1280,6 +1295,52 @@
     let floorPlanMarkerSaveInProgress = false;
     let floorPlanMarkers = [];
     let selectedFloorPlanMarker = null;
+    const eventListItems = Array.from(document.querySelectorAll('.event-list-table td'))
+      .filter((item) => item.textContent.trim());
+    const markerEventAliases = {
+      'bbq station': ['bbq fundraiser'],
+      'silent auction and find the ace': ['silent auction', 'find the ace']
+    };
+
+    function normalizeEventLabel(label) {
+      return label.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim();
+    }
+
+    function getMarkerEventKeys(marker) {
+      const markerKey = normalizeEventLabel(marker.label);
+      return markerEventAliases[markerKey] || [markerKey];
+    }
+
+    function renderEventPinStatus() {
+      eventListItems.forEach((item) => {
+        const eventKey = normalizeEventLabel(item.childNodes[0].textContent);
+        const matchingMarkers = floorPlanMarkers.filter((marker) => getMarkerEventKeys(marker).includes(eventKey));
+        item.classList.add('event-list-item');
+        item.querySelector('.event-pin-status')?.remove();
+        const status = document.createElement('span');
+        status.className = 'event-pin-status';
+        if (matchingMarkers.length > 0) {
+          status.classList.add('is-pinned');
+          status.textContent = 'Pinned';
+          status.title = `Floor-plan pin: ${matchingMarkers.map((marker) => marker.label).join(', ')}`;
+        } else {
+          status.textContent = 'No floor-plan pin';
+        }
+        item.appendChild(status);
+      });
+    }
+
+    function showMarkerEvents(marker) {
+      const markerEventKeys = getMarkerEventKeys(marker);
+      const matchingItems = eventListItems.filter((item) => markerEventKeys.includes(normalizeEventLabel(item.childNodes[0].textContent)));
+      if (matchingItems.length === 0) {
+        return;
+      }
+      document.getElementById('event-list-tab').click();
+      matchingItems.forEach((item) => item.classList.add('is-pin-target'));
+      matchingItems[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => matchingItems.forEach((item) => item.classList.remove('is-pin-target')), 2_000);
+    }
 
     function renderFloorPlan() {
       floorPlanCanvas.style.transform = `translate(${floorPlanOffset.x}px, ${floorPlanOffset.y}px)`;
@@ -1320,10 +1381,12 @@
         markerButton.addEventListener('click', (event) => {
           event.stopPropagation();
           showFloorPlanMarkerDetails(marker);
+          showMarkerEvents(marker);
         });
         floorPlanStage.appendChild(markerButton);
       });
       renderFloorPlanLegend();
+      renderEventPinStatus();
     }
 
     function renderFloorPlanLegend() {
