@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frankford Public School Council</title>
+  <style>
+    :root { color-scheme: light; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f7fb;
+      color: #1f2937;
+    }
+    header {
+      background: #0b4f8a;
+      color: #fff;
+      padding: 1rem 1.25rem;
+    }
+    main {
+      max-width: 960px;
+      margin: 1rem auto;
+      padding: 0 1rem 2rem;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    }
+    section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    h1, h2 { margin: 0 0 0.75rem; }
+    form {
+      display: grid;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    input, button {
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.95rem;
+    }
+    button {
+      background: #0b4f8a;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover { background: #0a4273; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+    }
+    th, td {
+      padding: 0.5rem;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    .total {
+      margin-top: 0.75rem;
+      font-weight: bold;
+    }
+    .hint {
+      font-size: 0.85rem;
+      color: #475569;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Frankford Public School Council App</h1>
+    <p>Track budgetary information and plan school council events.</p>
+    <p>
+      Official school site:
+      <a href="https://frankford.hpedsb.on.ca/" target="_blank" rel="noopener noreferrer" style="color:#dbeafe;">
+        frankford.hpedsb.on.ca
+      </a>
+    </p>
+  </header>
+
+  <main>
+    <section>
+      <h2>October Event Planning Document</h2>
+      <p class="hint">Use the shared planning document for October details.</p>
+      <p>
+        <a href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit#heading=h.dh4oi8o5dkgk" target="_blank" rel="noopener noreferrer">
+          Open October Event Planning Document
+        </a>
+      </p>
+    </section>
+
+    <section>
+      <h2>Budgetary Information</h2>
+      <form id="budget-form" aria-label="Budget form">
+        <input id="budget-item" type="text" placeholder="Budget item" required />
+        <input id="budget-category" type="text" placeholder="Category (e.g., Supplies)" required />
+        <input id="budget-amount" type="number" min="0" step="0.01" placeholder="Amount" required />
+        <button type="submit">Add Budget Item</button>
+      </form>
+      <table aria-label="Budget table">
+        <thead>
+          <tr><th>Item</th><th>Category</th><th>Amount</th></tr>
+        </thead>
+        <tbody id="budget-body"></tbody>
+      </table>
+      <p class="total" id="budget-total">Total Budget: $0.00</p>
+    </section>
+
+    <section>
+      <h2>Event Planning</h2>
+      <form id="event-form" aria-label="Event form">
+        <input id="event-name" type="text" placeholder="Event name" required />
+        <input id="event-date" type="date" required />
+        <input id="event-location" type="text" placeholder="Location" required />
+        <button type="submit">Add Event</button>
+      </form>
+      <table aria-label="Event table">
+        <thead>
+          <tr><th>Event</th><th>Date</th><th>Location</th></tr>
+        </thead>
+        <tbody id="event-body"></tbody>
+      </table>
+      <p class="hint">Tip: Add each school council event to keep planning visible for everyone.</p>
+    </section>
+  </main>
+
+  <script>
+    function appendRow(cells, bodyElement) {
+      const row = document.createElement('tr');
+      cells.forEach((cellText) => {
+        const cell = document.createElement('td');
+        cell.textContent = cellText;
+        row.appendChild(cell);
+      });
+      bodyElement.appendChild(row);
+    }
+
+    function formatDateForDisplay(isoDate) {
+      const parsed = new Date(`${isoDate}T00:00:00`);
+      if (Number.isNaN(parsed.getTime())) {
+        return isoDate;
+      }
+
+      return parsed.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+
+    const budgetForm = document.getElementById('budget-form');
+    const budgetBody = document.getElementById('budget-body');
+    const budgetTotal = document.getElementById('budget-total');
+    const MAX_BUDGET_AMOUNT = 1_000_000;
+    const MAX_TOTAL_BUDGET_CENTS = MAX_BUDGET_AMOUNT * 100;
+    let budgetCents = 0;
+
+    budgetForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const item = document.getElementById('budget-item').value.trim();
+      const category = document.getElementById('budget-category').value.trim();
+      const amountValue = Number(document.getElementById('budget-amount').value);
+      const amountCents = Math.round(amountValue * 100);
+
+      if (
+        !item ||
+        !category ||
+        !Number.isFinite(amountValue) ||
+        amountValue < 0 ||
+        amountValue > MAX_BUDGET_AMOUNT ||
+        budgetCents + amountCents > MAX_TOTAL_BUDGET_CENTS
+      ) {
+        return;
+      }
+
+      appendRow([item, category, `$${(amountCents / 100).toFixed(2)}`], budgetBody);
+
+      budgetCents += amountCents;
+      budgetTotal.textContent = `Total Budget: $${(budgetCents / 100).toFixed(2)}`;
+
+      budgetForm.reset();
+    });
+
+    const eventForm = document.getElementById('event-form');
+    const eventBody = document.getElementById('event-body');
+
+    eventForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const name = document.getElementById('event-name').value.trim();
+      const date = document.getElementById('event-date').value;
+      const location = document.getElementById('event-location').value.trim();
+
+      if (!name || !date || !location) {
+        return;
+      }
+
+      appendRow([name, formatDateForDisplay(date), location], eventBody);
+
+      eventForm.reset();
+    });
+  </script>
+</body>
+</html>
