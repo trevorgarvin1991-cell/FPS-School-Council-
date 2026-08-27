@@ -249,6 +249,35 @@
       font-weight: bold;
       text-transform: uppercase;
     }
+    .event-workspace-tabs {
+      display: flex;
+      gap: 0.25rem;
+      margin-top: 1rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .event-workspace-tab {
+      min-height: 2.4rem;
+      padding: 0.45rem 0.75rem;
+      border: 1px solid transparent;
+      border-bottom: 0;
+      background: transparent;
+      color: #4a4427;
+      font-size: 0.85rem;
+    }
+    .event-workspace-tab:hover { background: #fffbea; }
+    .event-workspace-tab[aria-selected="true"] {
+      border-color: var(--line);
+      background: var(--surface);
+      color: var(--falcon-black);
+      box-shadow: 0 -3px 0 var(--falcon-yellow);
+    }
+    .event-workspace-panel { padding-top: 0.15rem; }
+    .planning-block {
+      margin: 1rem 0;
+      padding: 0.9rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .planning-block h3 { margin: 0 0 0.55rem; }
     dialog {
       width: min(420px, calc(100% - 2rem));
       border: 2px solid var(--falcon-black);
@@ -277,6 +306,8 @@
       main { margin-top: 1rem; }
       .school-logo { width: 68px; height: 68px; }
       .budget-metrics { grid-template-columns: repeat(2, 1fr); }
+      .event-workspace-tabs { display: grid; grid-template-columns: repeat(3, 1fr); }
+      .event-workspace-tab { min-height: 3.1rem; padding: 0.4rem; font-size: 0.75rem; }
     }
   </style>
 </head>
@@ -337,14 +368,13 @@
           <div class="countdown-unit"><span class="countdown-number" id="countdown-seconds">0</span><span class="countdown-unit-label">Seconds</span></div>
         </div>
       </div>
-      <p><a href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit?pli=1&amp;tab=t.lu5m7q7foctz" target="_blank" rel="noopener noreferrer">Fun Fair Committee - Google Docs</a></p>
-      <ul class="event-details">
-        <li>Fun Fair runs from 6:00 to 8:00 p.m.</li>
-        <li>Outdoor BBQ runs from 5:30 to 7:30 p.m.</li>
-        <li>Costume parade begins in the gym at 7:00 p.m.</li>
-        <li>Funds support outdoor improvements and school technology.</li>
-      </ul>
-      <div class="event-budget" aria-label="Halloween event budget">
+      <div class="event-workspace-tabs" role="tablist" aria-label="Halloween event workspace">
+        <button class="event-workspace-tab" id="budget-tab" type="button" role="tab" aria-selected="true" aria-controls="budget-panel">Budget</button>
+        <button class="event-workspace-tab" id="schedule-tab" type="button" role="tab" aria-selected="false" aria-controls="schedule-panel">Schedules &amp; Tasks</button>
+        <button class="event-workspace-tab" id="resources-tab" type="button" role="tab" aria-selected="false" aria-controls="resources-panel">Resources &amp; Members</button>
+      </div>
+      <div class="event-workspace-panel" id="budget-panel" role="tabpanel" aria-labelledby="budget-tab">
+        <div class="event-budget" aria-label="Halloween event budget">
         <div class="budget-heading">
           <h3>Event Budget</h3>
           <span class="sync-status" id="sync-status" aria-live="polite">Connecting...</span>
@@ -397,6 +427,33 @@
           </thead>
           <tbody id="budget-body"></tbody>
         </table>
+        </div>
+      </div>
+      <div class="event-workspace-panel" id="schedule-panel" role="tabpanel" aria-labelledby="schedule-tab" hidden>
+        <div class="planning-block">
+          <h3>Schedule</h3>
+          <ul class="event-details">
+            <li>Fun Fair runs from 6:00 to 8:00 p.m.</li>
+            <li>Outdoor BBQ runs from 5:30 to 7:30 p.m.</li>
+            <li>Costume parade begins in the gym at 7:00 p.m.</li>
+          </ul>
+        </div>
+        <div class="planning-block">
+          <h3>Tasks</h3>
+          <p class="hint">Planning tasks are maintained in the Fun Fair Committee event plan.</p>
+          <p><a href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit?pli=1&amp;tab=t.lu5m7q7foctz" target="_blank" rel="noopener noreferrer">Open Event Plan</a></p>
+        </div>
+      </div>
+      <div class="event-workspace-panel" id="resources-panel" role="tabpanel" aria-labelledby="resources-tab" hidden>
+        <div class="planning-block">
+          <h3>Resources</h3>
+          <p><a href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit?pli=1&amp;tab=t.lu5m7q7foctz" target="_blank" rel="noopener noreferrer">Fun Fair Committee Event Plan</a></p>
+          <p><a href="https://frankford.hpedsb.on.ca/" target="_blank" rel="noopener noreferrer">Frankford Public School</a></p>
+        </div>
+        <div class="planning-block">
+          <h3>Members</h3>
+          <p class="hint">Council member roles and contact details are maintained in the event plan.</p>
+        </div>
       </div>
     </section>
 
@@ -552,6 +609,20 @@
 
     updateCountdown();
     setInterval(updateCountdown, 1000);
+
+    const eventWorkspaceTabs = document.querySelectorAll('.event-workspace-tab');
+    const eventWorkspacePanels = document.querySelectorAll('.event-workspace-panel');
+
+    eventWorkspaceTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        eventWorkspaceTabs.forEach((workspaceTab) => {
+          workspaceTab.setAttribute('aria-selected', String(workspaceTab === tab));
+        });
+        eventWorkspacePanels.forEach((panel) => {
+          panel.hidden = panel.id !== tab.getAttribute('aria-controls');
+        });
+      });
+    });
 
     const INITIAL_BUDGET_ENTRIES = [
       { item: 'Square Machine', category: 'Hardware', type: 'forecast', amountCents: 40_000 },
