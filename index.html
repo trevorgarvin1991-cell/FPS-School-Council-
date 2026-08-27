@@ -247,6 +247,12 @@
     .event-list-group h4 { margin: 0 0 0.45rem; font-size: 0.9rem; }
     .event-list-table { margin: 0; font-size: 0.85rem; }
     .event-list-table th { width: 50%; }
+    .event-detail-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin: 0.65rem 0 -0.25rem;
+    }
+    .event-detail-actions button { min-height: 1.9rem; padding: 0.3rem 0.55rem; font-size: 0.78rem; }
     .event-detail-list { display: grid; gap: 0.15rem; }
     .event-detail { border-bottom: 1px solid var(--line); }
     .event-detail summary {
@@ -264,10 +270,10 @@
     .event-detail-name { min-width: 0; }
     .event-detail-content {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 220px;
+      grid-template-columns: minmax(0, 1fr) 280px;
       align-items: center;
-      gap: 1rem;
-      padding: 0.35rem 0 0.85rem 1.45rem;
+      gap: 0.7rem;
+      padding: 0.2rem 0 0.6rem 1.45rem;
     }
     .event-detail-content p { margin: 0; color: #4a4427; font-size: 0.85rem; line-height: 1.45; }
     .event-detail-image {
@@ -1389,6 +1395,17 @@
 
     function renderEventDetails() {
       eventDetailGroups.replaceChildren();
+      const actions = document.createElement('div');
+      actions.className = 'event-detail-actions';
+      const expandAllButton = document.createElement('button');
+      expandAllButton.type = 'button';
+      expandAllButton.textContent = 'Expand all';
+      expandAllButton.addEventListener('click', () => {
+        eventDetailGroups.querySelectorAll('.event-detail').forEach((detail) => { detail.open = true; });
+        expandAllButton.disabled = true;
+      });
+      actions.appendChild(expandAllButton);
+      eventDetailGroups.appendChild(actions);
       ['Activities', 'Food', 'Adult-Focused Activities'].forEach((groupName) => {
         const group = document.createElement('div');
         group.className = 'event-list-group';
