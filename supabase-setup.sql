@@ -80,6 +80,7 @@ create table if not exists public.floor_plan_markers (
   label text not null,
   details text not null default '',
   color text not null default '#d71920',
+  details_url text not null default '',
   x_percent numeric not null check (x_percent between 0 and 100),
   y_percent numeric not null check (y_percent between 0 and 100),
   created_at timestamptz not null default now()
@@ -87,6 +88,7 @@ create table if not exists public.floor_plan_markers (
 
 alter table public.floor_plan_markers add column if not exists details text not null default '';
 alter table public.floor_plan_markers add column if not exists color text not null default '#d71920';
+alter table public.floor_plan_markers add column if not exists details_url text not null default '';
 
 create table if not exists public.page_visits (
   id bigint generated always as identity primary key,
@@ -134,6 +136,7 @@ drop policy if exists "Public task attachment insert access" on public.task_atta
 drop policy if exists "Public task attachment delete access" on public.task_attachments;
 drop policy if exists "Public floor plan marker read access" on public.floor_plan_markers;
 drop policy if exists "Public floor plan marker insert access" on public.floor_plan_markers;
+drop policy if exists "Public floor plan marker update access" on public.floor_plan_markers;
 drop policy if exists "Public floor plan marker delete access" on public.floor_plan_markers;
 drop policy if exists "Public visit insert access" on public.page_visits;
 
@@ -232,6 +235,12 @@ using (true);
 create policy "Public floor plan marker insert access"
 on public.floor_plan_markers for insert
 to anon
+with check (true);
+
+create policy "Public floor plan marker update access"
+on public.floor_plan_markers for update
+to anon
+using (true)
 with check (true);
 
 create policy "Public floor plan marker delete access"

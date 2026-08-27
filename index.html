@@ -302,7 +302,7 @@
     .floor-plan-reset { min-height: 2rem; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
     .floor-plan-marker-form {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto auto;
       gap: 0.5rem;
       margin: 0 0 0.65rem;
     }
@@ -321,6 +321,7 @@
       font-size: 0.82rem;
     }
     .floor-plan-viewport {
+      position: relative;
       aspect-ratio: 942 / 692;
       height: auto;
       overflow: hidden;
@@ -391,13 +392,19 @@
       border-radius: 50%;
     }
     .floor-plan-marker-details {
-      margin-top: 0.7rem;
+      position: absolute;
+      z-index: 2;
+      width: min(17rem, calc(100% - 1rem));
       padding: 0.7rem;
       border-left: 4px solid var(--falcon-yellow);
       background: #fffbea;
+      box-shadow: 0 3px 10px rgba(17, 17, 17, 0.22);
     }
     .floor-plan-marker-details h4 { margin: 0; font-size: 0.95rem; }
-    .floor-plan-marker-details p { margin: 0.3rem 0 0.65rem; }
+    .floor-plan-marker-edit-form { display: grid; gap: 0.45rem; margin-top: 0.55rem; }
+    .floor-plan-marker-edit-form input { min-height: 2rem; padding: 0.35rem 0.45rem; font-size: 0.82rem; }
+    .floor-plan-marker-actions { display: flex; gap: 0.45rem; align-items: center; }
+    .floor-plan-marker-details-link { font-size: 0.82rem; }
     .floor-plan-marker-remove { min-height: 2rem; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
     .floor-plan-note { margin: 0.65rem 0 0; }
     .planning-block {
@@ -822,6 +829,7 @@
         <form class="floor-plan-marker-form" id="floor-plan-marker-form" aria-label="Add an event location to the floor plan">
           <input id="floor-plan-marker-label" type="text" maxlength="80" placeholder="Event or station name" required />
           <input id="floor-plan-marker-details" type="text" maxlength="160" placeholder="Location details" />
+          <input id="floor-plan-marker-details-url" type="url" maxlength="500" placeholder="More details link (optional)" />
           <input class="floor-plan-marker-color" id="floor-plan-marker-color" type="color" value="#d71920" aria-label="Marker color" />
           <button type="submit">Place marker</button>
         </form>
@@ -832,13 +840,22 @@
               <img class="floor-plan-image" src="Assets/2026-08-27_00-59-52.jpg" alt="Frankford Public School Fun Fair floor plan showing accessible routes, Fun Fair areas, and no-access rooms" />
             </div>
           </div>
+          <div class="floor-plan-marker-details" id="floor-plan-marker-details-panel" hidden>
+            <h4>Event location</h4>
+            <form class="floor-plan-marker-edit-form" id="floor-plan-marker-edit-form">
+              <input id="floor-plan-marker-edit-label" type="text" maxlength="80" aria-label="Event or station name" required />
+              <input id="floor-plan-marker-edit-details" type="text" maxlength="160" aria-label="Location details" />
+              <input id="floor-plan-marker-edit-url" type="url" maxlength="500" placeholder="More details link" aria-label="More details link" />
+              <input class="floor-plan-marker-color" id="floor-plan-marker-edit-color" type="color" aria-label="Marker color" />
+              <div class="floor-plan-marker-actions">
+                <button type="submit">Save</button>
+                <button class="floor-plan-marker-remove" id="floor-plan-marker-remove" type="button">Remove</button>
+              </div>
+            </form>
+            <a class="floor-plan-marker-details-link" id="floor-plan-marker-details-link" target="_blank" rel="noopener noreferrer" hidden>More details</a>
+          </div>
         </div>
         <div class="floor-plan-legend" id="floor-plan-legend" aria-label="Event location legend"></div>
-        <div class="floor-plan-marker-details" id="floor-plan-marker-details-panel" hidden>
-          <h4 id="floor-plan-marker-details-title"></h4>
-          <p id="floor-plan-marker-details-copy"></p>
-          <button class="floor-plan-marker-remove" id="floor-plan-marker-remove" type="button">Remove marker</button>
-        </div>
         <p class="hint floor-plan-note">Drag the plan to pan. Select Place marker, then click the plan to add an event location.</p>
       </div>
     </section>
@@ -1033,12 +1050,17 @@
     const floorPlanMarkerForm = document.getElementById('floor-plan-marker-form');
     const floorPlanMarkerLabel = document.getElementById('floor-plan-marker-label');
     const floorPlanMarkerDetails = document.getElementById('floor-plan-marker-details');
+    const floorPlanMarkerDetailsUrl = document.getElementById('floor-plan-marker-details-url');
     const floorPlanMarkerColor = document.getElementById('floor-plan-marker-color');
     const floorPlanFeedback = document.getElementById('floor-plan-feedback');
     const floorPlanLegend = document.getElementById('floor-plan-legend');
     const floorPlanMarkerDetailsPanel = document.getElementById('floor-plan-marker-details-panel');
-    const floorPlanMarkerDetailsTitle = document.getElementById('floor-plan-marker-details-title');
-    const floorPlanMarkerDetailsCopy = document.getElementById('floor-plan-marker-details-copy');
+    const floorPlanMarkerEditForm = document.getElementById('floor-plan-marker-edit-form');
+    const floorPlanMarkerEditLabel = document.getElementById('floor-plan-marker-edit-label');
+    const floorPlanMarkerEditDetails = document.getElementById('floor-plan-marker-edit-details');
+    const floorPlanMarkerEditUrl = document.getElementById('floor-plan-marker-edit-url');
+    const floorPlanMarkerEditColor = document.getElementById('floor-plan-marker-edit-color');
+    const floorPlanMarkerDetailsLink = document.getElementById('floor-plan-marker-details-link');
     const floorPlanMarkerRemove = document.getElementById('floor-plan-marker-remove');
     let floorPlanOffset = { x: 0, y: 0 };
     let floorPlanPointerStart = null;
@@ -1072,6 +1094,7 @@
         markerButton.title = marker.details ? `${marker.label}: ${marker.details}` : marker.label;
         markerButton.setAttribute('aria-label', `Show details for ${marker.label}`);
         markerButton.classList.toggle('is-selected', selectedFloorPlanMarker?.id === marker.id);
+        markerButton.addEventListener('mouseenter', () => showFloorPlanMarkerDetails(marker));
         markerButton.addEventListener('click', (event) => {
           event.stopPropagation();
           showFloorPlanMarkerDetails(marker);
@@ -1098,8 +1121,14 @@
 
     function showFloorPlanMarkerDetails(marker) {
       selectedFloorPlanMarker = marker;
-      floorPlanMarkerDetailsTitle.textContent = marker.label;
-      floorPlanMarkerDetailsCopy.textContent = marker.details || 'No additional location details.';
+      floorPlanMarkerEditLabel.value = marker.label;
+      floorPlanMarkerEditDetails.value = marker.details;
+      floorPlanMarkerEditUrl.value = marker.detailsUrl;
+      floorPlanMarkerEditColor.value = marker.color;
+      floorPlanMarkerDetailsLink.href = marker.detailsUrl;
+      floorPlanMarkerDetailsLink.hidden = !marker.detailsUrl;
+      floorPlanMarkerDetailsPanel.style.left = `${Math.min(marker.xPercent, 78)}%`;
+      floorPlanMarkerDetailsPanel.style.top = `${Math.min(marker.yPercent, 78)}%`;
       floorPlanMarkerDetailsPanel.hidden = false;
       renderFloorPlanMarkers();
     }
@@ -1119,6 +1148,7 @@
         label: marker.label,
         details: marker.details || '',
         color: marker.color || '#d71920',
+        detailsUrl: marker.details_url || '',
         xPercent: Number(marker.x_percent),
         yPercent: Number(marker.y_percent)
       }));
@@ -1132,6 +1162,7 @@
 
       const label = floorPlanPlacementLabel;
       const details = floorPlanMarkerDetails.value.trim();
+      const detailsUrl = floorPlanMarkerDetailsUrl.value.trim();
       const color = floorPlanMarkerColor.value;
       floorPlanPlacementLabel = '';
       floorPlanMarkerSaveInProgress = true;
@@ -1139,7 +1170,7 @@
       floorPlanMarkerForm.reset();
       const { error } = await supabaseClient
         .from('floor_plan_markers')
-        .insert({ event_key: EVENT_KEY, label, details, color, x_percent: xPercent, y_percent: yPercent });
+        .insert({ event_key: EVENT_KEY, label, details, details_url: detailsUrl, color, x_percent: xPercent, y_percent: yPercent });
       floorPlanMarkerSaveInProgress = false;
       if (error) {
         setFloorPlanFeedback('Unable to save marker. Please try again.');
@@ -1183,6 +1214,38 @@
       if (selectedFloorPlanMarker) {
         void deleteFloorPlanMarker(selectedFloorPlanMarker);
       }
+    });
+    floorPlanMarkerEditForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!selectedFloorPlanMarker) {
+        return;
+      }
+
+      const updates = {
+        label: floorPlanMarkerEditLabel.value.trim(),
+        details: floorPlanMarkerEditDetails.value.trim(),
+        details_url: floorPlanMarkerEditUrl.value.trim(),
+        color: floorPlanMarkerEditColor.value
+      };
+      const { error } = await supabaseClient
+        .from('floor_plan_markers')
+        .update(updates)
+        .eq('id', selectedFloorPlanMarker.id);
+      if (error) {
+        setFloorPlanFeedback('Unable to update marker. Please try again.');
+        return;
+      }
+
+      selectedFloorPlanMarker = {
+        ...selectedFloorPlanMarker,
+        label: updates.label,
+        details: updates.details,
+        detailsUrl: updates.details_url,
+        color: updates.color
+      };
+      showFloorPlanMarkerDetails(selectedFloorPlanMarker);
+      setFloorPlanFeedback('Event marker updated.');
+      await synchronizeFloorPlanMarkers();
     });
     floorPlanViewport.addEventListener('pointerdown', (event) => {
       if (floorPlanPlacementLabel) {
