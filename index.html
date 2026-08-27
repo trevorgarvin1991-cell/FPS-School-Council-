@@ -157,7 +157,7 @@
     const budgetForm = document.getElementById('budget-form');
     const budgetBody = document.getElementById('budget-body');
     const budgetTotal = document.getElementById('budget-total');
-    const MAX_BUDGET_AMOUNT = Number.MAX_SAFE_INTEGER / 100;
+    const MAX_BUDGET_AMOUNT = 1_000_000;
     let budgetCents = 0;
 
     budgetForm.addEventListener('submit', (event) => {
