@@ -99,6 +99,63 @@ create table if not exists public.page_visits (
 alter table public.page_visits add column if not exists visitor_id uuid;
 create index if not exists page_visits_visitor_id_idx on public.page_visits (visitor_id);
 
+create or replace view public.page_visit_audience as
+with visits as (
+  select
+    id,
+    visitor_id,
+    visited_at,
+    row_number() over (
+      partition by visitor_id
+      order by visited_at, id
+    ) as visit_number,
+    min(visited_at) over (partition by visitor_id) as first_seen_at,
+    max(visited_at) over (partition by visitor_id) as last_seen_at,
+    lag(visited_at) over (
+      partition by visitor_id
+      order by visited_at, id
+    ) as previous_visit_at
+  from public.page_visits
+), daily_visits as (
+  select
+    visited_at::date as visit_date,
+    count(*) as daily_total,
+    count(distinct visitor_id) as daily_unique_browsers
+  from public.page_visits
+  group by visited_at::date
+)
+select
+  visits.id,
+  visits.visitor_id,
+  visits.visited_at,
+  case
+    when visits.visitor_id in (
+      '202c4cd2-576c-4da2-9182-3ed6c22547ae'::uuid,
+      'f761847e-ec91-4521-bf6d-47e161b28687'::uuid,
+      '13c00a9d-2ad7-4c44-8c05-52f7ac965a1e'::uuid
+    ) then 'Me'
+    else 'Others'
+  end as visitor,
+  case
+    when visits.visit_number = 1 then 'First visit'
+    else 'Returning visit'
+  end as visit_type,
+  visits.visited_at::date as visit_date,
+  visits.visited_at::time as visit_time,
+  trim(to_char(visits.visited_at, 'Day')) as visit_day,
+  concat(left(visits.visitor_id::text, 8), '...') as browser_marker,
+  extract(hour from visits.visited_at)::integer as visit_hour,
+  extract(isodow from visits.visited_at) in (6, 7) as is_weekend,
+  visits.visit_number,
+  visits.first_seen_at,
+  visits.last_seen_at,
+  visits.previous_visit_at,
+  extract(day from visits.visited_at - visits.previous_visit_at)::integer as days_since_previous_visit,
+  daily_visits.daily_total,
+  daily_visits.daily_unique_browsers
+from visits
+join daily_visits on daily_visits.visit_date = visits.visited_at::date;
+
 insert into public.events (event_key, name, event_date, location)
 values ('halloween-2026', 'Halloween Theme', '2026-10-22', 'Frankford Public School')
 on conflict (event_key) do nothing;

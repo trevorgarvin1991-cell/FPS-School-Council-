@@ -73,4 +73,25 @@ from public.page_visits
 where visitor_id is not null;
 ```
 
+To see `Me` and `Others` as a persistent dashboard table, rerun [supabase-setup.sql](supabase-setup.sql) in the Supabase SQL Editor. Then open `page_visit_audience` in the Table Editor; its `visitor` column labels the configured browser marker as `Me` and every other browser as `Others`.
+
+To label your browser's visits separately, first open the site in your browser, open its developer console, and run:
+
+```js
+localStorage.getItem('fps-visitor-id-v1')
+```
+
+Then replace `YOUR_VISITOR_ID` below with the returned value and run this in the Supabase SQL Editor:
+
+```sql
+select
+	visited_at,
+	case
+		when visitor_id = 'YOUR_VISITOR_ID'::uuid then 'Me'
+		else 'Others'
+	end as visitor
+from public.page_visits
+order by visited_at desc;
+```
+
 The supplied policies allow visitors to read, add, update, and remove event and budget data without signing in. Add council-member authentication and more restrictive policies before using the public site for sensitive or restricted financial information.

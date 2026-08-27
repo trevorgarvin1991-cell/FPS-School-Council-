@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Site Analytics | Frankford Public School Council</title>
+  <link rel="icon" type="image/jpeg" href="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" />
+  <style>
+    :root { --yellow: #ffde00; --yellow-dark: #c5a100; --ink: #111111; --paper: #ffffff; --line: #e3dfc7; --muted: #625b38; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); font-family: 'Trebuchet MS', 'Gill Sans', sans-serif; background: linear-gradient(rgba(255, 253, 240, 0.82), rgba(255, 249, 214, 0.86)), url('Assets/OIP.webp') center / cover fixed; }
+    header { background: var(--ink); border-bottom: 5px solid var(--yellow); color: #fff; }
+    .header-content { max-width: 960px; min-height: 104px; margin: 0 auto; padding: 1rem; display: flex; align-items: center; gap: 0.85rem; }
+    .logo { width: 64px; height: 64px; padding: 3px; object-fit: contain; background: #fff; border: 2px solid var(--yellow); border-radius: 4px; }
+    h1 { margin: 0; color: var(--yellow); font-size: 1.55rem; }
+    .subtitle { margin: 0.3rem 0 0; font-size: 0.9rem; }
+    .back-link { margin-left: auto; color: var(--ink); background: var(--yellow); border: 1px solid var(--yellow); padding: 0.55rem 0.7rem; border-radius: 2px; font-weight: bold; text-decoration: none; white-space: nowrap; }
+    .back-link:hover { background: var(--yellow-dark); }
+    main { max-width: 960px; margin: 1.25rem auto; padding: 0 1rem 2rem; }
+    .status { min-height: 1.4rem; margin: 0 0 0.75rem; color: var(--muted); font-size: 0.82rem; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+    .metric { min-height: 114px; padding: 0.85rem; background: var(--paper); border: 1px solid #d9d9d9; border-top: 4px solid var(--yellow); border-radius: 4px; box-shadow: 0 5px 16px rgba(17, 17, 17, 0.1); }
+    .metric-label { display: block; color: var(--muted); font-size: 0.72rem; font-weight: bold; text-transform: uppercase; }
+    .metric-value { display: block; margin-top: 0.45rem; font-size: 1.8rem; font-weight: bold; }
+    section { margin-top: 1rem; padding: 1.15rem; background: var(--paper); border: 1px solid #d9d9d9; border-top: 4px solid var(--yellow); border-radius: 4px; box-shadow: 0 5px 16px rgba(17, 17, 17, 0.1); }
+    h2 { margin: 0; font-size: 1.15rem; }
+    .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+    .section-note { margin: 0; color: var(--muted); font-size: 0.78rem; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; margin-top: 0.8rem; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { padding: 0.55rem; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+    th { background: #fffbea; font-size: 0.76rem; text-transform: uppercase; }
+    .badge { display: inline-block; padding: 0.18rem 0.4rem; border-radius: 2px; font-size: 0.75rem; font-weight: bold; }
+    .badge-me { background: var(--yellow); color: var(--ink); }
+    .badge-others { background: #ece8d6; color: #4a4427; }
+    .empty { color: var(--muted); }
+    footer { max-width: 960px; margin: 0 auto; padding: 0 1rem 1rem; color: var(--muted); font-size: 0.72rem; text-align: right; }
+    @media (max-width: 650px) { .header-content { min-height: 88px; } .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .back-link { font-size: 0.82rem; } .metric-value { font-size: 1.55rem; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <img class="logo" src="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" alt="Frankford Falcons logo" />
+      <div><h1>Site Analytics</h1><p class="subtitle">Frankford Public School Council</p></div>
+      <a class="back-link" href="index.html">Back to council</a>
+    </div>
+  </header>
+  <main>
+    <p class="status" id="status" role="status">Loading analytics...</p>
+    <div class="metrics" aria-label="Visit summary">
+      <article class="metric"><span class="metric-label">Total visits</span><strong class="metric-value" id="total-visits">-</strong></article>
+      <article class="metric"><span class="metric-label">Unique browsers</span><strong class="metric-value" id="unique-browsers">-</strong></article>
+      <article class="metric"><span class="metric-label">Your visits</span><strong class="metric-value" id="my-visits">-</strong></article>
+      <article class="metric"><span class="metric-label">Today's visits</span><strong class="metric-value" id="today-visits">-</strong></article>
+    </div>
+    <section>
+      <div class="section-heading"><h2>Daily Activity</h2><p class="section-note">Most recent 14 days</p></div>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Visits</th><th>Unique browsers</th><th>Your visits</th></tr></thead><tbody id="daily-body"></tbody></table></div>
+    </section>
+    <section>
+      <div class="section-heading"><h2>Recent Visits</h2><p class="section-note">Most recent 25 records</p></div>
+      <div class="table-wrap"><table><thead><tr><th>When</th><th>Visitor</th><th>Visit type</th><th>Browser</th></tr></thead><tbody id="recent-body"></tbody></table></div>
+    </section>
+  </main>
+  <footer>Anonymous browser-level analytics only</footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabaseClient = window.supabase.createClient('https://oueexkkwbkzynajpddxq.supabase.co', 'sb_publishable_utwHzWU7rkjWnQJuCIRrTQ_l_RhktGi');
+    const status = document.getElementById('status');
+    const dailyBody = document.getElementById('daily-body');
+    const recentBody = document.getElementById('recent-body');
+    const numberFormat = new Intl.NumberFormat('en-CA');
+    const dateFormat = new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+    const dateTimeFormat = new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+
+    function appendCells(row, values) {
+      values.forEach((value) => { const cell = document.createElement('td'); cell.textContent = value; row.appendChild(cell); });
+    }
+
+    function setMetric(id, value) { document.getElementById(id).textContent = numberFormat.format(value); }
+
+    async function loadAnalytics() {
+      const { data: visits, error } = await supabaseClient.from('page_visit_audience').select('*').order('visited_at', { ascending: false });
+      if (error) { status.textContent = 'Analytics are unavailable. Confirm the setup script has been run in Supabase.'; return; }
+      const today = new Date().toISOString().slice(0, 10);
+      const daily = new Map();
+      const browsers = new Set();
+      let myVisits = 0;
+      visits.forEach((visit) => {
+        browsers.add(visit.visitor_id);
+        if (visit.visitor === 'Me') myVisits += 1;
+        const summary = daily.get(visit.visit_date) || { visits: 0, browsers: new Set(), myVisits: 0 };
+        summary.visits += 1; summary.browsers.add(visit.visitor_id); if (visit.visitor === 'Me') summary.myVisits += 1;
+        daily.set(visit.visit_date, summary);
+      });
+      setMetric('total-visits', visits.length); setMetric('unique-browsers', browsers.size); setMetric('my-visits', myVisits); setMetric('today-visits', daily.get(today)?.visits || 0);
+      dailyBody.replaceChildren();
+      [...daily.entries()].sort(([left], [right]) => right.localeCompare(left)).slice(0, 14).forEach(([day, summary]) => { const row = document.createElement('tr'); appendCells(row, [dateFormat.format(new Date(`${day}T12:00:00`)), summary.visits, summary.browsers.size, summary.myVisits]); dailyBody.appendChild(row); });
+      recentBody.replaceChildren();
+      visits.slice(0, 25).forEach((visit) => { const row = document.createElement('tr'); const when = document.createElement('td'); when.textContent = dateTimeFormat.format(new Date(visit.visited_at)); const visitor = document.createElement('td'); const badge = document.createElement('span'); badge.className = `badge ${visit.visitor === 'Me' ? 'badge-me' : 'badge-others'}`; badge.textContent = visit.visitor; visitor.appendChild(badge); row.append(when, visitor); appendCells(row, [visit.visit_type, visit.browser_marker]); recentBody.appendChild(row); });
+      if (visits.length === 0) { dailyBody.innerHTML = '<tr><td class="empty" colspan="4">No visits recorded yet.</td></tr>'; recentBody.innerHTML = '<tr><td class="empty" colspan="4">No visits recorded yet.</td></tr>'; }
+      status.textContent = `Updated ${new Date().toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit' })}`;
+    }
+    void loadAnalytics();
+  </script>
+</body>
+</html>
