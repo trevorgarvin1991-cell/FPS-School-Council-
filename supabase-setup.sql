@@ -78,10 +78,15 @@ create table if not exists public.floor_plan_markers (
   id uuid primary key default gen_random_uuid(),
   event_key text not null,
   label text not null,
+  details text not null default '',
+  color text not null default '#d71920',
   x_percent numeric not null check (x_percent between 0 and 100),
   y_percent numeric not null check (y_percent between 0 and 100),
   created_at timestamptz not null default now()
 );
+
+alter table public.floor_plan_markers add column if not exists details text not null default '';
+alter table public.floor_plan_markers add column if not exists color text not null default '#d71920';
 
 create table if not exists public.page_visits (
   id bigint generated always as identity primary key,
