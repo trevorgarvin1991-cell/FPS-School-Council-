@@ -39,6 +39,22 @@
       flex: 0 0 auto;
       white-space: nowrap;
     }
+    .event-plan-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.5rem;
+      padding: 0.55rem 0.65rem;
+      box-sizing: border-box;
+      border: 1px solid var(--falcon-yellow);
+      border-radius: 2px;
+      background: var(--falcon-yellow);
+      color: var(--falcon-black) !important;
+      font-size: 0.95rem;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .event-plan-button:hover { background: var(--falcon-yellow-dark); }
     .school-logo {
       width: 64px;
       height: 64px;
@@ -109,6 +125,7 @@
     .event-budget-metrics > div { min-width: 0; }
     .event-budget-metrics .metric-value { font-size: 1.05rem; }
     .event-budget .budget-form { margin: 1rem 0 0.75rem; }
+    .budget-form [hidden] { display: none; }
     .remove-forecast {
       min-height: auto;
       padding: 0.3rem 0.5rem;
@@ -233,7 +250,12 @@
           </a>
         </p>
       </div>
-      <button id="open-event-dialog" class="add-event-button" type="button">Add Event</button>
+      <a
+        class="add-event-button event-plan-button"
+        href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit#heading=h.dh4oi8o5dkgk"
+        target="_blank"
+        rel="noopener noreferrer"
+      >Event Plan</a>
     </div>
   </header>
 
@@ -261,11 +283,6 @@
   <main>
     <section>
       <h2>Halloween Theme</h2>
-      <p>
-        <a href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit#heading=h.dh4oi8o5dkgk" target="_blank" rel="noopener noreferrer">
-          Open Full Event Plan
-        </a>
-      </p>
       <p class="hint">Thursday, October 22, 2026</p>
       <ul class="event-details">
         <li>Fun Fair runs from 6:00 to 8:00 p.m.</li>
@@ -309,13 +326,17 @@
             <option value="forecast">Forecast</option>
             <option value="actual">Actual</option>
           </select>
+          <select id="actual-forecast" aria-label="Forecasted budget item" hidden disabled>
+            <option value="" selected disabled>Select forecasted item</option>
+          </select>
+          <input id="receipt-file" type="file" accept="image/*,application/pdf" aria-label="Receipt upload" hidden disabled />
           <input id="budget-amount" type="number" min="0" step="0.01" placeholder="Amount" required />
           <button type="submit">Add Budget Item</button>
         </form>
         <p class="sync-status" id="budget-feedback" aria-live="polite"></p>
         <table aria-label="Halloween event budget table">
           <thead>
-            <tr><th>Item</th><th>Category</th><th>Type</th><th>Amount</th><th>Action</th></tr>
+            <tr><th>Item</th><th>Category</th><th>Forecast</th><th>Actuals</th><th>Receipts</th><th>Action</th></tr>
           </thead>
           <tbody id="budget-body"></tbody>
         </table>
@@ -421,6 +442,10 @@
     const budgetForm = document.getElementById('budget-form');
     const budgetBody = document.getElementById('budget-body');
     const budgetType = document.getElementById('budget-type');
+    const budgetItem = document.getElementById('budget-item');
+    const budgetCategory = document.getElementById('budget-category');
+    const actualForecast = document.getElementById('actual-forecast');
+    const receiptFile = document.getElementById('receipt-file');
     const eventAllocated = document.getElementById('event-allocated');
     const eventForecast = document.getElementById('event-forecast');
     const eventActuals = document.getElementById('event-actuals');
@@ -475,7 +500,9 @@
             (entry.type === 'forecast' || entry.type === 'actual') &&
             Number.isInteger(entry.amountCents) &&
             entry.amountCents >= 0 &&
-            (entry.sourceUrl === undefined || typeof entry.sourceUrl === 'string')
+            (entry.sourceUrl === undefined || typeof entry.sourceUrl === 'string') &&
+            (entry.forecastEntryId === undefined || typeof entry.forecastEntryId === 'string') &&
+            (entry.receiptUrl === undefined || typeof entry.receiptUrl === 'string')
           ))
           : [];
       } catch {
@@ -496,7 +523,9 @@
         category: entry.category,
         type: entry.entry_type,
         amountCents: entry.amount_cents,
-        sourceUrl: entry.source_url || undefined
+        sourceUrl: entry.source_url || undefined,
+        forecastEntryId: entry.forecast_entry_id || undefined,
+        receiptUrl: entry.receipt_url || undefined
       };
     }
 
@@ -508,7 +537,9 @@
         category: entry.category,
         entry_type: entry.type,
         amount_cents: entry.amountCents,
-        source_url: entry.sourceUrl || null
+        source_url: entry.sourceUrl || null,
+        forecast_entry_id: entry.forecastEntryId || null,
+        receipt_url: entry.receiptUrl || null
       };
     }
 
@@ -542,6 +573,9 @@
 
       saveBudgetEntries();
       renderBudgetEntries();
+      if (budgetType.value === 'actual') {
+        updateActualFields();
+      }
       updateEventBudget();
       syncStatus.textContent = 'Synced';
     }
@@ -584,39 +618,78 @@
     function renderBudgetEntries() {
       budgetBody.replaceChildren();
 
-      budgetEntries.forEach((entry) => {
+      budgetEntries.filter((entry) => entry.type === 'forecast').forEach((entry) => {
         const row = document.createElement('tr');
-        [entry.item, entry.category, entry.type === 'actual' ? 'Actual' : 'Forecast', formatCurrency(entry.amountCents)]
-          .forEach((cellText, cellIndex) => {
-            const cell = document.createElement('td');
-            if (cellIndex === 0 && entry.sourceUrl) {
-              const sourceLink = document.createElement('a');
-              sourceLink.href = entry.sourceUrl;
-              sourceLink.target = '_blank';
-              sourceLink.rel = 'noopener noreferrer';
-              sourceLink.textContent = cellText;
-              cell.appendChild(sourceLink);
-            } else {
-              cell.textContent = cellText;
-            }
-            row.appendChild(cell);
-          });
+        const actualEntries = budgetEntries.filter((actual) => (
+          actual.type === 'actual' && actual.forecastEntryId === entry.id
+        ));
+        const actualCents = actualEntries.reduce((total, actual) => total + actual.amountCents, 0);
+
+        const itemCell = document.createElement('td');
+        if (entry.sourceUrl) {
+          const sourceLink = document.createElement('a');
+          sourceLink.href = entry.sourceUrl;
+          sourceLink.target = '_blank';
+          sourceLink.rel = 'noopener noreferrer';
+          sourceLink.textContent = entry.item;
+          itemCell.appendChild(sourceLink);
+        } else {
+          itemCell.textContent = entry.item;
+        }
+        row.append(itemCell, ...[entry.category, formatCurrency(entry.amountCents), formatCurrency(actualCents)].map((text) => {
+          const cell = document.createElement('td');
+          cell.textContent = text;
+          return cell;
+        }));
+
+        const receiptCell = document.createElement('td');
+        actualEntries.forEach((actual, index) => {
+          if (actual.receiptUrl) {
+            const receiptLink = document.createElement('a');
+            receiptLink.href = actual.receiptUrl;
+            receiptLink.target = '_blank';
+            receiptLink.rel = 'noopener noreferrer';
+            receiptLink.textContent = `Receipt ${index + 1}`;
+            receiptCell.append(receiptLink, document.createElement('br'));
+          }
+        });
+        row.appendChild(receiptCell);
 
         const actionCell = document.createElement('td');
-        if (entry.type === 'forecast') {
-          const removeButton = document.createElement('button');
-          removeButton.type = 'button';
-          removeButton.className = 'remove-forecast';
-          removeButton.textContent = 'Remove';
-          removeButton.addEventListener('click', () => deleteBudgetEntry(entry));
-          actionCell.appendChild(removeButton);
-        }
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'remove-forecast';
+        removeButton.textContent = 'Remove';
+        removeButton.addEventListener('click', () => deleteBudgetEntry(entry));
+        actionCell.appendChild(removeButton);
         row.appendChild(actionCell);
         budgetBody.appendChild(row);
       });
     }
 
+    function updateActualFields() {
+      const isActual = budgetType.value === 'actual';
+      budgetItem.hidden = isActual;
+      budgetItem.disabled = isActual;
+      budgetCategory.hidden = isActual;
+      budgetCategory.disabled = isActual;
+      actualForecast.hidden = !isActual;
+      actualForecast.disabled = !isActual;
+      actualForecast.required = isActual;
+      receiptFile.hidden = !isActual;
+      receiptFile.disabled = !isActual;
+      receiptFile.required = isActual;
+
+      if (isActual) {
+        actualForecast.replaceChildren(new Option('Select forecasted item', '', true, true));
+        budgetEntries.filter((entry) => entry.type === 'forecast').forEach((entry) => {
+          actualForecast.add(new Option(`${entry.item} (${formatCurrency(entry.amountCents)})`, entry.id));
+        });
+      }
+    }
+
     renderBudgetEntries();
+    updateActualFields();
     updateEventBudget();
     saveBudgetEntries();
     const initialBudgetSynchronization = synchronizeBudgetEntries();
@@ -630,14 +703,17 @@
       )
       .subscribe();
 
+    budgetType.addEventListener('change', updateActualFields);
+
     budgetForm.addEventListener('submit', async (event) => {
       event.preventDefault();
 
       await initialBudgetSynchronization;
 
-      const item = document.getElementById('budget-item').value.trim();
-      const category = document.getElementById('budget-category').value.trim();
       const type = budgetType.value;
+      const forecastEntry = budgetEntries.find((entry) => entry.id === actualForecast.value && entry.type === 'forecast');
+      const item = type === 'actual' ? forecastEntry?.item : budgetItem.value.trim();
+      const category = type === 'actual' ? forecastEntry?.category : budgetCategory.value.trim();
       const amountValue = Number(document.getElementById('budget-amount').value);
       const amountCents = Math.round(amountValue * 100);
       const forecastCents = budgetEntries
@@ -652,6 +728,7 @@
       if (
         !item ||
         !category ||
+        (type === 'actual' && (!forecastEntry || !receiptFile.files[0])) ||
         !Number.isFinite(amountValue) ||
         amountValue < 0 ||
         amountValue > MAX_BUDGET_AMOUNT ||
@@ -661,12 +738,29 @@
           const remainingCents = MAX_TOTAL_BUDGET_CENTS - (type === 'forecast' ? forecastCents : actualCents);
           budgetFeedback.textContent = `This ${type} entry exceeds the remaining ${formatCurrency(remainingCents)} budget.`;
         } else {
-          budgetFeedback.textContent = 'Enter a budget item, category, and a valid amount.';
+          budgetFeedback.textContent = type === 'actual'
+            ? 'Select a forecasted item, upload its receipt, and enter a valid amount.'
+            : 'Enter a budget item, category, and a valid amount.';
         }
         return;
       }
 
       const newEntry = { id: createEntryId(), item, category, type, amountCents };
+      if (type === 'actual') {
+        const receipt = receiptFile.files[0];
+        const receiptPath = `${EVENT_KEY}/${newEntry.id}-${receipt.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const { error: receiptError } = await supabaseClient.storage
+          .from('budget-receipts')
+          .upload(receiptPath, receipt);
+
+        if (receiptError) {
+          budgetFeedback.textContent = 'Unable to upload the receipt. Please try again.';
+          return;
+        }
+
+        newEntry.forecastEntryId = forecastEntry.id;
+        newEntry.receiptUrl = supabaseClient.storage.from('budget-receipts').getPublicUrl(receiptPath).data.publicUrl;
+      }
       const { data: savedEntry, error } = await supabaseClient
         .from('budget_entries')
         .insert(mapBudgetEntry(newEntry))
@@ -685,21 +779,12 @@
       updateEventBudget();
 
       budgetForm.reset();
+      updateActualFields();
       budgetFeedback.textContent = 'Budget item added.';
     });
 
     const eventForm = document.getElementById('event-form');
     const eventBody = document.getElementById('event-body');
-    const eventDialog = document.getElementById('event-dialog');
-    const openEventDialog = document.getElementById('open-event-dialog');
-    const closeEventDialog = document.getElementById('close-event-dialog');
-
-    openEventDialog.addEventListener('click', () => {
-      eventDialog.showModal();
-      document.getElementById('event-name').focus();
-    });
-
-    closeEventDialog.addEventListener('click', () => eventDialog.close());
 
     appendEventRow(
       ['Halloween Theme', formatDateForDisplay('2026-10-22'), 'Frankford Public School'],
