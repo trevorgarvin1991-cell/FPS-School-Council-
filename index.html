@@ -297,8 +297,9 @@
     }
     .planning-heading a { font-size: 0.85rem; }
     .task-form {
-      display: flex;
-      grid-template-columns: 1fr auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.6fr) auto;
+      gap: 0.5rem;
       margin: 0 0 0.8rem;
     }
     .kanban-board {
@@ -363,6 +364,14 @@
       gap: 0.5rem;
     }
     .kanban-task-title { font-weight: bold; overflow-wrap: anywhere; }
+    .kanban-assignee-input {
+      width: 100%;
+      min-height: 2rem;
+      padding: 0.3rem;
+      border-color: var(--line);
+      color: #625b38;
+      font-size: 0.8rem;
+    }
     .kanban-delete {
       min-width: 1.75rem;
       min-height: 1.75rem;
@@ -403,6 +412,7 @@
       .event-workspace-tabs { display: grid; grid-template-columns: repeat(3, 1fr); }
       .event-workspace-tab { min-height: 3.1rem; padding: 0.4rem; font-size: 0.75rem; }
       .kanban-board { grid-template-columns: repeat(3, minmax(12rem, 1fr)); overflow-x: auto; }
+      .task-form { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -544,6 +554,7 @@
           </div>
           <form class="task-form" id="task-form" aria-label="Add a task">
             <input id="task-title" type="text" placeholder="Add a task" maxlength="120" required />
+            <input id="task-assignee" type="text" placeholder="Assignee" maxlength="80" required />
             <button type="submit">Add Task</button>
           </form>
           <div class="kanban-board" aria-label="Halloween task board">
@@ -746,6 +757,7 @@
     const TASK_STATUSES = ['todo', 'in-progress', 'completed'];
     const taskForm = document.getElementById('task-form');
     const taskTitle = document.getElementById('task-title');
+    const taskAssignee = document.getElementById('task-assignee');
     const taskLists = Object.fromEntries(TASK_STATUSES.map((status) => [
       status,
       document.getElementById(`${status}-list`)
@@ -761,7 +773,9 @@
       try {
         const savedTasks = JSON.parse(localStorage.getItem(TASK_STORAGE_KEY) || '[]');
         return Array.isArray(savedTasks)
-          ? savedTasks.filter((task) => task && typeof task.id === 'string' && typeof task.title === 'string' && TASK_STATUSES.includes(task.status))
+          ? savedTasks
+            .filter((task) => task && typeof task.id === 'string' && typeof task.title === 'string' && TASK_STATUSES.includes(task.status))
+            .map((task) => ({ ...task, assignee: typeof task.assignee === 'string' ? task.assignee : '' }))
           : [];
       } catch {
         return [];
@@ -821,6 +835,18 @@
           });
           taskHeader.append(taskName, deleteButton);
 
+          const assigneeInput = document.createElement('input');
+          assigneeInput.className = 'kanban-assignee-input';
+          assigneeInput.type = 'text';
+          assigneeInput.placeholder = 'Assign someone';
+          assigneeInput.value = task.assignee;
+          assigneeInput.maxLength = 80;
+          assigneeInput.setAttribute('aria-label', `Assignee for ${task.title}`);
+          assigneeInput.addEventListener('change', () => {
+            task.assignee = assigneeInput.value.trim();
+            saveTasks();
+          });
+
           const statusSelect = document.createElement('select');
           statusSelect.setAttribute('aria-label', `Status for ${task.title}`);
           TASK_STATUSES.forEach((taskStatus) => {
@@ -841,7 +867,7 @@
             draggedTaskId = null;
             taskCard.classList.remove('is-dragging');
           });
-          taskCard.append(taskHeader, statusSelect);
+          taskCard.append(taskHeader, assigneeInput, statusSelect);
           taskList.appendChild(taskCard);
         });
       });
@@ -850,11 +876,12 @@
     taskForm.addEventListener('submit', (event) => {
       event.preventDefault();
       const title = taskTitle.value.trim();
-      if (!title) {
+      const assignee = taskAssignee.value.trim();
+      if (!title || !assignee) {
         return;
       }
 
-      tasks.unshift({ id: createEntryId(), title, status: 'todo' });
+      tasks.unshift({ id: createEntryId(), title, assignee, status: 'todo' });
       saveTasks();
       renderTasks();
       taskForm.reset();
