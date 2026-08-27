@@ -994,6 +994,7 @@
     let floorPlanOffset = { x: 0, y: 0 };
     let floorPlanPointerStart = null;
     let floorPlanPlacementLabel = '';
+    let floorPlanMarkerSaveInProgress = false;
     let floorPlanMarkers = [];
 
     function renderFloorPlan() {
@@ -1047,17 +1048,24 @@
     }
 
     async function addFloorPlanMarker(xPercent, yPercent) {
+      if (!floorPlanPlacementLabel || floorPlanMarkerSaveInProgress) {
+        return;
+      }
+
+      const label = floorPlanPlacementLabel;
+      floorPlanPlacementLabel = '';
+      floorPlanMarkerSaveInProgress = true;
+      floorPlanViewport.classList.remove('is-placing');
+      floorPlanMarkerForm.reset();
       const { error } = await supabaseClient
         .from('floor_plan_markers')
-        .insert({ event_key: EVENT_KEY, label: floorPlanPlacementLabel, x_percent: xPercent, y_percent: yPercent });
+        .insert({ event_key: EVENT_KEY, label, x_percent: xPercent, y_percent: yPercent });
+      floorPlanMarkerSaveInProgress = false;
       if (error) {
         setFloorPlanFeedback('Unable to save marker. Please try again.');
         return;
       }
 
-      floorPlanPlacementLabel = '';
-      floorPlanMarkerForm.reset();
-      floorPlanViewport.classList.remove('is-placing');
       setFloorPlanFeedback('Event marker added.');
       await synchronizeFloorPlanMarkers();
     }
