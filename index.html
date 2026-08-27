@@ -204,6 +204,51 @@
       padding-left: 1.1rem;
     }
     .event-details li { padding-left: 0.1rem; }
+    .countdown {
+      margin: 1rem 0;
+      padding: 0.8rem 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .countdown-label {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.55rem;
+      font-size: 0.82rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .countdown-pumpkin { font-size: 1.2rem; }
+    .countdown-values {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      max-width: 440px;
+    }
+    .countdown-unit {
+      min-width: 0;
+      padding: 0 0.7rem;
+      border-left: 1px solid var(--line);
+    }
+    .countdown-unit:first-child {
+      padding-left: 0;
+      border-left: 0;
+    }
+    .countdown-number {
+      display: block;
+      color: var(--falcon-black);
+      font-size: 1.55rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+    .countdown-unit-label {
+      display: block;
+      margin-top: 0.25rem;
+      color: #625b38;
+      font-size: 0.72rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
     dialog {
       width: min(420px, calc(100% - 2rem));
       border: 2px solid var(--falcon-black);
@@ -290,6 +335,15 @@
         <li>Costume parade begins in the gym at 7:00 p.m.</li>
         <li>Funds support outdoor improvements and school technology.</li>
       </ul>
+      <div class="countdown" aria-live="polite">
+        <span class="countdown-label" id="countdown-label"><span class="countdown-pumpkin" aria-hidden="true">&#127875;</span>Time until the Fun Fair begins</span>
+        <div class="countdown-values" id="countdown-values" aria-label="Countdown to the Fun Fair">
+          <div class="countdown-unit"><span class="countdown-number" id="countdown-days">0</span><span class="countdown-unit-label">Days</span></div>
+          <div class="countdown-unit"><span class="countdown-number" id="countdown-hours">0</span><span class="countdown-unit-label">Hours</span></div>
+          <div class="countdown-unit"><span class="countdown-number" id="countdown-minutes">0</span><span class="countdown-unit-label">Minutes</span></div>
+          <div class="countdown-unit"><span class="countdown-number" id="countdown-seconds">0</span><span class="countdown-unit-label">Seconds</span></div>
+        </div>
+      </div>
       <div class="event-budget" aria-label="Halloween event budget">
         <div class="budget-heading">
           <h3>Event Budget</h3>
@@ -466,6 +520,38 @@
     }
 
     void recordPageVisit();
+
+    const countdownTarget = new Date('2026-10-22T18:00:00-04:00').getTime();
+    const countdownLabel = document.getElementById('countdown-label');
+    const countdownValues = document.getElementById('countdown-values');
+    const countdownUnits = {
+      days: document.getElementById('countdown-days'),
+      hours: document.getElementById('countdown-hours'),
+      minutes: document.getElementById('countdown-minutes'),
+      seconds: document.getElementById('countdown-seconds')
+    };
+
+    function updateCountdown() {
+      const remainingMilliseconds = countdownTarget - Date.now();
+      if (remainingMilliseconds <= 0) {
+        countdownLabel.textContent = 'The Fun Fair is underway!';
+        countdownValues.hidden = true;
+        return;
+      }
+
+      const remainingSeconds = Math.floor(remainingMilliseconds / 1000);
+      const days = Math.floor(remainingSeconds / 86_400);
+      const hours = Math.floor((remainingSeconds % 86_400) / 3_600);
+      const minutes = Math.floor((remainingSeconds % 3_600) / 60);
+      const seconds = remainingSeconds % 60;
+      countdownUnits.days.textContent = days;
+      countdownUnits.hours.textContent = String(hours).padStart(2, '0');
+      countdownUnits.minutes.textContent = String(minutes).padStart(2, '0');
+      countdownUnits.seconds.textContent = String(seconds).padStart(2, '0');
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
 
     const INITIAL_BUDGET_ENTRIES = [
       { item: 'Square Machine', category: 'Hardware', type: 'forecast', amountCents: 40_000 },
