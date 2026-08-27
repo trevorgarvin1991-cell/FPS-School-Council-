@@ -138,7 +138,7 @@
     const budgetForm = document.getElementById('budget-form');
     const budgetBody = document.getElementById('budget-body');
     const budgetTotal = document.getElementById('budget-total');
-    let budgetSum = 0;
+    let budgetCents = 0;
 
     budgetForm.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -153,8 +153,8 @@
 
       appendRow([item, category, `$${amountValue.toFixed(2)}`], budgetBody);
 
-      budgetSum += amountValue;
-      budgetTotal.textContent = `Total Budget: $${budgetSum.toFixed(2)}`;
+      budgetCents += Math.round(amountValue * 100);
+      budgetTotal.textContent = `Total Budget: $${(budgetCents / 100).toFixed(2)}`;
 
       budgetForm.reset();
     });
