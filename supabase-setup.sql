@@ -132,7 +132,8 @@ select
     when visits.visitor_id in (
       '202c4cd2-576c-4da2-9182-3ed6c22547ae'::uuid,
       'f761847e-ec91-4521-bf6d-47e161b28687'::uuid,
-      '13c00a9d-2ad7-4c44-8c05-52f7ac965a1e'::uuid
+      '13c00a9d-2ad7-4c44-8c05-52f7ac965a1e'::uuid,
+      'a103e196-9eb8-4f63-9929-aac9892c28a5'::uuid
     ) then 'Me'
     else 'Others'
   end as visitor,
