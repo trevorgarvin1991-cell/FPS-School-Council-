@@ -450,6 +450,20 @@
       'https://oueexkkwbkzynajpddxq.supabase.co',
       'sb_publishable_utwHzWU7rkjWnQJuCIRrTQ_l_RhktGi'
     );
+
+    async function recordPageVisit() {
+      if (sessionStorage.getItem('page-visit-recorded')) {
+        return;
+      }
+
+      const { error } = await supabaseClient.from('page_visits').insert({});
+      if (!error) {
+        sessionStorage.setItem('page-visit-recorded', 'true');
+      }
+    }
+
+    void recordPageVisit();
+
     const INITIAL_BUDGET_ENTRIES = [
       { item: 'Square Machine', category: 'Hardware', type: 'forecast', amountCents: 40_000 },
       { item: 'Mixed Halloween Stamps', category: 'Supplies', type: 'forecast', amountCents: 1_699, sourceUrl: 'https://www.amazon.ca/JOYIN-Pcs-Assorted-Stamps-Kids/dp/B0C7JH9B1X/' },

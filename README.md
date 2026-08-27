@@ -44,4 +44,25 @@ Run the script again after pulling future schema updates; its table and column s
 
 The setup also creates `events` and `event_budgets`. Each event budget has exactly one owning event through `event_budgets.event_id`, and is deleted automatically when its event is removed. The Halloween event and its $2,500 allocation are seeded on first run.
 
+## Page Visit Analytics
+
+Each browser session records one anonymous visit timestamp in the `page_visits` table. No names, IP addresses, referrers, or device information are stored by the site.
+
+Run this query in the Supabase SQL Editor to see the most recent visitors:
+
+```sql
+select visited_at
+from public.page_visits
+order by visited_at desc;
+```
+
+For daily counts:
+
+```sql
+select date(visited_at) as day, count(*) as visits
+from public.page_visits
+group by day
+order by day desc;
+```
+
 The supplied policies allow visitors to read, add, update, and remove event and budget data without signing in. Add council-member authentication and more restrictive policies before using the public site for sensitive or restricted financial information.

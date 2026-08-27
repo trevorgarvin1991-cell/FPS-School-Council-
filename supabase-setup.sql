@@ -40,6 +40,11 @@ create table if not exists public.event_budgets (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.page_visits (
+  id bigint generated always as identity primary key,
+  visited_at timestamptz not null default now()
+);
+
 insert into public.events (event_key, name, event_date, location)
 values ('halloween-2026', 'Halloween Theme', '2026-10-22', 'Frankford Public School')
 on conflict (event_key) do nothing;
@@ -53,6 +58,7 @@ on conflict (event_id) do nothing;
 alter table public.budget_entries enable row level security;
 alter table public.events enable row level security;
 alter table public.event_budgets enable row level security;
+alter table public.page_visits enable row level security;
 
 drop policy if exists "Public event read access" on public.events;
 drop policy if exists "Public event insert access" on public.events;
@@ -64,6 +70,7 @@ drop policy if exists "Public event budget delete access" on public.event_budget
 drop policy if exists "Public budget entry read access" on public.budget_entries;
 drop policy if exists "Public budget entry insert access" on public.budget_entries;
 drop policy if exists "Public budget entry delete access" on public.budget_entries;
+drop policy if exists "Public visit insert access" on public.page_visits;
 
 create policy "Public event read access"
 on public.events for select
@@ -115,6 +122,11 @@ create policy "Public budget entry delete access"
 on public.budget_entries for delete
 to anon
 using (true);
+
+create policy "Public visit insert access"
+on public.page_visits for insert
+to anon
+with check (true);
 
 do $$
 begin
