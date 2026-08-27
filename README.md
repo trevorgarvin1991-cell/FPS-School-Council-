@@ -8,4 +8,4 @@ Frankford Public School Council application for:
 
 ## Usage
 
-Open `/home/runner/work/FPS-School-Council-/FPS-School-Council-/index.html` in a browser to use the app.
+Open `index.html` in a browser to use the app.

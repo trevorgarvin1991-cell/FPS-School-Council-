@@ -125,6 +125,16 @@
   </main>
 
   <script>
+    function appendRow(cells, bodyElement) {
+      const row = document.createElement('tr');
+      cells.forEach((cellText) => {
+        const cell = document.createElement('td');
+        cell.textContent = cellText;
+        row.appendChild(cell);
+      });
+      bodyElement.appendChild(row);
+    }
+
     const budgetForm = document.getElementById('budget-form');
     const budgetBody = document.getElementById('budget-body');
     const budgetTotal = document.getElementById('budget-total');
@@ -141,9 +151,7 @@
         return;
       }
 
-      const row = document.createElement('tr');
-      row.innerHTML = `<td>${item}</td><td>${category}</td><td>$${amountValue.toFixed(2)}</td>`;
-      budgetBody.appendChild(row);
+      appendRow([item, category, `$${amountValue.toFixed(2)}`], budgetBody);
 
       budgetSum += amountValue;
       budgetTotal.textContent = `Total Budget: $${budgetSum.toFixed(2)}`;
@@ -165,9 +173,7 @@
         return;
       }
 
-      const row = document.createElement('tr');
-      row.innerHTML = `<td>${name}</td><td>${date}</td><td>${location}</td>`;
-      eventBody.appendChild(row);
+      appendRow([name, date, location], eventBody);
 
       eventForm.reset();
     });
