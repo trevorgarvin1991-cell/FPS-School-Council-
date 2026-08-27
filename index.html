@@ -138,10 +138,6 @@
       max-width: 960px;
       margin: 1.25rem auto;
       padding: 0 1rem 2rem;
-      display: grid;
-      gap: 1rem;
-      align-items: start;
-      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
     }
     section {
       background: var(--surface);
@@ -346,16 +342,6 @@
       </div>
     </section>
 
-    <section>
-      <h2>Event Planning</h2>
-      <table aria-label="Event table">
-        <thead>
-          <tr><th>Event</th><th>Date</th><th>Location</th><th>Action</th></tr>
-        </thead>
-        <tbody id="event-body"></tbody>
-      </table>
-      <p class="hint">Tip: Add each school council event to keep planning visible for everyone.</p>
-    </section>
   </main>
 
   <dialog id="event-dialog" aria-labelledby="event-dialog-title">
