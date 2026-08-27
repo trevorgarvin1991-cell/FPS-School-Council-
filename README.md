@@ -42,7 +42,7 @@ Budget entries, Kanban tasks, task attachments, floor plan markers, and uploaded
 
 Run the script again after pulling future schema updates; its table and column setup is safe to rerun.
 
-The setup also creates `events`, `event_budgets`, `event_tasks`, `task_attachments`, `council_documents`, and `floor_plan_markers`, plus the `task-attachments` and `council-documents` storage buckets. Signed-in council members can add documents through the Document Repository tab; visitors can view the shared document list. Each event budget has exactly one owning event through `event_budgets.event_id`, and is deleted automatically when its event is removed. The Halloween event and its $2,500 allocation are seeded on first run.
+The setup also creates `events`, `event_budgets`, `event_tasks`, `task_attachments`, `council_documents`, and `floor_plan_markers`, plus the `task-attachments` and `council-documents` storage buckets. Signed-in council members can add or remove documents through the Document Repository tab; visitors can view the shared document list. Each event budget has exactly one owning event through `event_budgets.event_id`, and is deleted automatically when its event is removed. The Halloween event and its $2,500 allocation are seeded on first run.
 
 ## Council Member Access
 

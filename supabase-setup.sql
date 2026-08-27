@@ -45,10 +45,16 @@ to authenticated
 using (bucket_id = 'task-attachments');
 
 drop policy if exists "Council document upload access" on storage.objects;
+drop policy if exists "Council document delete access" on storage.objects;
 create policy "Council document upload access"
 on storage.objects for insert
 to authenticated
 with check (bucket_id = 'council-documents');
+
+create policy "Council document delete access"
+on storage.objects for delete
+to authenticated
+using (bucket_id = 'council-documents');
 
 create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
@@ -293,6 +299,7 @@ drop policy if exists "Council task read access" on public.event_tasks;
 drop policy if exists "Council task attachment read access" on public.task_attachments;
 drop policy if exists "Public council document read access" on public.council_documents;
 drop policy if exists "Council document insert access" on public.council_documents;
+drop policy if exists "Council document delete access" on public.council_documents;
 
 create policy "Public event read access"
 on public.events for select
@@ -411,6 +418,11 @@ create policy "Council document insert access"
 on public.council_documents for insert
 to authenticated
 with check (auth.uid() is not null);
+
+create policy "Council document delete access"
+on public.council_documents for delete
+to authenticated
+using (auth.uid() is not null);
 
 create policy "Public floor plan marker read access"
 on public.floor_plan_markers for select

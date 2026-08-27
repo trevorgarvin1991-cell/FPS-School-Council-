@@ -421,24 +421,7 @@
       color: var(--falcon-black);
       box-shadow: 0 -3px 0 var(--falcon-yellow);
     }
-    .document-repository-tab {
-      margin-left: auto;
-      border-color: var(--falcon-yellow);
-      background: #fffbea;
-      color: var(--falcon-black);
-    }
-    .document-repository-tab:hover { background: var(--falcon-yellow); }
-    .document-repository-tab[aria-selected="true"] { background: var(--falcon-yellow); }
     .event-workspace-panel { padding-top: 0.15rem; }
-    .document-repository-list { display: grid; gap: 0.65rem; margin-top: 0.75rem; }
-    .document-repository-item { display: block; padding: 0.8rem; border: 1px solid var(--line); border-left: 4px solid var(--falcon-yellow); background: #fffbea; text-decoration: none; }
-    .document-repository-item:hover { background: #fff4bd; }
-    .document-repository-item strong { display: block; color: var(--falcon-black); }
-    .document-repository-item span { display: block; margin-top: 0.2rem; color: #625b38; font-size: 0.85rem; font-weight: normal; }
-    .document-upload-form { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin: 0.85rem 0 0; }
-    .document-upload-form input { min-width: 0; max-width: 100%; }
-    .document-upload-form button { min-height: 2.25rem; }
-    .document-upload-feedback { min-height: 1.1rem; margin: 0.55rem 0 0; color: #625b38; font-size: 0.82rem; }
     .floor-plan-controls {
       margin: 0.7rem 0 0.65rem;
       border-bottom: 1px solid var(--line);
@@ -857,9 +840,8 @@
       main { margin-top: 1rem; }
       .school-logo { width: 68px; height: 68px; }
       .budget-metrics { grid-template-columns: repeat(2, 1fr); }
-      .event-workspace-tabs { display: grid; grid-template-columns: repeat(6, 1fr); }
+      .event-workspace-tabs { display: grid; grid-template-columns: repeat(5, 1fr); }
       .event-workspace-tab { min-height: 3.1rem; padding: 0.4rem; font-size: 0.75rem; }
-      .document-repository-tab { margin-left: 0; }
       .kanban-board { grid-template-columns: repeat(3, minmax(12rem, 1fr)); overflow-x: auto; }
       .task-form { grid-template-columns: 1fr; }
       .floor-plan-toolbar { align-items: start; flex-direction: column; }
@@ -882,6 +864,7 @@
         </p>
       </div>
       <button class="add-event-button account-button" id="account-button" type="button">Sign in</button>
+      <a class="event-plan-button" href="documents.html">Documents</a>
       <a
         class="event-plan-button"
         href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit#heading=h.dh4oi8o5dkgk"
@@ -935,7 +918,6 @@
         <button class="event-workspace-tab" id="schedule-tab" type="button" role="tab" aria-selected="false" aria-controls="schedule-panel">Tasks</button>
         <button class="event-workspace-tab" id="resources-tab" type="button" role="tab" aria-selected="false" aria-controls="resources-panel">Resources &amp; Members</button>
         <button class="event-workspace-tab" id="budget-tab" type="button" role="tab" aria-selected="false" aria-controls="budget-panel">Budget</button>
-        <button class="event-workspace-tab document-repository-tab" id="document-repository-tab" type="button" role="tab" aria-selected="false" aria-controls="document-repository-panel">Document Repository</button>
       </div>
       <div class="event-workspace-panel" id="budget-panel" role="tabpanel" aria-labelledby="budget-tab" hidden>
         <div class="event-budget" aria-label="Halloween event budget">
@@ -1054,22 +1036,6 @@
               <a href="mailto:Trevor.Garvin1991@gmail.com">Trevor.Garvin1991@gmail.com</a>
             </div>
           </div>
-        </div>
-      </div>
-      <div class="event-workspace-panel" id="document-repository-panel" role="tabpanel" aria-labelledby="document-repository-tab" hidden>
-        <div class="planning-block">
-          <h3>Document Repository</h3>
-          <p class="hint">Council documents and fundraising materials.</p>
-          <form class="document-upload-form" id="document-upload-form" aria-label="Upload a document">
-            <input id="document-upload-input" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" required />
-            <button type="submit">Add document</button>
-          </form>
-          <p class="document-upload-feedback" id="document-upload-feedback" aria-live="polite"></p>
-          <div class="document-repository-list">
-            <a class="document-repository-item" href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit?pli=1&amp;tab=t.lu5m7q7foctz" target="_blank" rel="noopener noreferrer"><strong>Fun Fair Committee Event Plan</strong><span>Event planning document</span></a>
-            <a class="document-repository-item" href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit?pli=1&amp;tab=t.7373lv7zxjar" target="_blank" rel="noopener noreferrer"><strong>Donation Request Letter</strong><span>School Council fundraising letter</span></a>
-          </div>
-          <div class="document-repository-list" id="uploaded-document-list" aria-live="polite"></div>
         </div>
       </div>
       <div class="event-workspace-panel" id="event-list-panel" role="tabpanel" aria-labelledby="event-list-tab" hidden>
@@ -1285,69 +1251,6 @@
       accountDialog.showModal();
       return false;
     }
-
-    const documentUploadForm = document.getElementById('document-upload-form');
-    const documentUploadInput = document.getElementById('document-upload-input');
-    const documentUploadFeedback = document.getElementById('document-upload-feedback');
-    const uploadedDocumentList = document.getElementById('uploaded-document-list');
-    const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
-
-    function renderUploadedDocuments(documents) {
-      uploadedDocumentList.replaceChildren();
-      documents.forEach((uploadedDocument) => {
-        const link = document.createElement('a');
-        link.className = 'document-repository-item';
-        link.href = supabaseClient.storage.from('council-documents').getPublicUrl(uploadedDocument.file_path).data.publicUrl;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        const title = document.createElement('strong');
-        title.textContent = uploadedDocument.file_name;
-        const description = document.createElement('span');
-        description.textContent = 'Shared council document';
-        link.append(title, description);
-        uploadedDocumentList.appendChild(link);
-      });
-    }
-
-    async function loadUploadedDocuments() {
-      const { data, error } = await supabaseClient
-        .from('council_documents')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) {
-        documentUploadFeedback.textContent = 'Document uploads are unavailable until the latest Supabase setup script is run.';
-        return;
-      }
-      renderUploadedDocuments(data);
-    }
-
-    documentUploadForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if (!(await requireAuthentication())) return;
-      const file = documentUploadInput.files[0];
-      if (!file) return;
-      if (file.size > MAX_DOCUMENT_BYTES) {
-        documentUploadFeedback.textContent = 'Documents must be 10 MB or smaller.';
-        return;
-      }
-      documentUploadFeedback.textContent = 'Uploading document...';
-      const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const filePath = `${createEntryId()}-${safeFileName}`;
-      const { error: uploadError } = await supabaseClient.storage.from('council-documents').upload(filePath, file);
-      if (uploadError) {
-        documentUploadFeedback.textContent = 'Unable to upload document. Please try again.';
-        return;
-      }
-      const { error: recordError } = await supabaseClient.from('council_documents').insert({ file_name: file.name, file_path: filePath });
-      if (recordError) {
-        documentUploadFeedback.textContent = 'Document uploaded but could not be added to the repository.';
-        return;
-      }
-      documentUploadForm.reset();
-      documentUploadFeedback.textContent = `${file.name} was added to the repository.`;
-      await loadUploadedDocuments();
-    });
-    void loadUploadedDocuments();
 
     accountButton.addEventListener('click', async () => {
       await refreshAuthentication();

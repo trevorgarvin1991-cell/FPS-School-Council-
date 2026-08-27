@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>General Document Repository | Frankford Public School Council</title>
+  <link rel="icon" type="image/jpeg" href="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" />
+  <style>
+    :root { --yellow: #ffde00; --yellow-dark: #c5a100; --ink: #111111; --paper: #ffffff; --line: #e3dfc7; --muted: #625b38; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; color: var(--ink); font-family: 'Trebuchet MS', 'Gill Sans', sans-serif; background: linear-gradient(rgba(255, 253, 240, 0.82), rgba(255, 249, 214, 0.86)), url('Assets/OIP.webp') center / cover fixed; }
+    header { background: var(--ink); border-bottom: 5px solid var(--yellow); color: #fff; }
+    .header-content { max-width: 960px; min-height: 104px; margin: 0 auto; padding: 1rem; display: flex; align-items: center; gap: 0.85rem; }
+    .logo { width: 64px; height: 64px; padding: 3px; object-fit: contain; background: #fff; border: 2px solid var(--yellow); border-radius: 4px; }
+    h1 { margin: 0; color: var(--yellow); font-size: 1.55rem; }
+    .subtitle { margin: 0.3rem 0 0; font-size: 0.9rem; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .header-button, .back-link { display: inline-flex; align-items: center; justify-content: center; min-height: 2.5rem; padding: 0.55rem 0.7rem; border: 1px solid var(--ink); border-radius: 2px; background: var(--yellow); color: var(--ink); font: inherit; font-weight: bold; text-decoration: none; cursor: pointer; white-space: nowrap; }
+    .header-button:hover, .back-link:hover, button:hover { background: var(--yellow-dark); }
+    main { width: min(100% - 2rem, 760px); margin: 1.5rem auto; }
+    section { padding: clamp(1.1rem, 4vw, 1.8rem); background: var(--paper); border: 1px solid #d9d9d9; border-top: 5px solid var(--yellow); border-radius: 4px; box-shadow: 0 8px 24px rgba(17, 17, 17, 0.14); }
+    h2 { margin: 0; font-size: 1.35rem; }
+    .hint { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.88rem; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+    .upload-form { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin: 1.1rem 0 0; padding: 0.85rem; border: 1px solid var(--line); background: #fffbea; }
+    input, button { min-height: 2.4rem; padding: 0.5rem 0.65rem; border: 1px solid #aaa; border-radius: 2px; font: inherit; }
+    input { min-width: 0; max-width: 100%; background: #fff; }
+    button { border-color: var(--ink); background: var(--yellow); color: var(--ink); font-weight: bold; cursor: pointer; }
+    .feedback { min-height: 1.2rem; margin: 0.6rem 0 0; color: var(--muted); font-size: 0.84rem; }
+    .document-list { display: grid; gap: 0.65rem; margin-top: 1rem; }
+    .document-item { display: block; padding: 0.8rem; border: 1px solid var(--line); border-left: 4px solid var(--yellow); background: #fffbea; text-decoration: none; }
+    .document-item:hover { background: #fff4bd; }
+    .document-item strong { display: block; color: var(--ink); }
+    .document-item span { display: block; margin-top: 0.2rem; color: var(--muted); font-size: 0.85rem; font-weight: normal; }
+    .uploaded-document-row { display: flex; gap: 0.5rem; align-items: stretch; }
+    .uploaded-document-row .document-item { flex: 1; }
+    .remove-button { min-width: 2.25rem; min-height: 2.25rem; padding: 0.35rem 0.55rem; border-color: #a32929; background: #fff; color: #8a2020; font-size: 0.8rem; }
+    .remove-button:hover { background: #fce8e8; }
+    dialog { width: min(420px, calc(100% - 2rem)); border: 2px solid var(--ink); border-top: 5px solid var(--yellow); border-radius: 4px; padding: 1.25rem; color: var(--ink); }
+    dialog::backdrop { background: rgba(17, 17, 17, 0.6); }
+    .dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+    .dialog-heading h2 { margin: 0; }
+    .sign-in-form { display: grid; gap: 0.65rem; }
+    .dialog-close { min-height: 0; padding: 0.25rem 0.5rem; background: #fff; }
+    footer { width: min(100% - 2rem, 760px); margin: 0 auto; padding-bottom: 1rem; color: var(--muted); font-size: 0.76rem; text-align: right; }
+    @media (max-width: 620px) { .header-content { min-height: 88px; } .header-actions { gap: 0.35rem; } .header-button, .back-link { font-size: 0.82rem; } .uploaded-document-row { align-items: flex-start; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <img class="logo" src="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" alt="Frankford Falcons logo" />
+      <div><h1>General Document Repository</h1><p class="subtitle">Frankford Public School Council</p></div>
+      <div class="header-actions"><button class="header-button" id="account-button" type="button">Sign in</button><a class="back-link" href="index.html">Back to council</a></div>
+    </div>
+  </header>
+  <main>
+    <section aria-labelledby="repository-title">
+      <h2 id="repository-title">Council Documents</h2>
+      <p class="hint">Shared council documents and fundraising materials.</p>
+      <form class="upload-form" id="document-upload-form" aria-label="Upload a document">
+        <label class="visually-hidden" for="document-upload-input">Choose a document to upload</label>
+        <input id="document-upload-input" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" required />
+        <button type="submit">Add document</button>
+      </form>
+      <p class="feedback" id="document-upload-feedback" aria-live="polite"></p>
+      <div class="document-list">
+        <a class="document-item" href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit?pli=1&amp;tab=t.7373lv7zxjar" target="_blank" rel="noopener noreferrer"><strong>Donation Request Letter</strong><span>School Council fundraising letter</span></a>
+      </div>
+      <div class="document-list" id="uploaded-document-list" aria-live="polite"></div>
+    </section>
+  </main>
+  <footer>Frankford Public School Council</footer>
+  <dialog id="account-dialog" aria-labelledby="account-dialog-title">
+    <div class="dialog-heading"><h2 id="account-dialog-title">Council sign in</h2><button class="dialog-close" id="close-account-dialog" type="button">Close</button></div>
+    <form class="sign-in-form" id="account-form">
+      <input id="account-email" type="email" autocomplete="email" placeholder="Email address" required />
+      <input id="account-password" type="password" autocomplete="current-password" placeholder="Password" required />
+      <button type="submit">Sign in</button>
+      <p class="feedback" id="account-feedback" role="alert"></p>
+    </form>
+  </dialog>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabaseClient = window.supabase.createClient('https://oueexkkwbkzynajpddxq.supabase.co', 'sb_publishable_utwHzWU7rkjWnQJuCIRrTQ_l_RhktGi');
+    const accountButton = document.getElementById('account-button');
+    const accountDialog = document.getElementById('account-dialog');
+    const accountForm = document.getElementById('account-form');
+    const accountFeedback = document.getElementById('account-feedback');
+    const documentUploadForm = document.getElementById('document-upload-form');
+    const documentUploadInput = document.getElementById('document-upload-input');
+    const documentUploadFeedback = document.getElementById('document-upload-feedback');
+    const uploadedDocumentList = document.getElementById('uploaded-document-list');
+    const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
+    let authenticatedUser = null;
+
+    async function refreshAuthentication() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      authenticatedUser = session?.user || null;
+      accountButton.textContent = authenticatedUser ? 'Sign out' : 'Sign in';
+    }
+
+    async function requireAuthentication() {
+      await refreshAuthentication();
+      if (authenticatedUser) return true;
+      accountFeedback.textContent = 'Sign in before making changes.';
+      accountDialog.showModal();
+      return false;
+    }
+
+    function renderUploadedDocuments(documents) {
+      uploadedDocumentList.replaceChildren();
+      documents.forEach((uploadedDocument) => {
+        const row = document.createElement('div');
+        row.className = 'uploaded-document-row';
+        const link = document.createElement('a');
+        link.className = 'document-item';
+        link.href = supabaseClient.storage.from('council-documents').getPublicUrl(uploadedDocument.file_path).data.publicUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        const title = document.createElement('strong');
+        title.textContent = uploadedDocument.file_name;
+        const description = document.createElement('span');
+        description.textContent = 'Shared council document';
+        link.append(title, description);
+        const removeButton = document.createElement('button');
+        removeButton.className = 'remove-button';
+        removeButton.type = 'button';
+        removeButton.textContent = 'Remove';
+        removeButton.addEventListener('click', () => void deleteUploadedDocument(uploadedDocument));
+        row.append(link, removeButton);
+        uploadedDocumentList.appendChild(row);
+      });
+    }
+
+    async function loadUploadedDocuments() {
+      const { data, error } = await supabaseClient.from('council_documents').select('*').order('created_at', { ascending: false });
+      if (error) {
+        documentUploadFeedback.textContent = 'Document uploads are unavailable until the latest Supabase setup script is run.';
+        return;
+      }
+      renderUploadedDocuments(data);
+    }
+
+    async function deleteUploadedDocument(uploadedDocument) {
+      if (!(await requireAuthentication())) return;
+      if (!globalThis.confirm(`Remove ${uploadedDocument.file_name} from the repository?`)) return;
+      documentUploadFeedback.textContent = 'Removing document...';
+      const { error: storageError } = await supabaseClient.storage.from('council-documents').remove([uploadedDocument.file_path]);
+      if (storageError) { documentUploadFeedback.textContent = 'Unable to remove the document file. Please try again.'; return; }
+      const { error: recordError } = await supabaseClient.from('council_documents').delete().eq('id', uploadedDocument.id);
+      if (recordError) { documentUploadFeedback.textContent = 'Document file was removed but its repository record could not be deleted.'; return; }
+      documentUploadFeedback.textContent = `${uploadedDocument.file_name} was removed from the repository.`;
+      await loadUploadedDocuments();
+    }
+
+    documentUploadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!(await requireAuthentication())) return;
+      const file = documentUploadInput.files[0];
+      if (!file) return;
+      if (file.size > MAX_DOCUMENT_BYTES) { documentUploadFeedback.textContent = 'Documents must be 10 MB or smaller.'; return; }
+      documentUploadFeedback.textContent = 'Uploading document...';
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const filePath = `${crypto.randomUUID()}-${safeFileName}`;
+      const { error: uploadError } = await supabaseClient.storage.from('council-documents').upload(filePath, file);
+      if (uploadError) { documentUploadFeedback.textContent = 'Unable to upload document. Please try again.'; return; }
+      const { error: recordError } = await supabaseClient.from('council_documents').insert({ file_name: file.name, file_path: filePath });
+      if (recordError) { documentUploadFeedback.textContent = 'Document uploaded but could not be added to the repository.'; return; }
+      documentUploadForm.reset();
+      documentUploadFeedback.textContent = `${file.name} was added to the repository.`;
+      await loadUploadedDocuments();
+    });
+
+    document.getElementById('close-account-dialog').addEventListener('click', () => accountDialog.close());
+    accountButton.addEventListener('click', async () => {
+      await refreshAuthentication();
+      if (authenticatedUser) { await supabaseClient.auth.signOut(); await refreshAuthentication(); return; }
+      accountFeedback.textContent = '';
+      accountDialog.showModal();
+    });
+    accountForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      accountFeedback.textContent = 'Signing in...';
+      const { error } = await supabaseClient.auth.signInWithPassword({ email: document.getElementById('account-email').value.trim(), password: document.getElementById('account-password').value });
+      if (error) { accountFeedback.textContent = error.message; return; }
+      accountForm.reset();
+      accountDialog.close();
+      await refreshAuthentication();
+    });
+    void refreshAuthentication();
+    void loadUploadedDocuments();
+  </script>
+</body>
+</html>
