@@ -1569,7 +1569,8 @@
         event_key: EVENT_KEY,
         title: task.title,
         assignee: task.assignee,
-        status: task.status
+        status: task.status,
+        last_editor_id: getVisitorId()
       };
     }
 
@@ -1620,7 +1621,7 @@
     async function updateTaskInDatabase(task) {
       await supabaseClient
         .from('event_tasks')
-        .update({ title: task.title, assignee: task.assignee, status: task.status })
+        .update({ title: task.title, assignee: task.assignee, status: task.status, last_editor_id: getVisitorId() })
         .eq('id', task.id);
     }
 

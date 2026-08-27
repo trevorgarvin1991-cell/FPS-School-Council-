@@ -62,9 +62,12 @@ create table if not exists public.event_tasks (
   title text not null,
   assignee text not null default '',
   status text not null check (status in ('todo', 'in-progress', 'completed')),
+  last_editor_id uuid,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.event_tasks add column if not exists last_editor_id uuid;
 
 create table if not exists public.task_attachments (
   id uuid primary key default gen_random_uuid(),
@@ -100,12 +103,15 @@ create table if not exists public.activity_log (
   id bigint generated always as identity primary key,
   actor_id uuid references auth.users(id) on delete set null,
   actor_email text not null default '',
+  browser_id uuid,
   action text not null check (action in ('budget_added', 'budget_removed', 'task_added', 'task_removed', 'task_updated')),
   entity_type text not null check (entity_type in ('budget_item', 'task')),
   entity_id uuid,
   entity_label text not null default '',
   occurred_at timestamptz not null default now()
 );
+
+alter table public.activity_log add column if not exists browser_id uuid;
 
 create or replace function public.log_council_activity()
 returns trigger
@@ -115,10 +121,11 @@ set search_path = public
 as $$
 begin
   if tg_op = 'DELETE' then
-    insert into public.activity_log (actor_id, actor_email, action, entity_type, entity_id, entity_label)
+    insert into public.activity_log (actor_id, actor_email, browser_id, action, entity_type, entity_id, entity_label)
     values (
       auth.uid(),
       coalesce(auth.jwt() ->> 'email', ''),
+      (to_jsonb(old) ->> 'last_editor_id')::uuid,
       case when tg_table_name = 'budget_entries' then 'budget_removed' else 'task_removed' end,
       case when tg_table_name = 'budget_entries' then 'budget_item' else 'task' end,
       old.id,
@@ -127,10 +134,11 @@ begin
     return old;
   end if;
 
-  insert into public.activity_log (actor_id, actor_email, action, entity_type, entity_id, entity_label)
+  insert into public.activity_log (actor_id, actor_email, browser_id, action, entity_type, entity_id, entity_label)
   values (
     auth.uid(),
     coalesce(auth.jwt() ->> 'email', ''),
+    (to_jsonb(new) ->> 'last_editor_id')::uuid,
     case
       when tg_table_name = 'budget_entries' then 'budget_added'
       when tg_op = 'INSERT' then 'task_added'
@@ -258,9 +266,13 @@ drop policy if exists "Public floor plan marker delete access" on public.floor_p
 drop policy if exists "Public visit insert access" on public.page_visits;
 drop policy if exists "Council budget entry insert access" on public.budget_entries;
 drop policy if exists "Council budget entry delete access" on public.budget_entries;
+drop policy if exists "Council budget entry read access" on public.budget_entries;
 drop policy if exists "Council task insert access" on public.event_tasks;
 drop policy if exists "Council task update access" on public.event_tasks;
 drop policy if exists "Council task delete access" on public.event_tasks;
+drop policy if exists "Guest task update access" on public.event_tasks;
+drop policy if exists "Council task read access" on public.event_tasks;
+drop policy if exists "Council task attachment read access" on public.task_attachments;
 
 create policy "Public event read access"
 on public.events for select
@@ -303,6 +315,11 @@ on public.budget_entries for select
 to anon
 using (true);
 
+create policy "Council budget entry read access"
+on public.budget_entries for select
+to authenticated
+using (true);
+
 create policy "Council budget entry insert access"
 on public.budget_entries for insert
 to authenticated
@@ -318,6 +335,11 @@ on public.event_tasks for select
 to anon
 using (true);
 
+create policy "Council task read access"
+on public.event_tasks for select
+to authenticated
+using (true);
+
 create policy "Council task insert access"
 on public.event_tasks for insert
 to authenticated
@@ -329,6 +351,12 @@ to authenticated
 using (auth.uid() is not null)
 with check (auth.uid() is not null);
 
+create policy "Guest task update access"
+on public.event_tasks for update
+to anon
+using (true)
+with check (true);
+
 create policy "Council task delete access"
 on public.event_tasks for delete
 to authenticated
@@ -337,6 +365,11 @@ using (auth.uid() is not null);
 create policy "Public task attachment read access"
 on public.task_attachments for select
 to anon
+using (true);
+
+create policy "Council task attachment read access"
+on public.task_attachments for select
+to authenticated
 using (true);
 
 create policy "Public task attachment insert access"

@@ -46,12 +46,12 @@ The setup also creates `events`, `event_budgets`, `event_tasks`, `task_attachmen
 
 ## Council Member Access
 
-Visitors can view budget and task information, but adding, editing, or removing budget items and tasks requires a Supabase account. Create each council member in **Authentication > Users > Add user** in the Supabase dashboard, setting an email and password. Council members then select **Sign in** on the site before making changes.
+Visitors can view budget and task information. Adding or removing budget items and tasks requires a Supabase account. Guests can edit existing tasks; each guest edit records the anonymous browser marker that made it. Create each council member in **Authentication > Users > Add user** in the Supabase dashboard, setting an email and password. Council members then select **Sign in** on the site before making protected changes.
 
 Every budget and task change is recorded in `public.activity_log` with the signed-in account, action, item or task name, and timestamp. Review it in the Supabase Table Editor or run:
 
 ```sql
-select actor_email, action, entity_label, occurred_at
+select actor_email, browser_id, action, entity_label, occurred_at
 from public.activity_log
 order by occurred_at desc;
 ```
