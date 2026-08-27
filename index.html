@@ -284,6 +284,50 @@
       box-shadow: 0 -3px 0 var(--falcon-yellow);
     }
     .event-workspace-panel { padding-top: 0.15rem; }
+    .floor-plan-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin: 1rem 0 0.65rem;
+    }
+    .floor-plan-toolbar label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+    .floor-plan-toolbar input { padding: 0; }
+    .floor-plan-reset { min-height: 2rem; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
+    .floor-plan-viewport {
+      height: min(64vw, 34rem);
+      min-height: 17rem;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #f7f4e6;
+      cursor: grab;
+      touch-action: none;
+    }
+    .floor-plan-viewport.is-panning { cursor: grabbing; }
+    .floor-plan-canvas {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      transform-origin: center;
+      will-change: transform;
+    }
+    .floor-plan-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      -webkit-user-select: none;
+      user-select: none;
+      pointer-events: none;
+    }
+    .floor-plan-note { margin: 0.65rem 0 0; }
     .planning-block {
       margin: 1rem 0;
       padding: 0.9rem 0;
@@ -510,10 +554,11 @@
       main { margin-top: 1rem; }
       .school-logo { width: 68px; height: 68px; }
       .budget-metrics { grid-template-columns: repeat(2, 1fr); }
-      .event-workspace-tabs { display: grid; grid-template-columns: repeat(3, 1fr); }
+      .event-workspace-tabs { display: grid; grid-template-columns: repeat(4, 1fr); }
       .event-workspace-tab { min-height: 3.1rem; padding: 0.4rem; font-size: 0.75rem; }
       .kanban-board { grid-template-columns: repeat(3, minmax(12rem, 1fr)); overflow-x: auto; }
       .task-form { grid-template-columns: 1fr; }
+      .floor-plan-toolbar { align-items: start; flex-direction: column; }
     }
   </style>
 </head>
@@ -563,7 +608,7 @@
 
   <main>
     <section>
-      <h2>Halloween Theme</h2>
+      <h2>Halloween Event</h2>
       <p class="hint">Thursday, October 22, 2026</p>
       <div class="countdown" aria-live="polite">
         <span class="countdown-label" id="countdown-label"><span class="countdown-pumpkin" aria-hidden="true">&#127875;</span>Time until the Fun Fair begins</span>
@@ -582,6 +627,7 @@
         <button class="event-workspace-tab" id="budget-tab" type="button" role="tab" aria-selected="true" aria-controls="budget-panel">Budget</button>
         <button class="event-workspace-tab" id="schedule-tab" type="button" role="tab" aria-selected="false" aria-controls="schedule-panel">Schedules &amp; Tasks</button>
         <button class="event-workspace-tab" id="resources-tab" type="button" role="tab" aria-selected="false" aria-controls="resources-panel">Resources &amp; Members</button>
+        <button class="event-workspace-tab" id="floor-plan-tab" type="button" role="tab" aria-selected="false" aria-controls="floor-plan-panel">Floor Plan</button>
       </div>
       <div class="event-workspace-panel" id="budget-panel" role="tabpanel" aria-labelledby="budget-tab">
         <div class="event-budget" aria-label="Halloween event budget">
@@ -695,6 +741,18 @@
             </div>
           </div>
         </div>
+      </div>
+      <div class="event-workspace-panel" id="floor-plan-panel" role="tabpanel" aria-labelledby="floor-plan-tab" hidden>
+        <div class="floor-plan-toolbar">
+          <label for="floor-plan-zoom">Zoom <input id="floor-plan-zoom" type="range" min="100" max="250" step="10" value="100" /></label>
+          <button class="floor-plan-reset" id="floor-plan-reset" type="button">Reset view</button>
+        </div>
+        <div class="floor-plan-viewport" id="floor-plan-viewport" tabindex="0" aria-label="Interactive floor plan. Drag to pan and use the zoom slider to inspect the layout.">
+          <div class="floor-plan-canvas" id="floor-plan-canvas">
+            <img class="floor-plan-image" src="Assets/2026-08-27_00-59-52.jpg" alt="Frankford Public School Fun Fair floor plan showing accessible routes, Fun Fair areas, and no-access rooms" />
+          </div>
+        </div>
+        <p class="hint floor-plan-note">Drag the plan to pan. Use the zoom control to inspect Fun Fair areas, no-access rooms, washrooms, and the accessibility ramp.</p>
       </div>
     </section>
 
@@ -879,6 +937,62 @@
           panel.hidden = panel.id !== tab.getAttribute('aria-controls');
         });
       });
+    });
+
+    const floorPlanViewport = document.getElementById('floor-plan-viewport');
+    const floorPlanCanvas = document.getElementById('floor-plan-canvas');
+    const floorPlanZoom = document.getElementById('floor-plan-zoom');
+    const floorPlanReset = document.getElementById('floor-plan-reset');
+    let floorPlanScale = 1;
+    let floorPlanOffset = { x: 0, y: 0 };
+    let floorPlanPointerStart = null;
+
+    function renderFloorPlan() {
+      floorPlanCanvas.style.transform = `translate(${floorPlanOffset.x}px, ${floorPlanOffset.y}px) scale(${floorPlanScale})`;
+    }
+
+    function resetFloorPlan() {
+      floorPlanScale = 1;
+      floorPlanOffset = { x: 0, y: 0 };
+      floorPlanZoom.value = '100';
+      renderFloorPlan();
+    }
+
+    floorPlanZoom.addEventListener('input', () => {
+      floorPlanScale = Number(floorPlanZoom.value) / 100;
+      renderFloorPlan();
+    });
+    floorPlanReset.addEventListener('click', resetFloorPlan);
+    floorPlanViewport.addEventListener('wheel', (event) => {
+      event.preventDefault();
+      const nextZoom = Math.min(250, Math.max(100, Number(floorPlanZoom.value) - Math.sign(event.deltaY) * 10));
+      floorPlanZoom.value = String(nextZoom);
+      floorPlanScale = nextZoom / 100;
+      renderFloorPlan();
+    }, { passive: false });
+    floorPlanViewport.addEventListener('pointerdown', (event) => {
+      floorPlanPointerStart = { x: event.clientX, y: event.clientY, offsetX: floorPlanOffset.x, offsetY: floorPlanOffset.y };
+      floorPlanViewport.setPointerCapture(event.pointerId);
+      floorPlanViewport.classList.add('is-panning');
+    });
+    floorPlanViewport.addEventListener('pointermove', (event) => {
+      if (!floorPlanPointerStart) {
+        return;
+      }
+
+      floorPlanOffset = {
+        x: floorPlanPointerStart.offsetX + event.clientX - floorPlanPointerStart.x,
+        y: floorPlanPointerStart.offsetY + event.clientY - floorPlanPointerStart.y
+      };
+      renderFloorPlan();
+    });
+    floorPlanViewport.addEventListener('pointerup', () => {
+      floorPlanPointerStart = null;
+      floorPlanViewport.classList.remove('is-panning');
+    });
+    floorPlanViewport.addEventListener('pointercancel', () => {
+      floorPlanPointerStart = null;
+      floorPlanViewport.classList.remove('is-panning');
     });
 
     const TASK_STORAGE_KEY = 'fps-halloween-tasks-v1';
@@ -1557,7 +1671,7 @@
     const eventBody = document.getElementById('event-body');
 
     appendEventRow(
-      ['Halloween Theme', formatDateForDisplay('2026-10-22'), 'Frankford Public School'],
+      ['Halloween Event', formatDateForDisplay('2026-10-22'), 'Frankford Public School'],
       eventBody
     );
 
