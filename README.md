@@ -33,7 +33,7 @@ After GitHub Pages verifies the domain and issues a certificate, enable HTTPS in
 
 ## Shared Budget Data
 
-Budget entries and uploaded receipts sync between devices through Supabase.
+Budget entries, Kanban tasks, and uploaded receipts sync between devices through Supabase.
 
 1. Create a project in [Supabase](https://supabase.com/dashboard).
 2. In the project, open **SQL Editor**, paste the contents of [supabase-setup.sql](supabase-setup.sql), and run it. The script creates the budget tables, the public `budget-receipts` storage bucket, and the access policies required by the site.
@@ -42,7 +42,7 @@ Budget entries and uploaded receipts sync between devices through Supabase.
 
 Run the script again after pulling future schema updates; its table and column setup is safe to rerun.
 
-The setup also creates `events` and `event_budgets`. Each event budget has exactly one owning event through `event_budgets.event_id`, and is deleted automatically when its event is removed. The Halloween event and its $2,500 allocation are seeded on first run.
+The setup also creates `events`, `event_budgets`, and `event_tasks`. Each event budget has exactly one owning event through `event_budgets.event_id`, and is deleted automatically when its event is removed. The Halloween event and its $2,500 allocation are seeded on first run.
 
 ## Page Visit Analytics
 

@@ -786,6 +786,69 @@
       localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks));
     }
 
+    function mapTask(task) {
+      return {
+        id: task.id,
+        event_key: EVENT_KEY,
+        title: task.title,
+        assignee: task.assignee,
+        status: task.status
+      };
+    }
+
+    function mapRemoteTask(task) {
+      return {
+        id: task.id,
+        title: task.title,
+        assignee: task.assignee,
+        status: task.status
+      };
+    }
+
+    async function synchronizeTasks() {
+      const { data, error } = await supabaseClient
+        .from('event_tasks')
+        .select('*')
+        .eq('event_key', EVENT_KEY)
+        .order('created_at');
+
+      if (error) {
+        return;
+      }
+
+      if (data.length === 0 && tasks.length > 0) {
+        const { error: migrationError } = await supabaseClient
+          .from('event_tasks')
+          .upsert(tasks.map(mapTask));
+        if (migrationError) {
+          return;
+        }
+        await synchronizeTasks();
+        return;
+      }
+
+      tasks = data.map(mapRemoteTask);
+      saveTasks();
+      renderTasks();
+    }
+
+    async function updateTaskInDatabase(task) {
+      await supabaseClient
+        .from('event_tasks')
+        .update({ assignee: task.assignee, status: task.status })
+        .eq('id', task.id);
+    }
+
+    async function deleteTask(taskId) {
+      await supabaseClient
+        .from('event_tasks')
+        .delete()
+        .eq('id', taskId);
+      tasks = tasks.filter((task) => task.id !== taskId);
+      saveTasks();
+      renderTasks();
+    }
+
     function moveTask(taskId, status) {
       const task = tasks.find((currentTask) => currentTask.id === taskId);
       if (!task || !TASK_STATUSES.includes(status)) {
@@ -795,6 +858,7 @@
       task.status = status;
       saveTasks();
       renderTasks();
+      void updateTaskInDatabase(task);
     }
 
     function renderTasks() {
@@ -829,9 +893,7 @@
           deleteButton.setAttribute('aria-label', `Remove ${task.title}`);
           deleteButton.innerHTML = '&times;';
           deleteButton.addEventListener('click', () => {
-            tasks = tasks.filter((currentTask) => currentTask.id !== task.id);
-            saveTasks();
-            renderTasks();
+            void deleteTask(task.id);
           });
           taskHeader.append(taskName, deleteButton);
 
@@ -845,6 +907,7 @@
           assigneeInput.addEventListener('change', () => {
             task.assignee = assigneeInput.value.trim();
             saveTasks();
+            void updateTaskInDatabase(task);
           });
 
           const statusSelect = document.createElement('select');
@@ -873,7 +936,7 @@
       });
     }
 
-    taskForm.addEventListener('submit', (event) => {
+    taskForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const title = taskTitle.value.trim();
       const assignee = taskAssignee.value.trim();
@@ -881,11 +944,13 @@
         return;
       }
 
-      tasks.unshift({ id: createEntryId(), title, assignee, status: 'todo' });
+      const task = { id: createEntryId(), title, assignee, status: 'todo' };
+      tasks.unshift(task);
       saveTasks();
       renderTasks();
       taskForm.reset();
       taskTitle.focus();
+      await supabaseClient.from('event_tasks').upsert(mapTask(task));
     });
 
     Object.entries(taskLists).forEach(([status, taskList]) => {
@@ -904,6 +969,16 @@
     });
 
     renderTasks();
+    void synchronizeTasks();
+
+    supabaseClient
+      .channel('halloween-event-tasks')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'event_tasks', filter: `event_key=eq.${EVENT_KEY}` },
+        synchronizeTasks
+      )
+      .subscribe();
 
     const INITIAL_BUDGET_ENTRIES = [
       { item: 'Square Machine', category: 'Hardware', type: 'forecast', amountCents: 40_000 },

@@ -40,6 +40,16 @@ create table if not exists public.event_budgets (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.event_tasks (
+  id uuid primary key,
+  event_key text not null,
+  title text not null,
+  assignee text not null default '',
+  status text not null check (status in ('todo', 'in-progress', 'completed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.page_visits (
   id bigint generated always as identity primary key,
   visited_at timestamptz not null default now()
@@ -58,6 +68,7 @@ on conflict (event_id) do nothing;
 alter table public.budget_entries enable row level security;
 alter table public.events enable row level security;
 alter table public.event_budgets enable row level security;
+alter table public.event_tasks enable row level security;
 alter table public.page_visits enable row level security;
 
 drop policy if exists "Public event read access" on public.events;
@@ -70,6 +81,10 @@ drop policy if exists "Public event budget delete access" on public.event_budget
 drop policy if exists "Public budget entry read access" on public.budget_entries;
 drop policy if exists "Public budget entry insert access" on public.budget_entries;
 drop policy if exists "Public budget entry delete access" on public.budget_entries;
+drop policy if exists "Public task read access" on public.event_tasks;
+drop policy if exists "Public task insert access" on public.event_tasks;
+drop policy if exists "Public task update access" on public.event_tasks;
+drop policy if exists "Public task delete access" on public.event_tasks;
 drop policy if exists "Public visit insert access" on public.page_visits;
 
 create policy "Public event read access"
@@ -123,6 +138,27 @@ on public.budget_entries for delete
 to anon
 using (true);
 
+create policy "Public task read access"
+on public.event_tasks for select
+to anon
+using (true);
+
+create policy "Public task insert access"
+on public.event_tasks for insert
+to anon
+with check (true);
+
+create policy "Public task update access"
+on public.event_tasks for update
+to anon
+using (true)
+with check (true);
+
+create policy "Public task delete access"
+on public.event_tasks for delete
+to anon
+using (true);
+
 create policy "Public visit insert access"
 on public.page_visits for insert
 to anon
@@ -131,6 +167,14 @@ with check (true);
 do $$
 begin
   alter publication supabase_realtime add table public.budget_entries;
+exception
+  when duplicate_object then null;
+end;
+$$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.event_tasks;
 exception
   when duplicate_object then null;
 end;
