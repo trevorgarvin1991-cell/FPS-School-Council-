@@ -695,12 +695,12 @@
         <p>The Frankford Public School Fun Fair is scheduled for October 22, 2026, from 6:00 to 8:00 PM, with a BBQ running from 5:30 to 7:30 PM. Proceeds will support outdoor improvements: Buddy Benches, a primary yard sunshade shelter, and technology.</p>
       </div>
       <div class="event-workspace-tabs" role="tablist" aria-label="Halloween event workspace">
-        <button class="event-workspace-tab" id="budget-tab" type="button" role="tab" aria-selected="true" aria-controls="budget-panel">Budget</button>
+        <button class="event-workspace-tab" id="floor-plan-tab" type="button" role="tab" aria-selected="true" aria-controls="floor-plan-panel">Floor Plan</button>
+        <button class="event-workspace-tab" id="budget-tab" type="button" role="tab" aria-selected="false" aria-controls="budget-panel">Budget</button>
         <button class="event-workspace-tab" id="schedule-tab" type="button" role="tab" aria-selected="false" aria-controls="schedule-panel">Schedules &amp; Tasks</button>
         <button class="event-workspace-tab" id="resources-tab" type="button" role="tab" aria-selected="false" aria-controls="resources-panel">Resources &amp; Members</button>
-        <button class="event-workspace-tab" id="floor-plan-tab" type="button" role="tab" aria-selected="false" aria-controls="floor-plan-panel">Floor Plan</button>
       </div>
-      <div class="event-workspace-panel" id="budget-panel" role="tabpanel" aria-labelledby="budget-tab">
+      <div class="event-workspace-panel" id="budget-panel" role="tabpanel" aria-labelledby="budget-tab" hidden>
         <div class="event-budget" aria-label="Halloween event budget">
         <div class="budget-heading">
           <h3>Event Budget</h3>
@@ -813,7 +813,7 @@
           </div>
         </div>
       </div>
-      <div class="event-workspace-panel" id="floor-plan-panel" role="tabpanel" aria-labelledby="floor-plan-tab" hidden>
+      <div class="event-workspace-panel" id="floor-plan-panel" role="tabpanel" aria-labelledby="floor-plan-tab">
         <div class="floor-plan-toolbar">
           <label for="floor-plan-zoom">Zoom <input id="floor-plan-zoom" type="range" min="100" max="250" step="10" value="100" /></label>
           <button class="floor-plan-reset" id="floor-plan-reset" type="button">Reset view</button>
