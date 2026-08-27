@@ -158,6 +158,7 @@
     const budgetBody = document.getElementById('budget-body');
     const budgetTotal = document.getElementById('budget-total');
     const MAX_BUDGET_AMOUNT = 1_000_000;
+    const MAX_TOTAL_BUDGET_CENTS = MAX_BUDGET_AMOUNT * 100;
     let budgetCents = 0;
 
     budgetForm.addEventListener('submit', (event) => {
@@ -173,7 +174,8 @@
         !category ||
         !Number.isFinite(amountValue) ||
         amountValue < 0 ||
-        amountValue > MAX_BUDGET_AMOUNT
+        amountValue > MAX_BUDGET_AMOUNT ||
+        budgetCents + amountCents > MAX_TOTAL_BUDGET_CENTS
       ) {
         return;
       }
