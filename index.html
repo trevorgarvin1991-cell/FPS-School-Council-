@@ -269,6 +269,13 @@
       padding: 0.1rem 0 0.55rem 1.45rem;
     }
     .event-detail-content p { margin: 0; color: #4a4427; font-size: 0.85rem; line-height: 1.45; }
+    .event-detail-image {
+      width: 100%;
+      min-height: 52px;
+      height: 100%;
+      object-fit: cover;
+      border: 1px solid var(--line);
+    }
     .event-detail-image-placeholder {
       display: grid;
       min-height: 52px;
@@ -1338,6 +1345,17 @@
       ['Adult-Focused Activities', 'Find the Ace', 'Take part in the Find the Ace draw for a chance at the prize.']
     ].map(([group, name, summary]) => ({ group, name, summary, key: normalizeEventLabel(name) }));
 
+    const eventImages = {
+      'balloon jars and candy jar guess': 'Assets/Event Images/Gemini_Generated_Image_krfm4qkrfm4qkrfm.jpg',
+      'pumpkin bowling': 'Assets/Event Images/Gemini_Generated_Image_29xt2629xt2629xt (1).jpg',
+      'pencil spoon race': 'Assets/Event Images/Gemini_Generated_Image_zguwlzguwlzguwlz.jpg',
+      'cupcake walk': 'Assets/Event Images/Gemini_Generated_Image_29rr8j29rr8j29rr.jpg',
+      'ring toss and captain hook zombie hands': 'Assets/Event Images/Gemini_Generated_Image_ce05gce05gce05gc.jpg',
+      'halloween just dance for kids': 'Assets/Event Images/Gemini_Generated_Image_fvn61qfvn61qfvn6.jpg',
+      'fish pond': 'Assets/Event Images/Gemini_Generated_Image_cx4qpycx4qpycx4q.jpg',
+      'basketball shoot': 'Assets/Event Images/Gemini_Generated_Image_kfjogpkfjogpkfjo.jpg'
+    };
+
     function getMarkerEventKeys(marker) {
       const markerKey = normalizeEventLabel(marker.label);
       return markerEventAliases[markerKey] || [markerKey];
@@ -1379,12 +1397,21 @@
           content.className = 'event-detail-content';
           const description = document.createElement('p');
           description.textContent = event.summary;
-          const imagePlaceholder = document.createElement('div');
-          imagePlaceholder.className = 'event-detail-image-placeholder';
-          imagePlaceholder.setAttribute('role', 'img');
-          imagePlaceholder.setAttribute('aria-label', `Image placeholder for ${event.name}`);
-          imagePlaceholder.textContent = 'Image';
-          content.append(description, imagePlaceholder);
+          const imagePath = eventImages[event.key];
+          const eventVisual = imagePath
+            ? document.createElement('img')
+            : document.createElement('div');
+          if (eventVisual instanceof HTMLImageElement) {
+            eventVisual.className = 'event-detail-image';
+            eventVisual.src = imagePath;
+            eventVisual.alt = `${event.name} station`;
+          } else {
+            eventVisual.className = 'event-detail-image-placeholder';
+            eventVisual.setAttribute('role', 'img');
+            eventVisual.setAttribute('aria-label', `Image placeholder for ${event.name}`);
+            eventVisual.textContent = 'Image';
+          }
+          content.append(description, eventVisual);
           detail.append(summary, content);
           list.appendChild(detail);
         });
