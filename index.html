@@ -352,6 +352,7 @@
       vertical-align: middle;
     }
     .event-pin-status.is-pinned { color: var(--falcon-black); background: var(--falcon-yellow); }
+    .event-pin-status.is-pinned { cursor: pointer; }
     @media (max-width: 560px) {
       .event-detail-content { grid-template-columns: 1fr; padding-left: 1.45rem; }
       .event-detail-image,
@@ -614,6 +615,7 @@
       padding: 0.35rem 0.7rem;
       font-size: 0.78rem;
     }
+    .floor-plan-marker-open-event { width: 100%; min-height: 2rem; margin-top: 0.45rem; padding: 0.35rem 0.7rem; font-size: 0.78rem; }
     .floor-plan-marker-save { background: var(--falcon-yellow); }
     .floor-plan-marker-remove { border-color: #a32929; background: #fff; color: #8a2020; }
     .floor-plan-marker-remove:hover { background: #fce8e8; }
@@ -1131,15 +1133,13 @@
             </div>
             <form class="floor-plan-marker-edit-form" id="floor-plan-marker-edit-form">
               <input id="floor-plan-marker-edit-label" type="text" maxlength="80" aria-label="Event or station name" required />
-              <input id="floor-plan-marker-edit-details" type="text" maxlength="160" aria-label="Location details" />
-              <input id="floor-plan-marker-edit-url" type="url" maxlength="500" placeholder="More details link" aria-label="More details link" />
               <input class="floor-plan-marker-color" id="floor-plan-marker-edit-color" type="color" aria-label="Marker color" />
               <div class="floor-plan-marker-actions">
                 <button class="floor-plan-marker-save" type="submit">Save</button>
                 <button class="floor-plan-marker-remove" id="floor-plan-marker-remove" type="button">Remove</button>
               </div>
+              <button class="floor-plan-marker-open-event" id="floor-plan-marker-open-event" type="button">Open in Schedule &amp; Events</button>
             </form>
-            <a class="floor-plan-marker-details-link" id="floor-plan-marker-details-link" target="_blank" rel="noopener noreferrer" hidden>More details</a>
           </div>
         </div>
         <div class="floor-plan-legend" id="floor-plan-legend" aria-label="Event location legend"></div>
@@ -1442,11 +1442,9 @@
     const floorPlanMarkerDetailsPanel = document.getElementById('floor-plan-marker-details-panel');
     const floorPlanMarkerEditForm = document.getElementById('floor-plan-marker-edit-form');
     const floorPlanMarkerEditLabel = document.getElementById('floor-plan-marker-edit-label');
-    const floorPlanMarkerEditDetails = document.getElementById('floor-plan-marker-edit-details');
-    const floorPlanMarkerEditUrl = document.getElementById('floor-plan-marker-edit-url');
     const floorPlanMarkerEditColor = document.getElementById('floor-plan-marker-edit-color');
-    const floorPlanMarkerDetailsLink = document.getElementById('floor-plan-marker-details-link');
     const floorPlanMarkerRemove = document.getElementById('floor-plan-marker-remove');
+    const floorPlanMarkerOpenEvent = document.getElementById('floor-plan-marker-open-event');
     const floorPlanMarkerClose = document.getElementById('floor-plan-marker-close');
     let floorPlanOffset = { x: 0, y: 0 };
     let floorPlanPointerStart = null;
@@ -1520,7 +1518,21 @@
       if (matchingMarkers.length > 0) {
         status.classList.add('is-pinned');
         status.textContent = 'Pinned';
-        status.title = `Floor-plan pin: ${matchingMarkers.map((marker) => marker.label).join(', ')}`;
+        status.title = `Show ${matchingMarkers.map((marker) => marker.label).join(', ')} on the floor plan`;
+        status.setAttribute('role', 'button');
+        status.tabIndex = 0;
+        status.setAttribute('aria-label', status.title);
+        const openFloorPlanMarker = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          showFloorPlanMarker(matchingMarkers[0]);
+        };
+        status.addEventListener('click', openFloorPlanMarker);
+        status.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            openFloorPlanMarker(event);
+          }
+        });
       } else {
         status.textContent = 'No floor-plan pin';
       }
@@ -1626,6 +1638,13 @@
       setTimeout(() => matchingItems.forEach((item) => item.classList.remove('is-pin-target')), 2_000);
     }
 
+    function showFloorPlanMarker(marker) {
+      document.getElementById('floor-plan-tab').click();
+      resetFloorPlan();
+      showFloorPlanMarkerDetails(marker);
+      floorPlanViewport.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     renderEventDetails();
 
     function renderFloorPlan() {
@@ -1693,11 +1712,7 @@
     function showFloorPlanMarkerDetails(marker) {
       selectedFloorPlanMarker = marker;
       floorPlanMarkerEditLabel.value = marker.label;
-      floorPlanMarkerEditDetails.value = marker.details;
-      floorPlanMarkerEditUrl.value = marker.detailsUrl;
       floorPlanMarkerEditColor.value = marker.color;
-      floorPlanMarkerDetailsLink.href = marker.detailsUrl;
-      floorPlanMarkerDetailsLink.hidden = !marker.detailsUrl;
       floorPlanMarkerDetailsPanel.hidden = false;
       const margin = 8;
       const requestedLeft = (marker.xPercent / 100) * floorPlanViewport.clientWidth;
@@ -1792,6 +1807,11 @@
       }
     });
     floorPlanMarkerClose.addEventListener('click', closeFloorPlanMarkerDetails);
+    floorPlanMarkerOpenEvent.addEventListener('click', () => {
+      if (selectedFloorPlanMarker) {
+        showMarkerEvents(selectedFloorPlanMarker);
+      }
+    });
     floorPlanMarkerDetailsPanel.addEventListener('pointerdown', (event) => event.stopPropagation());
     document.addEventListener('pointerdown', (event) => {
       if (event.target instanceof Element && !event.target.closest('.floor-plan-marker')) {
@@ -1806,8 +1826,6 @@
 
       const updates = {
         label: floorPlanMarkerEditLabel.value.trim(),
-        details: floorPlanMarkerEditDetails.value.trim(),
-        details_url: floorPlanMarkerEditUrl.value.trim(),
         color: floorPlanMarkerEditColor.value
       };
       const { error } = await supabaseClient
@@ -1822,8 +1840,6 @@
       selectedFloorPlanMarker = {
         ...selectedFloorPlanMarker,
         label: updates.label,
-        details: updates.details,
-        detailsUrl: updates.details_url,
         color: updates.color
       };
       showFloorPlanMarkerDetails(selectedFloorPlanMarker);
