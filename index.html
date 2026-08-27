@@ -420,12 +420,31 @@
       gap: 0.5rem;
     }
     .floor-plan-marker-details h4 { margin: 0; font-size: 0.95rem; }
-    .floor-plan-marker-close { min-height: 1.75rem; padding: 0.2rem 0.45rem; background: #fff; font-size: 0.75rem; }
+    .floor-plan-marker-close {
+      width: 1.75rem;
+      min-height: 1.75rem;
+      padding: 0;
+      border-color: #cfc8a6;
+      background: transparent;
+      color: #625b38;
+      font-size: 1.15rem;
+      font-weight: normal;
+      line-height: 1;
+    }
+    .floor-plan-marker-close:hover { background: #f3f0df; }
     .floor-plan-marker-edit-form { display: grid; gap: 0.45rem; margin-top: 0.55rem; }
     .floor-plan-marker-edit-form input { min-height: 2rem; padding: 0.35rem 0.45rem; font-size: 0.82rem; }
-    .floor-plan-marker-actions { display: flex; gap: 0.45rem; align-items: center; }
+    .floor-plan-marker-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.45rem; }
+    .floor-plan-marker-save,
+    .floor-plan-marker-remove {
+      min-height: 2rem;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.78rem;
+    }
+    .floor-plan-marker-save { background: var(--falcon-yellow); }
+    .floor-plan-marker-remove { border-color: #a32929; background: #fff; color: #8a2020; }
+    .floor-plan-marker-remove:hover { background: #fce8e8; }
     .floor-plan-marker-details-link { font-size: 0.82rem; }
-    .floor-plan-marker-remove { min-height: 2rem; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
     .floor-plan-note { margin: 0.65rem 0 0; }
     .planning-block {
       margin: 1rem 0;
@@ -865,7 +884,7 @@
           <div class="floor-plan-marker-details" id="floor-plan-marker-details-panel" hidden>
             <div class="floor-plan-marker-details-heading">
               <h4>Event location</h4>
-              <button class="floor-plan-marker-close" id="floor-plan-marker-close" type="button">Close</button>
+              <button class="floor-plan-marker-close" id="floor-plan-marker-close" type="button" aria-label="Close event location menu" title="Close">&times;</button>
             </div>
             <form class="floor-plan-marker-edit-form" id="floor-plan-marker-edit-form">
               <input id="floor-plan-marker-edit-label" type="text" maxlength="80" aria-label="Event or station name" required />
@@ -873,7 +892,7 @@
               <input id="floor-plan-marker-edit-url" type="url" maxlength="500" placeholder="More details link" aria-label="More details link" />
               <input class="floor-plan-marker-color" id="floor-plan-marker-edit-color" type="color" aria-label="Marker color" />
               <div class="floor-plan-marker-actions">
-                <button type="submit">Save</button>
+                <button class="floor-plan-marker-save" type="submit">Save</button>
                 <button class="floor-plan-marker-remove" id="floor-plan-marker-remove" type="button">Remove</button>
               </div>
             </form>
