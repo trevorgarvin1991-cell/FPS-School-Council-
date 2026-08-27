@@ -428,7 +428,7 @@ using (auth.uid() is not null);
 
 create policy "Public floor plan marker read access"
 on public.floor_plan_markers for select
-to anon
+to anon, authenticated
 using (true);
 
 create policy "Public floor plan marker insert access"
