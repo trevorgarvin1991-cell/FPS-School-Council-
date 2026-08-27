@@ -136,14 +136,9 @@
     }
 
     function unlockAnalytics() {
-      sessionStorage.setItem('fps-analytics-unlocked', 'true');
       lockScreen.hidden = true;
       analyticsContent.hidden = false;
       void loadAnalytics();
-    }
-
-    if (sessionStorage.getItem('fps-analytics-unlocked') === 'true') {
-      unlockAnalytics();
     }
 
     lockForm.addEventListener('submit', async (event) => {
