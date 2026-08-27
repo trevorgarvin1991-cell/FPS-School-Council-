@@ -133,6 +133,31 @@
     }
     .event-budget-metrics > div { min-width: 0; }
     .event-budget-metrics .metric-value { font-size: 1.05rem; }
+    .budget-chart {
+      margin: 0.75rem 0;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid var(--line);
+      background: #fffdf3;
+    }
+    .budget-chart-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .budget-chart-heading h4 { margin: 0; font-size: 0.88rem; }
+    .budget-chart-legend { display: flex; gap: 0.75rem; color: #625b38; font-size: 0.72rem; }
+    .budget-chart-key { display: inline-flex; align-items: center; gap: 0.25rem; }
+    .budget-chart-key::before { content: ''; width: 0.8rem; border-top: 2px solid currentColor; }
+    .budget-chart-key.is-forecast { color: #7a5b00; }
+    .budget-chart-key.is-actual { color: #d71920; }
+    .budget-chart svg { display: block; width: 100%; height: auto; margin-top: 0.55rem; }
+    .budget-chart-axis { stroke: #aea47d; stroke-width: 1; }
+    .budget-chart-grid { stroke: #e5dfc7; stroke-width: 1; }
+    .budget-chart-label { fill: #625b38; font-size: 10px; }
+    .budget-chart-bar-track { fill: #ece8d6; }
+    .budget-chart-bar-forecast { fill: #7a5b00; }
+    .budget-chart-bar-actual { fill: #d71920; }
     .event-budget .budget-form { margin: 1rem 0 0.75rem; }
     .budget-form [hidden] { display: none; }
     .remove-forecast {
@@ -998,6 +1023,14 @@
             <span class="metric-value" id="event-available">$2,500.00</span>
           </div>
         </div>
+        <section class="budget-chart" aria-labelledby="budget-chart-title">
+          <div class="budget-chart-heading">
+            <h4 id="budget-chart-title">Actuals vs Forecast</h4>
+            <div class="budget-chart-legend" aria-label="Chart legend"><span class="budget-chart-key is-forecast">Forecast</span><span class="budget-chart-key is-actual">Actuals</span></div>
+          </div>
+          <svg id="budget-chart" viewBox="0 0 600 125" role="img" aria-label="Actual and forecast spending compared with the event budget"></svg>
+        </section>
+        <h4 class="budget-add-heading">Add Budget Item</h4>
         <form id="budget-form" class="budget-form" aria-label="Halloween event budget form">
           <input id="budget-item" type="text" placeholder="Budget item" required />
           <select id="budget-category" aria-label="Budget category" required>
@@ -1279,6 +1312,7 @@
     const eventForecast = document.getElementById('event-forecast');
     const eventActuals = document.getElementById('event-actuals');
     const eventAvailable = document.getElementById('event-available');
+    const budgetChart = document.getElementById('budget-chart');
     const budgetFeedback = document.getElementById('budget-feedback');
     const APPROVED_BUDGET_CENTS = 250_000;
     const TOTAL_COUNCIL_FUNDS_CENTS = 841_275;
@@ -2413,6 +2447,45 @@
       eventForecast.textContent = formatCurrency(forecastCents);
       eventActuals.textContent = formatCurrency(actualCents);
       eventAvailable.textContent = formatCurrency(APPROVED_BUDGET_CENTS - committedSpendCents);
+      renderBudgetChart();
+    }
+
+    function renderBudgetChart() {
+      const svgNamespace = 'http://www.w3.org/2000/svg';
+      const width = 600;
+      const height = 125;
+      const padding = { top: 14, right: 52, bottom: 24, left: 82 };
+      const plotWidth = width - padding.left - padding.right;
+      const forecastTotal = budgetEntries
+        .filter((entry) => entry.type === 'forecast')
+        .reduce((total, entry) => total + entry.amountCents, 0);
+      const actualTotal = budgetEntries
+        .filter((entry) => entry.type === 'actual')
+        .reduce((total, entry) => total + entry.amountCents, 0);
+      const maximum = Math.max(APPROVED_BUDGET_CENTS, forecastTotal, actualTotal, 1);
+      const appendSvg = (name, attributes, text) => {
+        const element = document.createElementNS(svgNamespace, name);
+        Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
+        if (text) element.textContent = text;
+        budgetChart.appendChild(element);
+      };
+
+      budgetChart.replaceChildren();
+      [0, 0.5, 1].forEach((ratio) => {
+        const x = padding.left + plotWidth * ratio;
+        appendSvg('line', { x1: x, y1: padding.top, x2: x, y2: height - padding.bottom, class: 'budget-chart-grid' });
+        appendSvg('text', { x, y: height - 9, 'text-anchor': 'middle', class: 'budget-chart-label' }, formatCurrency(Math.round(maximum * ratio)));
+      });
+      appendSvg('line', { x1: padding.left, y1: height - padding.bottom, x2: width - padding.right, y2: height - padding.bottom, class: 'budget-chart-axis' });
+      [
+        { label: 'Forecast', amount: forecastTotal, y: 24, className: 'budget-chart-bar-forecast' },
+        { label: 'Actuals', amount: actualTotal, y: 62, className: 'budget-chart-bar-actual' }
+      ].forEach((bar) => {
+        appendSvg('text', { x: padding.left - 10, y: bar.y + 14, 'text-anchor': 'end', class: 'budget-chart-label' }, bar.label);
+        appendSvg('rect', { x: padding.left, y: bar.y, width: plotWidth, height: 18, rx: 2, class: 'budget-chart-bar-track' });
+        appendSvg('rect', { x: padding.left, y: bar.y, width: (bar.amount / maximum) * plotWidth, height: 18, rx: 2, class: bar.className });
+        appendSvg('text', { x: width - padding.right + 8, y: bar.y + 14, class: 'budget-chart-label' }, formatCurrency(bar.amount));
+      });
     }
 
     async function deleteBudgetEntry(entry) {
