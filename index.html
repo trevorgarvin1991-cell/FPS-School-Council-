@@ -5,51 +5,144 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Frankford Public School Council</title>
   <style>
-    :root { color-scheme: light; }
+    :root {
+      color-scheme: light;
+      --falcon-yellow: #ffde00;
+      --falcon-yellow-dark: #c5a100;
+      --falcon-black: #111111;
+      --surface: #ffffff;
+      --line: #e3dfc7;
+    }
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Trebuchet MS', 'Gill Sans', sans-serif;
       margin: 0;
-      background: #f5f7fb;
-      color: #1f2937;
+      background:
+        linear-gradient(rgba(255, 253, 240, 0.7), rgba(255, 249, 214, 0.74)),
+        url('assets/OIP.webp') center / cover fixed;
+      color: var(--falcon-black);
     }
     header {
-      background: #0b4f8a;
+      background: var(--falcon-black);
+      border-bottom: 5px solid var(--falcon-yellow);
       color: #fff;
       padding: 1rem 1.25rem;
     }
+    .header-content {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+    .school-logo {
+      width: 64px;
+      height: 64px;
+      flex: 0 0 auto;
+      object-fit: contain;
+      border-radius: 50%;
+      background: var(--surface);
+    }
+    .header-copy { min-width: 0; }
+    h1 { color: var(--falcon-yellow); font-size: 1.8rem; }
+    header p { margin: 0.25rem 0 0; }
+    header a { color: var(--falcon-yellow) !important; }
+    .funding-banner {
+      background: var(--falcon-black);
+      color: #fff;
+      border-bottom: 3px solid var(--falcon-yellow);
+    }
+    .funding-banner .metric-label { color: #e8dfb0; }
+    .funding-banner .metric-value { color: var(--falcon-yellow); }
+    .funding-title .metric-value { color: #fff; }
+    .budget-metrics {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0.8rem 1rem;
+      display: grid;
+      grid-template-columns: 1.4fr repeat(3, 1fr);
+      gap: 1rem;
+      align-items: center;
+    }
+    .metric-label {
+      display: block;
+      color: #625b38;
+      font-size: 0.78rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .metric-value {
+      display: block;
+      margin-top: 0.1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    .event-budget {
+      margin: 1rem 0;
+      padding-top: 0.9rem;
+      border-top: 1px solid var(--line);
+    }
+    .event-budget h3 {
+      margin: 0 0 0.7rem;
+      font-size: 1rem;
+    }
+    .event-budget-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    .event-budget-metrics > div { min-width: 0; }
+    .event-budget-metrics .metric-value { font-size: 1.05rem; }
+    .event-budget .budget-form { margin: 1rem 0 0.75rem; }
+    .remove-forecast {
+      min-height: auto;
+      padding: 0.3rem 0.5rem;
+      background: #fff;
+      color: var(--falcon-black);
+      font-size: 0.8rem;
+    }
+    .remove-forecast:hover { background: #f3f0df; }
     main {
       max-width: 960px;
-      margin: 1rem auto;
+      margin: 1.25rem auto;
       padding: 0 1rem 2rem;
       display: grid;
       gap: 1rem;
+      align-items: start;
       grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
     }
     section {
-      background: #fff;
-      border-radius: 8px;
-      padding: 1rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      background: var(--surface);
+      border: 1px solid #d9d9d9;
+      border-top: 4px solid var(--falcon-yellow);
+      border-radius: 4px;
+      padding: 1.15rem;
+      box-shadow: 0 5px 16px rgba(17, 17, 17, 0.1);
     }
     h1, h2 { margin: 0 0 0.75rem; }
+    h2 { font-size: 1.3rem; }
     form {
       display: grid;
       gap: 0.5rem;
       margin-bottom: 1rem;
     }
-    input, button {
-      padding: 0.5rem;
-      border-radius: 6px;
-      border: 1px solid #cbd5e1;
+    input, select, button {
+      box-sizing: border-box;
+      min-height: 2.5rem;
+      padding: 0.55rem 0.65rem;
+      border-radius: 2px;
+      border: 1px solid #aaa;
       font-size: 0.95rem;
+      font-family: inherit;
     }
+    input:focus, select:focus { outline: 2px solid var(--falcon-yellow); outline-offset: 1px; }
     button {
-      background: #0b4f8a;
-      color: #fff;
-      border: none;
+      background: var(--falcon-yellow);
+      color: var(--falcon-black);
+      border: 1px solid var(--falcon-black);
       cursor: pointer;
+      font-weight: bold;
     }
-    button:hover { background: #0a4273; }
+    button:hover { background: var(--falcon-yellow-dark); }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -58,58 +151,132 @@
     }
     th, td {
       padding: 0.5rem;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid var(--line);
       text-align: left;
     }
+    th { background: #fffbea; }
+    a { color: #7a5b00; font-weight: bold; }
     .total {
       margin-top: 0.75rem;
       font-weight: bold;
     }
     .hint {
       font-size: 0.85rem;
-      color: #475569;
+      color: #4a4427;
       margin: 0;
+    }
+    .event-details {
+      display: grid;
+      gap: 0.35rem;
+      margin: 0 0 1rem;
+      padding-left: 1.1rem;
+    }
+    .event-details li { padding-left: 0.1rem; }
+    @media (max-width: 520px) {
+      body { background-attachment: scroll; }
+      h1 { font-size: 1.6rem; }
+      main { margin-top: 1rem; }
+      .school-logo { width: 58px; height: 58px; }
+      .budget-metrics { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Frankford Public School Council App</h1>
-    <p>Track budgetary information and plan school council events.</p>
-    <p>
-      Official school site:
-      <a href="https://frankford.hpedsb.on.ca/" target="_blank" rel="noopener noreferrer" style="color:#dbeafe;">
-        frankford.hpedsb.on.ca
-      </a>
-    </p>
+    <div class="header-content">
+      <img class="school-logo" src="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" alt="Frankford Falcons logo" />
+      <div class="header-copy">
+        <h1>Frankford Public School Council</h1>
+        <p>Track budgetary information and plan school council events.</p>
+        <p>
+          Official school site:
+          <a href="https://frankford.hpedsb.on.ca/" target="_blank" rel="noopener noreferrer">
+            frankford.hpedsb.on.ca
+          </a>
+        </p>
+      </div>
+    </div>
   </header>
+
+  <aside class="funding-banner" aria-label="Overall council funding summary">
+    <div class="budget-metrics">
+      <div class="funding-title">
+        <span class="metric-label">Overall Funding</span>
+        <span class="metric-value">School Council</span>
+      </div>
+      <div>
+        <span class="metric-label">Total Council Funds</span>
+        <span class="metric-value" id="council-funds-total">$8,412.75</span>
+      </div>
+      <div>
+        <span class="metric-label">Committed</span>
+        <span class="metric-value" id="council-funds-committed">$2,500.00</span>
+      </div>
+      <div>
+        <span class="metric-label">Available</span>
+        <span class="metric-value" id="council-funds-available">$5,912.75</span>
+      </div>
+    </div>
+  </aside>
 
   <main>
     <section>
-      <h2>October Event Planning Document</h2>
-      <p class="hint">Use the shared planning document for October details.</p>
+      <h2>Halloween Theme</h2>
+      <p class="hint">Thursday, October 22, 2026</p>
+      <ul class="event-details">
+        <li>Fun Fair runs from 6:00 to 8:00 p.m.</li>
+        <li>Outdoor BBQ runs from 5:30 to 7:30 p.m.</li>
+        <li>Costume parade begins in the gym at 7:00 p.m.</li>
+        <li>Funds support outdoor improvements and school technology.</li>
+      </ul>
+      <div class="event-budget" aria-label="Halloween event budget">
+        <h3>Event Budget</h3>
+        <div class="event-budget-metrics">
+          <div>
+            <span class="metric-label">Allocated</span>
+            <span class="metric-value" id="event-allocated">$2,500.00</span>
+          </div>
+          <div>
+            <span class="metric-label">Forecasted Spend</span>
+            <span class="metric-value" id="event-forecast">$0.00</span>
+          </div>
+          <div>
+            <span class="metric-label">Actuals</span>
+            <span class="metric-value" id="event-actuals">$0.00</span>
+          </div>
+          <div>
+            <span class="metric-label">Available</span>
+            <span class="metric-value" id="event-available">$2,500.00</span>
+          </div>
+        </div>
+        <form id="budget-form" class="budget-form" aria-label="Halloween event budget form">
+          <input id="budget-item" type="text" placeholder="Budget item" required />
+          <select id="budget-category" aria-label="Budget category" required>
+            <option value="" selected disabled>Select category</option>
+            <option value="Software">Software</option>
+            <option value="Hardware">Hardware</option>
+            <option value="Supplies">Supplies</option>
+            <option value="Food">Food</option>
+          </select>
+          <select id="budget-type" aria-label="Budget entry type">
+            <option value="forecast">Forecast</option>
+            <option value="actual">Actual</option>
+          </select>
+          <input id="budget-amount" type="number" min="0" step="0.01" placeholder="Amount" required />
+          <button type="submit">Add Budget Item</button>
+        </form>
+        <table aria-label="Halloween event budget table">
+          <thead>
+            <tr><th>Item</th><th>Category</th><th>Type</th><th>Amount</th><th>Action</th></tr>
+          </thead>
+          <tbody id="budget-body"></tbody>
+        </table>
+      </div>
       <p>
         <a href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit#heading=h.dh4oi8o5dkgk" target="_blank" rel="noopener noreferrer">
-          Open October Event Planning Document
+          Open Full Event Plan
         </a>
       </p>
-    </section>
-
-    <section>
-      <h2>Budgetary Information</h2>
-      <form id="budget-form" aria-label="Budget form">
-        <input id="budget-item" type="text" placeholder="Budget item" required />
-        <input id="budget-category" type="text" placeholder="Category (e.g., Supplies)" required />
-        <input id="budget-amount" type="number" min="0" step="0.01" placeholder="Amount" required />
-        <button type="submit">Add Budget Item</button>
-      </form>
-      <table aria-label="Budget table">
-        <thead>
-          <tr><th>Item</th><th>Category</th><th>Amount</th></tr>
-        </thead>
-        <tbody id="budget-body"></tbody>
-      </table>
-      <p class="total" id="budget-total">Total Budget: $0.00</p>
     </section>
 
     <section>
@@ -154,20 +321,152 @@
       });
     }
 
+    function formatCurrency(cents) {
+      return `$${(cents / 100).toLocaleString('en-CA', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
+
     const budgetForm = document.getElementById('budget-form');
     const budgetBody = document.getElementById('budget-body');
-    const budgetTotal = document.getElementById('budget-total');
-    const MAX_BUDGET_AMOUNT = 1_000_000;
-    const MAX_TOTAL_BUDGET_CENTS = MAX_BUDGET_AMOUNT * 100;
-    let budgetCents = 0;
+    const budgetType = document.getElementById('budget-type');
+    const eventAllocated = document.getElementById('event-allocated');
+    const eventForecast = document.getElementById('event-forecast');
+    const eventActuals = document.getElementById('event-actuals');
+    const eventAvailable = document.getElementById('event-available');
+    const APPROVED_BUDGET_CENTS = 250_000;
+    const TOTAL_COUNCIL_FUNDS_CENTS = 841_275;
+    const EVENT_ALLOCATIONS_CENTS = [APPROVED_BUDGET_CENTS];
+    const BUDGET_STORAGE_KEY = 'fps-halloween-budget-entries-v2';
+    const INITIAL_BUDGET_ENTRIES = [
+      { item: 'Square Machine', category: 'Hardware', type: 'forecast', amountCents: 40_000 },
+      { item: 'Mixed Halloween Stamps', category: 'Supplies', type: 'forecast', amountCents: 1_699, sourceUrl: 'https://www.amazon.ca/JOYIN-Pcs-Assorted-Stamps-Kids/dp/B0C7JH9B1X/' },
+      { item: 'Halloween Spoon Race', category: 'Supplies', type: 'forecast', amountCents: 2_199, sourceUrl: 'https://www.amazon.ca/Halloween-Spoon-Race-Game-Designs/dp/B096RTG9L7/' },
+      { item: 'Ring Light Phone Holder', category: 'Hardware', type: 'forecast', amountCents: 4_150, sourceUrl: 'https://www.amazon.ca/UBeesize-Recording%EF%BC%86Live-Streaming-Instagram-Compatible/dp/B08L5VKNWR/' },
+      { item: 'Cotton Candy Machine', category: 'Hardware', type: 'forecast', amountCents: 29_900, sourceUrl: 'https://www.amazon.ca/Electric-Commercial-Machine-VIVO-CANDY-V001/dp/B00MG2N08O/' },
+      { item: 'Cotton Candy Sugar, 2 lb', category: 'Food', type: 'forecast', amountCents: 4_000, sourceUrl: 'https://www.amazon.ca/Elos-Premium-Strawberry-Raspberry-Freshness/dp/B09B4LPQM9/' },
+      { item: 'Cotton Candy Sticks, 100 pc', category: 'Supplies', type: 'forecast', amountCents: 2_460, sourceUrl: 'https://www.amazon.ca/ZippySweets-Wrapped-Prevents-Parties-Carnivals/dp/B0DB1FMRQC/' },
+      { item: 'Popcorn Machine', category: 'Hardware', type: 'forecast', amountCents: 39_200, sourceUrl: 'https://www.amazon.ca/Popcorn-Machine-Kettle-Vintage-Style-Machines/dp/B0DRCVTVLR/' },
+      { item: 'Fog Machine', category: 'Hardware', type: 'forecast', amountCents: 5_000, sourceUrl: 'https://www.amazon.ca/XWSTGEQ-500W-Professional-Machine-Fogger/dp/B09V248YRC/' }
+    ];
+    const MAX_BUDGET_AMOUNT = APPROVED_BUDGET_CENTS / 100;
+    const MAX_TOTAL_BUDGET_CENTS = APPROVED_BUDGET_CENTS;
+    const councilFundsTotal = document.getElementById('council-funds-total');
+    const councilFundsCommitted = document.getElementById('council-funds-committed');
+    const councilFundsAvailable = document.getElementById('council-funds-available');
+    const committedCents = EVENT_ALLOCATIONS_CENTS.reduce(
+      (total, allocation) => total + allocation,
+      0
+    );
+
+    councilFundsTotal.textContent = formatCurrency(TOTAL_COUNCIL_FUNDS_CENTS);
+    councilFundsCommitted.textContent = formatCurrency(committedCents);
+    councilFundsAvailable.textContent = formatCurrency(TOTAL_COUNCIL_FUNDS_CENTS - committedCents);
+    function loadBudgetEntries() {
+      try {
+        const storedEntries = localStorage.getItem(BUDGET_STORAGE_KEY);
+        if (!storedEntries) {
+          return INITIAL_BUDGET_ENTRIES;
+        }
+
+        const savedEntries = JSON.parse(storedEntries);
+        return Array.isArray(savedEntries)
+          ? savedEntries.filter((entry) => (
+            typeof entry.item === 'string' &&
+            typeof entry.category === 'string' &&
+            (entry.type === 'forecast' || entry.type === 'actual') &&
+            Number.isInteger(entry.amountCents) &&
+            entry.amountCents >= 0 &&
+            (entry.sourceUrl === undefined || typeof entry.sourceUrl === 'string')
+          ))
+          : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveBudgetEntries() {
+      localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgetEntries));
+    }
+
+    let budgetEntries = loadBudgetEntries();
+
+    function updateEventBudget() {
+      const forecastCents = budgetEntries
+        .filter((entry) => entry.type === 'forecast')
+        .reduce((total, entry) => total + entry.amountCents, 0);
+      const actualCents = budgetEntries
+        .filter((entry) => entry.type === 'actual')
+        .reduce((total, entry) => total + entry.amountCents, 0);
+      const committedSpendCents = Math.max(forecastCents, actualCents);
+
+      eventAllocated.textContent = formatCurrency(APPROVED_BUDGET_CENTS);
+      eventForecast.textContent = formatCurrency(forecastCents);
+      eventActuals.textContent = formatCurrency(actualCents);
+      eventAvailable.textContent = formatCurrency(APPROVED_BUDGET_CENTS - committedSpendCents);
+    }
+
+    function renderBudgetEntries() {
+      budgetBody.replaceChildren();
+
+      budgetEntries.forEach((entry, index) => {
+        const row = document.createElement('tr');
+        [entry.item, entry.category, entry.type === 'actual' ? 'Actual' : 'Forecast', formatCurrency(entry.amountCents)]
+          .forEach((cellText, cellIndex) => {
+            const cell = document.createElement('td');
+            if (cellIndex === 0 && entry.sourceUrl) {
+              const sourceLink = document.createElement('a');
+              sourceLink.href = entry.sourceUrl;
+              sourceLink.target = '_blank';
+              sourceLink.rel = 'noopener noreferrer';
+              sourceLink.textContent = cellText;
+              cell.appendChild(sourceLink);
+            } else {
+              cell.textContent = cellText;
+            }
+            row.appendChild(cell);
+          });
+
+        const actionCell = document.createElement('td');
+        if (entry.type === 'forecast') {
+          const removeButton = document.createElement('button');
+          removeButton.type = 'button';
+          removeButton.className = 'remove-forecast';
+          removeButton.textContent = 'Remove';
+          removeButton.addEventListener('click', () => {
+            budgetEntries = budgetEntries.filter((entry, entryIndex) => entryIndex !== index);
+            saveBudgetEntries();
+            renderBudgetEntries();
+            updateEventBudget();
+          });
+          actionCell.appendChild(removeButton);
+        }
+        row.appendChild(actionCell);
+        budgetBody.appendChild(row);
+      });
+    }
+
+    renderBudgetEntries();
+    updateEventBudget();
+    saveBudgetEntries();
 
     budgetForm.addEventListener('submit', (event) => {
       event.preventDefault();
 
       const item = document.getElementById('budget-item').value.trim();
       const category = document.getElementById('budget-category').value.trim();
+      const type = budgetType.value;
       const amountValue = Number(document.getElementById('budget-amount').value);
       const amountCents = Math.round(amountValue * 100);
+      const forecastCents = budgetEntries
+        .filter((entry) => entry.type === 'forecast')
+        .reduce((total, entry) => total + entry.amountCents, 0);
+      const actualCents = budgetEntries
+        .filter((entry) => entry.type === 'actual')
+        .reduce((total, entry) => total + entry.amountCents, 0);
+      const nextForecastCents = forecastCents + (type === 'forecast' ? amountCents : 0);
+      const nextActualCents = actualCents + (type === 'actual' ? amountCents : 0);
 
       if (
         !item ||
@@ -175,21 +474,26 @@
         !Number.isFinite(amountValue) ||
         amountValue < 0 ||
         amountValue > MAX_BUDGET_AMOUNT ||
-        budgetCents + amountCents > MAX_TOTAL_BUDGET_CENTS
+        Math.max(nextForecastCents, nextActualCents) > MAX_TOTAL_BUDGET_CENTS
       ) {
         return;
       }
 
-      appendRow([item, category, `$${(amountCents / 100).toFixed(2)}`], budgetBody);
-
-      budgetCents += amountCents;
-      budgetTotal.textContent = `Total Budget: $${(budgetCents / 100).toFixed(2)}`;
+      budgetEntries.push({ item, category, type, amountCents });
+      saveBudgetEntries();
+      renderBudgetEntries();
+      updateEventBudget();
 
       budgetForm.reset();
     });
 
     const eventForm = document.getElementById('event-form');
     const eventBody = document.getElementById('event-body');
+
+    appendRow(
+      ['Halloween Theme', formatDateForDisplay('2026-10-22'), 'Frankford Public School'],
+      eventBody
+    );
 
     eventForm.addEventListener('submit', (event) => {
       event.preventDefault();
