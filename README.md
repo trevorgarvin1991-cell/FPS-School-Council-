@@ -30,3 +30,9 @@ Keep these DNS records set to **DNS only** while GitHub Pages verifies the domai
 | A | `@` | `185.199.111.153` |
 
 After GitHub Pages verifies the domain and issues a certificate, enable HTTPS in the repository's Pages settings.
+
+## Shared Budget Data
+
+Budget entries sync between devices through Supabase. Before using the shared ledger, open the Supabase project's **SQL Editor**, paste the contents of [supabase-setup.sql](supabase-setup.sql), and run it once.
+
+The supplied policies allow visitors to read, add, and remove budget entries without signing in. Add council-member authentication before using the public site for sensitive or restricted financial information.

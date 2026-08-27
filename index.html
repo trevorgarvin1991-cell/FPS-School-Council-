@@ -85,6 +85,17 @@
       margin: 0 0 0.7rem;
       font-size: 1rem;
     }
+    .budget-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .sync-status {
+      color: #625b38;
+      font-size: 0.78rem;
+      font-weight: normal;
+    }
     .event-budget-metrics {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -230,7 +241,10 @@
         <li>Funds support outdoor improvements and school technology.</li>
       </ul>
       <div class="event-budget" aria-label="Halloween event budget">
-        <h3>Event Budget</h3>
+        <div class="budget-heading">
+          <h3>Event Budget</h3>
+          <span class="sync-status" id="sync-status" aria-live="polite">Connecting...</span>
+        </div>
         <div class="event-budget-metrics">
           <div>
             <span class="metric-label">Allocated</span>
@@ -297,6 +311,7 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     function appendRow(cells, bodyElement) {
       const row = document.createElement('tr');
@@ -339,6 +354,11 @@
     const TOTAL_COUNCIL_FUNDS_CENTS = 841_275;
     const EVENT_ALLOCATIONS_CENTS = [APPROVED_BUDGET_CENTS];
     const BUDGET_STORAGE_KEY = 'fps-halloween-budget-entries-v2';
+    const EVENT_KEY = 'halloween-2026';
+    const supabaseClient = window.supabase.createClient(
+      'https://oueexkkwbkzynajpddxq.supabase.co',
+      'sb_publishable_utwHzWU7rkjWnQJuCIRrTQ_l_RhktGi'
+    );
     const INITIAL_BUDGET_ENTRIES = [
       { item: 'Square Machine', category: 'Hardware', type: 'forecast', amountCents: 40_000 },
       { item: 'Mixed Halloween Stamps', category: 'Supplies', type: 'forecast', amountCents: 1_699, sourceUrl: 'https://www.amazon.ca/JOYIN-Pcs-Assorted-Stamps-Kids/dp/B0C7JH9B1X/' },
@@ -355,6 +375,7 @@
     const councilFundsTotal = document.getElementById('council-funds-total');
     const councilFundsCommitted = document.getElementById('council-funds-committed');
     const councilFundsAvailable = document.getElementById('council-funds-available');
+    const syncStatus = document.getElementById('sync-status');
     const committedCents = EVENT_ALLOCATIONS_CENTS.reduce(
       (total, allocation) => total + allocation,
       0
@@ -392,6 +413,63 @@
 
     let budgetEntries = loadBudgetEntries();
 
+    function mapRemoteEntry(entry) {
+      return {
+        id: entry.id,
+        item: entry.item,
+        category: entry.category,
+        type: entry.entry_type,
+        amountCents: entry.amount_cents,
+        sourceUrl: entry.source_url || undefined
+      };
+    }
+
+    function mapBudgetEntry(entry) {
+      return {
+        id: entry.id || crypto.randomUUID(),
+        event_key: EVENT_KEY,
+        item: entry.item,
+        category: entry.category,
+        entry_type: entry.type,
+        amount_cents: entry.amountCents,
+        source_url: entry.sourceUrl || null
+      };
+    }
+
+    async function synchronizeBudgetEntries() {
+      const { data, error } = await supabaseClient
+        .from('budget_entries')
+        .select('*')
+        .eq('event_key', EVENT_KEY)
+        .order('created_at');
+
+      if (error) {
+        syncStatus.textContent = 'Saved on this device';
+        return;
+      }
+
+      if (data.length === 0 && budgetEntries.length > 0) {
+        const { data: seededEntries, error: seedError } = await supabaseClient
+          .from('budget_entries')
+          .insert(budgetEntries.map(mapBudgetEntry))
+          .select();
+
+        if (seedError) {
+          syncStatus.textContent = 'Saved on this device';
+          return;
+        }
+
+        budgetEntries = seededEntries.map(mapRemoteEntry);
+      } else {
+        budgetEntries = data.map(mapRemoteEntry);
+      }
+
+      saveBudgetEntries();
+      renderBudgetEntries();
+      updateEventBudget();
+      syncStatus.textContent = 'Synced';
+    }
+
     function updateEventBudget() {
       const forecastCents = budgetEntries
         .filter((entry) => entry.type === 'forecast')
@@ -407,10 +485,30 @@
       eventAvailable.textContent = formatCurrency(APPROVED_BUDGET_CENTS - committedSpendCents);
     }
 
+    async function deleteBudgetEntry(entry) {
+      if (entry.id) {
+        const { error } = await supabaseClient
+          .from('budget_entries')
+          .delete()
+          .eq('id', entry.id);
+
+        if (error) {
+          syncStatus.textContent = 'Unable to remove entry';
+          return;
+        }
+      }
+
+      budgetEntries = budgetEntries.filter((savedEntry) => savedEntry.id !== entry.id);
+      saveBudgetEntries();
+      renderBudgetEntries();
+      updateEventBudget();
+      syncStatus.textContent = 'Synced';
+    }
+
     function renderBudgetEntries() {
       budgetBody.replaceChildren();
 
-      budgetEntries.forEach((entry, index) => {
+      budgetEntries.forEach((entry) => {
         const row = document.createElement('tr');
         [entry.item, entry.category, entry.type === 'actual' ? 'Actual' : 'Forecast', formatCurrency(entry.amountCents)]
           .forEach((cellText, cellIndex) => {
@@ -434,12 +532,7 @@
           removeButton.type = 'button';
           removeButton.className = 'remove-forecast';
           removeButton.textContent = 'Remove';
-          removeButton.addEventListener('click', () => {
-            budgetEntries = budgetEntries.filter((entry, entryIndex) => entryIndex !== index);
-            saveBudgetEntries();
-            renderBudgetEntries();
-            updateEventBudget();
-          });
+          removeButton.addEventListener('click', () => deleteBudgetEntry(entry));
           actionCell.appendChild(removeButton);
         }
         row.appendChild(actionCell);
@@ -450,8 +543,18 @@
     renderBudgetEntries();
     updateEventBudget();
     saveBudgetEntries();
+    synchronizeBudgetEntries();
 
-    budgetForm.addEventListener('submit', (event) => {
+    supabaseClient
+      .channel('halloween-budget-entries')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'budget_entries', filter: `event_key=eq.${EVENT_KEY}` },
+        synchronizeBudgetEntries
+      )
+      .subscribe();
+
+    budgetForm.addEventListener('submit', async (event) => {
       event.preventDefault();
 
       const item = document.getElementById('budget-item').value.trim();
@@ -479,7 +582,20 @@
         return;
       }
 
-      budgetEntries.push({ item, category, type, amountCents });
+      const newEntry = { id: crypto.randomUUID(), item, category, type, amountCents };
+      const { data: savedEntry, error } = await supabaseClient
+        .from('budget_entries')
+        .insert(mapBudgetEntry(newEntry))
+        .select()
+        .single();
+
+      if (error) {
+        budgetEntries.push(newEntry);
+        syncStatus.textContent = 'Saved on this device';
+      } else {
+        budgetEntries.push(mapRemoteEntry(savedEntry));
+        syncStatus.textContent = 'Synced';
+      }
       saveBudgetEntries();
       renderBudgetEntries();
       updateEventBudget();
