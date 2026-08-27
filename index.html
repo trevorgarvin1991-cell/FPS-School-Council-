@@ -1068,7 +1068,6 @@
         markerButton.type = 'button';
         markerButton.style.left = `${marker.xPercent}%`;
         markerButton.style.top = `${marker.yPercent}%`;
-        markerButton.textContent = '•';
         markerButton.style.background = marker.color;
         markerButton.title = marker.details ? `${marker.label}: ${marker.details}` : marker.label;
         markerButton.setAttribute('aria-label', `Show details for ${marker.label}`);
