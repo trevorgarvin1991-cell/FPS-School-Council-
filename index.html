@@ -302,16 +302,13 @@
       border-radius: 4px;
       background: #fffbea;
     }
-    .member-card-initials {
-      display: grid;
+    .member-card-photo {
       width: 2.7rem;
       height: 2.7rem;
-      place-items: center;
       border-radius: 50%;
-      background: var(--falcon-black);
-      color: var(--falcon-yellow);
-      font-size: 1rem;
-      font-weight: bold;
+      object-fit: cover;
+      object-position: center;
+      border: 2px solid var(--falcon-black);
     }
     .member-card-name {
       display: block;
@@ -687,7 +684,7 @@
         <div class="planning-block">
           <h3>Members</h3>
           <div class="member-card">
-            <span class="member-card-initials" aria-hidden="true">TG</span>
+            <img class="member-card-photo" src="Assets/Gemini_Generated_Image_fo0pinfo0pinfo0p.png" alt="Trevor Garvin" />
             <div>
               <strong class="member-card-name">Trevor Garvin</strong>
               <span class="member-card-role">Treasurer</span>
