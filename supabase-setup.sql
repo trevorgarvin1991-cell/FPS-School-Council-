@@ -77,6 +77,7 @@ create table if not exists public.event_tasks (
   event_key text not null,
   title text not null,
   assignee text not null default '',
+  last_comment text not null default '',
   status text not null check (status in ('todo', 'in-progress', 'completed')),
   last_editor_id uuid,
   created_at timestamptz not null default now(),
@@ -84,6 +85,7 @@ create table if not exists public.event_tasks (
 );
 
 alter table public.event_tasks add column if not exists last_editor_id uuid;
+alter table public.event_tasks add column if not exists last_comment text not null default '';
 
 create table if not exists public.task_attachments (
   id uuid primary key default gen_random_uuid(),

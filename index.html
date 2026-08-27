@@ -309,19 +309,21 @@
     .event-detail-name { min-width: 0; }
     .event-detail-content {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 280px;
-      align-items: center;
-      gap: 0.7rem;
-      padding: 0.2rem 0 0.6rem 1.45rem;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 42%);
+      align-items: start;
+      gap: 1.15rem;
+      padding: 0.35rem 0 0.8rem 1.45rem;
     }
-    .event-detail-content p { margin: 0; color: #4a4427; font-size: 0.85rem; line-height: 1.45; }
+    .event-detail-content p { max-width: 52ch; margin: 0; padding-top: 0.35rem; color: #4a4427; font-size: 0.85rem; line-height: 1.45; }
     .event-detail-image {
       width: 100%;
       aspect-ratio: 3 / 2;
       object-fit: cover;
-      border: 1px solid var(--line);
-      border-radius: 3px;
-      box-shadow: 0 2px 5px rgb(58 48 18 / 18%);
+      padding: 3px;
+      border: 1px solid #c9bd8f;
+      border-radius: 4px;
+      background: #fffdf3;
+      box-shadow: 0 3px 8px rgb(58 48 18 / 16%);
     }
     .event-detail-image-placeholder {
       display: grid;
@@ -773,6 +775,17 @@
       border-color: var(--line);
       color: #625b38;
       font-size: 0.8rem;
+    }
+    .kanban-comment-input {
+      width: 100%;
+      min-height: 3.8rem;
+      padding: 0.4rem;
+      border-color: var(--line);
+      color: #4a4427;
+      font: inherit;
+      font-size: 0.8rem;
+      line-height: 1.35;
+      resize: vertical;
     }
     .kanban-delete {
       min-width: 1.75rem;
@@ -1836,6 +1849,7 @@
             .map((task) => ({
               ...task,
               assignee: typeof task.assignee === 'string' ? task.assignee : '',
+              lastComment: typeof task.lastComment === 'string' ? task.lastComment : '',
               attachments: Array.isArray(task.attachments) ? task.attachments : []
             }))
           : [];
@@ -1854,6 +1868,7 @@
         event_key: EVENT_KEY,
         title: task.title,
         assignee: task.assignee,
+        last_comment: task.lastComment,
         status: task.status,
         last_editor_id: getVisitorId()
       };
@@ -1864,6 +1879,7 @@
         id: task.id,
         title: task.title,
         assignee: task.assignee,
+        lastComment: task.last_comment || '',
         status: task.status,
         attachments: Array.isArray(task.task_attachments)
           ? task.task_attachments.map((attachment) => ({
@@ -1906,7 +1922,7 @@
     async function updateTaskInDatabase(task) {
       await supabaseClient
         .from('event_tasks')
-        .update({ title: task.title, assignee: task.assignee, status: task.status, last_editor_id: getVisitorId() })
+        .update({ title: task.title, assignee: task.assignee, last_comment: task.lastComment, status: task.status, last_editor_id: getVisitorId() })
         .eq('id', task.id);
     }
 
@@ -2104,6 +2120,18 @@
             void updateTaskInDatabase(task);
           });
 
+          const commentInput = document.createElement('textarea');
+          commentInput.className = 'kanban-comment-input';
+          commentInput.placeholder = 'Last comment';
+          commentInput.value = task.lastComment;
+          commentInput.maxLength = 500;
+          commentInput.setAttribute('aria-label', `Last comment for ${task.title}`);
+          commentInput.addEventListener('change', () => {
+            task.lastComment = commentInput.value.trim();
+            saveTasks();
+            void updateTaskInDatabase(task);
+          });
+
           const statusSelect = document.createElement('select');
           statusSelect.setAttribute('aria-label', `Status for ${task.title}`);
           TASK_STATUSES.forEach((taskStatus) => {
@@ -2128,7 +2156,7 @@
           if (task.attachments.length > 0) {
             taskCard.appendChild(attachments);
           }
-          taskCard.append(assigneeInput, statusSelect);
+          taskCard.append(assigneeInput, commentInput, statusSelect);
           taskList.appendChild(taskCard);
         });
       });
@@ -2146,7 +2174,7 @@
         return;
       }
 
-      const task = { id: createEntryId(), title, assignee, status: 'todo', attachments: [] };
+      const task = { id: createEntryId(), title, assignee, lastComment: '', status: 'todo', attachments: [] };
       tasks.unshift(task);
       saveTasks();
       renderTasks();
