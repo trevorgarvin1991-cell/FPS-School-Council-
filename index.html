@@ -694,14 +694,30 @@
       'sb_publishable_utwHzWU7rkjWnQJuCIRrTQ_l_RhktGi'
     );
 
+    const PAGE_VISIT_STORAGE_KEY = 'page-visit-recorded-v2';
+    const VISITOR_ID_STORAGE_KEY = 'fps-visitor-id-v1';
+
+    function getVisitorId() {
+      const savedVisitorId = localStorage.getItem(VISITOR_ID_STORAGE_KEY);
+      if (savedVisitorId) {
+        return savedVisitorId;
+      }
+
+      const visitorId = createEntryId();
+      localStorage.setItem(VISITOR_ID_STORAGE_KEY, visitorId);
+      return visitorId;
+    }
+
     async function recordPageVisit() {
-      if (sessionStorage.getItem('page-visit-recorded')) {
+      if (sessionStorage.getItem(PAGE_VISIT_STORAGE_KEY)) {
         return;
       }
 
-      const { error } = await supabaseClient.from('page_visits').insert({});
+      const { error } = await supabaseClient
+        .from('page_visits')
+        .insert({ visitor_id: getVisitorId() });
       if (!error) {
-        sessionStorage.setItem('page-visit-recorded', 'true');
+        sessionStorage.setItem(PAGE_VISIT_STORAGE_KEY, 'true');
       }
     }
 

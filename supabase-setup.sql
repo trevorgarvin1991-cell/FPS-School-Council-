@@ -52,8 +52,12 @@ create table if not exists public.event_tasks (
 
 create table if not exists public.page_visits (
   id bigint generated always as identity primary key,
+  visitor_id uuid,
   visited_at timestamptz not null default now()
 );
+
+alter table public.page_visits add column if not exists visitor_id uuid;
+create index if not exists page_visits_visitor_id_idx on public.page_visits (visitor_id);
 
 insert into public.events (event_key, name, event_date, location)
 values ('halloween-2026', 'Halloween Theme', '2026-10-22', 'Frankford Public School')

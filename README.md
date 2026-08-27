@@ -46,7 +46,7 @@ The setup also creates `events`, `event_budgets`, and `event_tasks`. Each event 
 
 ## Page Visit Analytics
 
-Each browser session records one anonymous visit timestamp in the `page_visits` table. No names, IP addresses, referrers, or device information are stored by the site.
+Each browser session records an anonymous visit timestamp and a randomly generated browser marker in the `page_visits` table. The marker is stored only in that browser's local storage, so it identifies a browser rather than a person. No names, IP addresses, referrers, or device information are stored by the site.
 
 Run this query in the Supabase SQL Editor to see the most recent visitors:
 
@@ -63,6 +63,14 @@ select date(visited_at) as day, count(*) as visits
 from public.page_visits
 group by day
 order by day desc;
+```
+
+For unique browser counts:
+
+```sql
+select count(distinct visitor_id) as unique_browsers
+from public.page_visits
+where visitor_id is not null;
 ```
 
 The supplied policies allow visitors to read, add, update, and remove event and budget data without signing in. Add council-member authentication and more restrictive policies before using the public site for sensitive or restricted financial information.
