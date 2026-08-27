@@ -413,7 +413,14 @@
       background: #fffbea;
       box-shadow: 0 3px 10px rgba(17, 17, 17, 0.22);
     }
+    .floor-plan-marker-details-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
     .floor-plan-marker-details h4 { margin: 0; font-size: 0.95rem; }
+    .floor-plan-marker-close { min-height: 1.75rem; padding: 0.2rem 0.45rem; background: #fff; font-size: 0.75rem; }
     .floor-plan-marker-edit-form { display: grid; gap: 0.45rem; margin-top: 0.55rem; }
     .floor-plan-marker-edit-form input { min-height: 2rem; padding: 0.35rem 0.45rem; font-size: 0.82rem; }
     .floor-plan-marker-actions { display: flex; gap: 0.45rem; align-items: center; }
@@ -856,7 +863,10 @@
             </div>
           </div>
           <div class="floor-plan-marker-details" id="floor-plan-marker-details-panel" hidden>
-            <h4>Event location</h4>
+            <div class="floor-plan-marker-details-heading">
+              <h4>Event location</h4>
+              <button class="floor-plan-marker-close" id="floor-plan-marker-close" type="button">Close</button>
+            </div>
             <form class="floor-plan-marker-edit-form" id="floor-plan-marker-edit-form">
               <input id="floor-plan-marker-edit-label" type="text" maxlength="80" aria-label="Event or station name" required />
               <input id="floor-plan-marker-edit-details" type="text" maxlength="160" aria-label="Location details" />
@@ -1091,6 +1101,7 @@
     const floorPlanMarkerEditColor = document.getElementById('floor-plan-marker-edit-color');
     const floorPlanMarkerDetailsLink = document.getElementById('floor-plan-marker-details-link');
     const floorPlanMarkerRemove = document.getElementById('floor-plan-marker-remove');
+    const floorPlanMarkerClose = document.getElementById('floor-plan-marker-close');
     let floorPlanOffset = { x: 0, y: 0 };
     let floorPlanPointerStart = null;
     let floorPlanPlacementLabel = '';
@@ -1109,6 +1120,16 @@
 
     function setFloorPlanFeedback(message) {
       floorPlanFeedback.textContent = message;
+    }
+
+    function closeFloorPlanMarkerDetails() {
+      if (floorPlanMarkerDetailsPanel.hidden) {
+        return;
+      }
+
+      selectedFloorPlanMarker = null;
+      floorPlanMarkerDetailsPanel.hidden = true;
+      renderFloorPlanMarkers();
     }
 
     function renderFloorPlanMarkers() {
@@ -1249,7 +1270,13 @@
         void deleteFloorPlanMarker(selectedFloorPlanMarker);
       }
     });
+    floorPlanMarkerClose.addEventListener('click', closeFloorPlanMarkerDetails);
     floorPlanMarkerDetailsPanel.addEventListener('pointerdown', (event) => event.stopPropagation());
+    document.addEventListener('pointerdown', (event) => {
+      if (event.target instanceof Element && !event.target.closest('.floor-plan-marker')) {
+        closeFloorPlanMarkerDetails();
+      }
+    });
     floorPlanMarkerEditForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!selectedFloorPlanMarker) {
