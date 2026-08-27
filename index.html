@@ -249,6 +249,17 @@
       font-weight: bold;
       text-transform: uppercase;
     }
+    .event-overview {
+      margin-top: 1rem;
+      padding: 0.85rem 1rem;
+      border-left: 4px solid var(--falcon-yellow);
+      background: #fffbea;
+    }
+    .event-overview h3 {
+      margin: 0 0 0.35rem;
+      font-size: 1rem;
+    }
+    .event-overview p { margin: 0; }
     .event-workspace-tabs {
       display: flex;
       gap: 0.25rem;
@@ -367,6 +378,10 @@
           <div class="countdown-unit"><span class="countdown-number" id="countdown-minutes">0</span><span class="countdown-unit-label">Minutes</span></div>
           <div class="countdown-unit"><span class="countdown-number" id="countdown-seconds">0</span><span class="countdown-unit-label">Seconds</span></div>
         </div>
+      </div>
+      <div class="event-overview" aria-labelledby="event-overview-title">
+        <h3 id="event-overview-title">Event Overview</h3>
+        <p>The Halloween Fun Fair brings families together for food, games, and a costume parade while raising funds for outdoor improvements and school technology.</p>
       </div>
       <div class="event-workspace-tabs" role="tablist" aria-label="Halloween event workspace">
         <button class="event-workspace-tab" id="budget-tab" type="button" role="tab" aria-selected="true" aria-controls="budget-panel">Budget</button>
