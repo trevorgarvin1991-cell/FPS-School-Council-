@@ -364,6 +364,24 @@
       gap: 0.5rem;
     }
     .kanban-task-title { font-weight: bold; overflow-wrap: anywhere; }
+    .kanban-task-actions {
+      display: flex;
+      flex: 0 0 auto;
+      gap: 0.25rem;
+    }
+    .kanban-attachment-button {
+      display: inline-grid;
+      width: 1.75rem;
+      height: 1.75rem;
+      place-items: center;
+      border: 1px solid var(--falcon-black);
+      border-radius: 2px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .kanban-attachment-button:hover { background: #fffbea; }
+    .kanban-attachment-button input { display: none; }
     .kanban-assignee-input {
       width: 100%;
       min-height: 2rem;
@@ -379,6 +397,47 @@
       background: #fff;
       font-size: 1.2rem;
       line-height: 1;
+    }
+    .kanban-attachments {
+      color: #625b38;
+      font-size: 0.78rem;
+    }
+    .kanban-attachments summary {
+      width: max-content;
+      cursor: pointer;
+      font-weight: bold;
+      list-style: none;
+    }
+    .kanban-attachments summary::-webkit-details-marker { display: none; }
+    .kanban-attachment-list {
+      display: grid;
+      gap: 0.35rem;
+      margin-top: 0.45rem;
+    }
+    .kanban-attachment-row {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .kanban-attachment-link {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .kanban-attachment-remove {
+      min-width: 1.4rem;
+      min-height: 1.4rem;
+      padding: 0;
+      background: #fff;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .task-feedback {
+      min-height: 1.1rem;
+      margin: -0.4rem 0 0.6rem;
+      color: #625b38;
+      font-size: 0.82rem;
     }
     .kanban-task select { min-height: 2rem; padding: 0.3rem; font-size: 0.8rem; }
     dialog {
@@ -557,6 +616,7 @@
             <input id="task-assignee" type="text" placeholder="Assignee" maxlength="80" required />
             <button type="submit">Add Task</button>
           </form>
+          <p class="task-feedback" id="task-feedback" aria-live="polite"></p>
           <div class="kanban-board" aria-label="Halloween task board">
             <section class="kanban-column" data-status="todo" aria-labelledby="todo-heading">
               <div class="kanban-column-header"><span id="todo-heading">To Do</span><span class="kanban-count" id="todo-count">0</span></div>
@@ -774,6 +834,8 @@
     const taskForm = document.getElementById('task-form');
     const taskTitle = document.getElementById('task-title');
     const taskAssignee = document.getElementById('task-assignee');
+    const taskFeedback = document.getElementById('task-feedback');
+    const MAX_TASK_ATTACHMENT_BYTES = 10 * 1024 * 1024;
     const taskLists = Object.fromEntries(TASK_STATUSES.map((status) => [
       status,
       document.getElementById(`${status}-list`)
@@ -791,7 +853,11 @@
         return Array.isArray(savedTasks)
           ? savedTasks
             .filter((task) => task && typeof task.id === 'string' && typeof task.title === 'string' && TASK_STATUSES.includes(task.status))
-            .map((task) => ({ ...task, assignee: typeof task.assignee === 'string' ? task.assignee : '' }))
+            .map((task) => ({
+              ...task,
+              assignee: typeof task.assignee === 'string' ? task.assignee : '',
+              attachments: Array.isArray(task.attachments) ? task.attachments : []
+            }))
           : [];
       } catch {
         return [];
@@ -817,14 +883,22 @@
         id: task.id,
         title: task.title,
         assignee: task.assignee,
-        status: task.status
+        status: task.status,
+        attachments: Array.isArray(task.task_attachments)
+          ? task.task_attachments.map((attachment) => ({
+            id: attachment.id,
+            name: attachment.file_name,
+            path: attachment.file_path,
+            url: supabaseClient.storage.from('task-attachments').getPublicUrl(attachment.file_path).data.publicUrl
+          }))
+          : []
       };
     }
 
     async function synchronizeTasks() {
       const { data, error } = await supabaseClient
         .from('event_tasks')
-        .select('*')
+        .select('*, task_attachments(*)')
         .eq('event_key', EVENT_KEY)
         .order('created_at');
 
@@ -853,6 +927,60 @@
         .from('event_tasks')
         .update({ assignee: task.assignee, status: task.status })
         .eq('id', task.id);
+    }
+
+    function setTaskFeedback(message) {
+      taskFeedback.textContent = message;
+    }
+
+    async function uploadTaskAttachment(task, file) {
+      if (file.size > MAX_TASK_ATTACHMENT_BYTES) {
+        setTaskFeedback('Attachments must be 10 MB or smaller.');
+        return;
+      }
+
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const attachmentPath = `${EVENT_KEY}/${task.id}/${createEntryId()}-${safeFileName}`;
+      const { error: uploadError } = await supabaseClient.storage
+        .from('task-attachments')
+        .upload(attachmentPath, file);
+      if (uploadError) {
+        setTaskFeedback('Unable to upload attachment. Please try again.');
+        return;
+      }
+
+      const { error: recordError } = await supabaseClient
+        .from('task_attachments')
+        .insert({ task_id: task.id, file_name: file.name, file_path: attachmentPath });
+      if (recordError) {
+        setTaskFeedback('Attachment uploaded but could not be linked to the task.');
+        return;
+      }
+
+      setTaskFeedback(`Attached ${file.name}.`);
+      await synchronizeTasks();
+    }
+
+    async function deleteTaskAttachment(attachment) {
+      const { error: storageError } = await supabaseClient.storage
+        .from('task-attachments')
+        .remove([attachment.path]);
+      if (storageError) {
+        setTaskFeedback('Unable to remove attachment. Please try again.');
+        return;
+      }
+
+      const { error: recordError } = await supabaseClient
+        .from('task_attachments')
+        .delete()
+        .eq('id', attachment.id);
+      if (recordError) {
+        setTaskFeedback('Unable to remove attachment record. Please try again.');
+        return;
+      }
+
+      setTaskFeedback('Attachment removed.');
+      await synchronizeTasks();
     }
 
     async function deleteTask(taskId) {
@@ -911,7 +1039,57 @@
           deleteButton.addEventListener('click', () => {
             void deleteTask(task.id);
           });
-          taskHeader.append(taskName, deleteButton);
+          const attachmentLabel = document.createElement('label');
+          attachmentLabel.className = 'kanban-attachment-button';
+          attachmentLabel.title = 'Attach a file';
+          attachmentLabel.setAttribute('aria-label', `Attach a file to ${task.title}`);
+          attachmentLabel.innerHTML = '&#128206;';
+          const attachmentInput = document.createElement('input');
+          attachmentInput.type = 'file';
+          attachmentInput.accept = 'image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx';
+          attachmentInput.addEventListener('change', () => {
+            const file = attachmentInput.files[0];
+            if (file) {
+              void uploadTaskAttachment(task, file);
+            }
+          });
+          attachmentLabel.appendChild(attachmentInput);
+          const taskActions = document.createElement('div');
+          taskActions.className = 'kanban-task-actions';
+          taskActions.append(attachmentLabel, deleteButton);
+          taskHeader.append(taskName, taskActions);
+
+          const attachments = document.createElement('details');
+          attachments.className = 'kanban-attachments';
+          if (task.attachments.length > 0) {
+            const attachmentSummary = document.createElement('summary');
+            attachmentSummary.textContent = `${String.fromCodePoint(0x1f4ce)} ${task.attachments.length}`;
+            attachmentSummary.setAttribute('aria-label', `${task.attachments.length} attachment${task.attachments.length === 1 ? '' : 's'}`);
+            attachments.appendChild(attachmentSummary);
+
+            const attachmentList = document.createElement('div');
+            attachmentList.className = 'kanban-attachment-list';
+            task.attachments.forEach((attachment) => {
+              const attachmentRow = document.createElement('div');
+              attachmentRow.className = 'kanban-attachment-row';
+              const attachmentLink = document.createElement('a');
+              attachmentLink.className = 'kanban-attachment-link';
+              attachmentLink.href = attachment.url;
+              attachmentLink.target = '_blank';
+              attachmentLink.rel = 'noopener noreferrer';
+              attachmentLink.textContent = attachment.name;
+              attachmentLink.title = attachment.name;
+              const removeAttachmentButton = document.createElement('button');
+              removeAttachmentButton.className = 'kanban-attachment-remove';
+              removeAttachmentButton.type = 'button';
+              removeAttachmentButton.setAttribute('aria-label', `Remove ${attachment.name}`);
+              removeAttachmentButton.innerHTML = '&times;';
+              removeAttachmentButton.addEventListener('click', () => void deleteTaskAttachment(attachment));
+              attachmentRow.append(attachmentLink, removeAttachmentButton);
+              attachmentList.appendChild(attachmentRow);
+            });
+            attachments.appendChild(attachmentList);
+          }
 
           const assigneeInput = document.createElement('input');
           assigneeInput.className = 'kanban-assignee-input';
@@ -946,7 +1124,11 @@
             draggedTaskId = null;
             taskCard.classList.remove('is-dragging');
           });
-          taskCard.append(taskHeader, assigneeInput, statusSelect);
+          taskCard.append(taskHeader);
+          if (task.attachments.length > 0) {
+            taskCard.appendChild(attachments);
+          }
+          taskCard.append(assigneeInput, statusSelect);
           taskList.appendChild(taskCard);
         });
       });
@@ -960,7 +1142,7 @@
         return;
       }
 
-      const task = { id: createEntryId(), title, assignee, status: 'todo' };
+      const task = { id: createEntryId(), title, assignee, status: 'todo', attachments: [] };
       tasks.unshift(task);
       saveTasks();
       renderTasks();

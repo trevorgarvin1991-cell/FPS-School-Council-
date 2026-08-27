@@ -18,11 +18,27 @@ insert into storage.buckets (id, name, public)
 values ('budget-receipts', 'budget-receipts', true)
 on conflict (id) do nothing;
 
+insert into storage.buckets (id, name, public)
+values ('task-attachments', 'task-attachments', true)
+on conflict (id) do nothing;
+
 drop policy if exists "Public receipt upload access" on storage.objects;
 create policy "Public receipt upload access"
 on storage.objects for insert
 to anon
 with check (bucket_id = 'budget-receipts');
+
+drop policy if exists "Public task attachment upload access" on storage.objects;
+drop policy if exists "Public task attachment delete access" on storage.objects;
+create policy "Public task attachment upload access"
+on storage.objects for insert
+to anon
+with check (bucket_id = 'task-attachments');
+
+create policy "Public task attachment delete access"
+on storage.objects for delete
+to anon
+using (bucket_id = 'task-attachments');
 
 create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
@@ -50,6 +66,14 @@ create table if not exists public.event_tasks (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.task_attachments (
+  id uuid primary key default gen_random_uuid(),
+  task_id uuid not null references public.event_tasks(id) on delete cascade,
+  file_name text not null,
+  file_path text not null,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.page_visits (
   id bigint generated always as identity primary key,
   visitor_id uuid,
@@ -73,6 +97,7 @@ alter table public.budget_entries enable row level security;
 alter table public.events enable row level security;
 alter table public.event_budgets enable row level security;
 alter table public.event_tasks enable row level security;
+alter table public.task_attachments enable row level security;
 alter table public.page_visits enable row level security;
 
 drop policy if exists "Public event read access" on public.events;
@@ -89,6 +114,9 @@ drop policy if exists "Public task read access" on public.event_tasks;
 drop policy if exists "Public task insert access" on public.event_tasks;
 drop policy if exists "Public task update access" on public.event_tasks;
 drop policy if exists "Public task delete access" on public.event_tasks;
+drop policy if exists "Public task attachment read access" on public.task_attachments;
+drop policy if exists "Public task attachment insert access" on public.task_attachments;
+drop policy if exists "Public task attachment delete access" on public.task_attachments;
 drop policy if exists "Public visit insert access" on public.page_visits;
 
 create policy "Public event read access"
@@ -163,6 +191,21 @@ on public.event_tasks for delete
 to anon
 using (true);
 
+create policy "Public task attachment read access"
+on public.task_attachments for select
+to anon
+using (true);
+
+create policy "Public task attachment insert access"
+on public.task_attachments for insert
+to anon
+with check (true);
+
+create policy "Public task attachment delete access"
+on public.task_attachments for delete
+to anon
+using (true);
+
 create policy "Public visit insert access"
 on public.page_visits for insert
 to anon
@@ -171,6 +214,14 @@ with check (true);
 do $$
 begin
   alter publication supabase_realtime add table public.budget_entries;
+exception
+  when duplicate_object then null;
+end;
+$$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.task_attachments;
 exception
   when duplicate_object then null;
 end;
