@@ -74,6 +74,15 @@ create table if not exists public.task_attachments (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.floor_plan_markers (
+  id uuid primary key default gen_random_uuid(),
+  event_key text not null,
+  label text not null,
+  x_percent numeric not null check (x_percent between 0 and 100),
+  y_percent numeric not null check (y_percent between 0 and 100),
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.page_visits (
   id bigint generated always as identity primary key,
   visitor_id uuid,
@@ -98,6 +107,7 @@ alter table public.events enable row level security;
 alter table public.event_budgets enable row level security;
 alter table public.event_tasks enable row level security;
 alter table public.task_attachments enable row level security;
+alter table public.floor_plan_markers enable row level security;
 alter table public.page_visits enable row level security;
 
 drop policy if exists "Public event read access" on public.events;
@@ -117,6 +127,9 @@ drop policy if exists "Public task delete access" on public.event_tasks;
 drop policy if exists "Public task attachment read access" on public.task_attachments;
 drop policy if exists "Public task attachment insert access" on public.task_attachments;
 drop policy if exists "Public task attachment delete access" on public.task_attachments;
+drop policy if exists "Public floor plan marker read access" on public.floor_plan_markers;
+drop policy if exists "Public floor plan marker insert access" on public.floor_plan_markers;
+drop policy if exists "Public floor plan marker delete access" on public.floor_plan_markers;
 drop policy if exists "Public visit insert access" on public.page_visits;
 
 create policy "Public event read access"
@@ -206,6 +219,21 @@ on public.task_attachments for delete
 to anon
 using (true);
 
+create policy "Public floor plan marker read access"
+on public.floor_plan_markers for select
+to anon
+using (true);
+
+create policy "Public floor plan marker insert access"
+on public.floor_plan_markers for insert
+to anon
+with check (true);
+
+create policy "Public floor plan marker delete access"
+on public.floor_plan_markers for delete
+to anon
+using (true);
+
 create policy "Public visit insert access"
 on public.page_visits for insert
 to anon
@@ -214,6 +242,14 @@ with check (true);
 do $$
 begin
   alter publication supabase_realtime add table public.budget_entries;
+exception
+  when duplicate_object then null;
+end;
+$$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.floor_plan_markers;
 exception
   when duplicate_object then null;
 end;

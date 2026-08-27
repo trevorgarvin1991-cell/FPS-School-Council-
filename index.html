@@ -300,6 +300,20 @@
     }
     .floor-plan-toolbar input { padding: 0; }
     .floor-plan-reset { min-height: 2rem; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
+    .floor-plan-marker-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.5rem;
+      margin: 0 0 0.65rem;
+    }
+    .floor-plan-marker-form input { min-width: 0; }
+    .floor-plan-marker-form button { min-height: 2.3rem; }
+    .floor-plan-feedback {
+      min-height: 1.1rem;
+      margin: -0.3rem 0 0.5rem;
+      color: #625b38;
+      font-size: 0.82rem;
+    }
     .floor-plan-viewport {
       height: min(64vw, 34rem);
       min-height: 17rem;
@@ -310,6 +324,7 @@
       touch-action: none;
     }
     .floor-plan-viewport.is-panning { cursor: grabbing; }
+    .floor-plan-viewport.is-placing { cursor: crosshair; }
     .floor-plan-canvas {
       width: 100%;
       height: 100%;
@@ -317,6 +332,12 @@
       place-items: center;
       transform-origin: center;
       will-change: transform;
+    }
+    .floor-plan-stage {
+      position: relative;
+      height: 100%;
+      max-width: 100%;
+      aspect-ratio: 942 / 692;
     }
     .floor-plan-image {
       display: block;
@@ -327,6 +348,20 @@
       user-select: none;
       pointer-events: none;
     }
+    .floor-plan-marker {
+      position: absolute;
+      width: 1.75rem;
+      height: 1.75rem;
+      transform: translate(-50%, -50%);
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: #d71920;
+      color: #fff;
+      box-shadow: 0 1px 5px rgba(17, 17, 17, 0.35);
+      font-size: 0.85rem;
+      line-height: 1;
+    }
+    .floor-plan-marker:hover { background: var(--falcon-black); }
     .floor-plan-note { margin: 0.65rem 0 0; }
     .planning-block {
       margin: 1rem 0;
@@ -559,6 +594,7 @@
       .kanban-board { grid-template-columns: repeat(3, minmax(12rem, 1fr)); overflow-x: auto; }
       .task-form { grid-template-columns: 1fr; }
       .floor-plan-toolbar { align-items: start; flex-direction: column; }
+      .floor-plan-marker-form { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -747,12 +783,19 @@
           <label for="floor-plan-zoom">Zoom <input id="floor-plan-zoom" type="range" min="100" max="250" step="10" value="100" /></label>
           <button class="floor-plan-reset" id="floor-plan-reset" type="button">Reset view</button>
         </div>
-        <div class="floor-plan-viewport" id="floor-plan-viewport" tabindex="0" aria-label="Interactive floor plan. Drag to pan and use the zoom slider to inspect the layout.">
+        <form class="floor-plan-marker-form" id="floor-plan-marker-form" aria-label="Add an event location to the floor plan">
+          <input id="floor-plan-marker-label" type="text" maxlength="80" placeholder="Event or station name" required />
+          <button type="submit">Place marker</button>
+        </form>
+        <p class="floor-plan-feedback" id="floor-plan-feedback" aria-live="polite"></p>
+        <div class="floor-plan-viewport" id="floor-plan-viewport" tabindex="0" aria-label="Interactive floor plan. Drag to pan, use the zoom slider to inspect the layout, or place event markers.">
           <div class="floor-plan-canvas" id="floor-plan-canvas">
-            <img class="floor-plan-image" src="Assets/2026-08-27_00-59-52.jpg" alt="Frankford Public School Fun Fair floor plan showing accessible routes, Fun Fair areas, and no-access rooms" />
+            <div class="floor-plan-stage" id="floor-plan-stage">
+              <img class="floor-plan-image" src="Assets/2026-08-27_00-59-52.jpg" alt="Frankford Public School Fun Fair floor plan showing accessible routes, Fun Fair areas, and no-access rooms" />
+            </div>
           </div>
         </div>
-        <p class="hint floor-plan-note">Drag the plan to pan. Use the zoom control to inspect Fun Fair areas, no-access rooms, washrooms, and the accessibility ramp.</p>
+        <p class="hint floor-plan-note">Drag the plan to pan. Use the zoom control to inspect Fun Fair areas, no-access rooms, washrooms, and the accessibility ramp. Select Place marker, then click the plan to add an event location.</p>
       </div>
     </section>
 
@@ -941,11 +984,17 @@
 
     const floorPlanViewport = document.getElementById('floor-plan-viewport');
     const floorPlanCanvas = document.getElementById('floor-plan-canvas');
+    const floorPlanStage = document.getElementById('floor-plan-stage');
     const floorPlanZoom = document.getElementById('floor-plan-zoom');
     const floorPlanReset = document.getElementById('floor-plan-reset');
+    const floorPlanMarkerForm = document.getElementById('floor-plan-marker-form');
+    const floorPlanMarkerLabel = document.getElementById('floor-plan-marker-label');
+    const floorPlanFeedback = document.getElementById('floor-plan-feedback');
     let floorPlanScale = 1;
     let floorPlanOffset = { x: 0, y: 0 };
     let floorPlanPointerStart = null;
+    let floorPlanPlacementLabel = '';
+    let floorPlanMarkers = [];
 
     function renderFloorPlan() {
       floorPlanCanvas.style.transform = `translate(${floorPlanOffset.x}px, ${floorPlanOffset.y}px) scale(${floorPlanScale})`;
@@ -958,11 +1007,90 @@
       renderFloorPlan();
     }
 
+    function setFloorPlanFeedback(message) {
+      floorPlanFeedback.textContent = message;
+    }
+
+    function renderFloorPlanMarkers() {
+      floorPlanStage.querySelectorAll('.floor-plan-marker').forEach((marker) => marker.remove());
+      floorPlanMarkers.forEach((marker) => {
+        const markerButton = document.createElement('button');
+        markerButton.className = 'floor-plan-marker';
+        markerButton.type = 'button';
+        markerButton.style.left = `${marker.xPercent}%`;
+        markerButton.style.top = `${marker.yPercent}%`;
+        markerButton.textContent = '•';
+        markerButton.title = `${marker.label} (click to remove)`;
+        markerButton.setAttribute('aria-label', `${marker.label}. Remove marker`);
+        markerButton.addEventListener('click', () => void deleteFloorPlanMarker(marker));
+        floorPlanStage.appendChild(markerButton);
+      });
+    }
+
+    async function synchronizeFloorPlanMarkers() {
+      const { data, error } = await supabaseClient
+        .from('floor_plan_markers')
+        .select('*')
+        .eq('event_key', EVENT_KEY)
+        .order('created_at');
+      if (error) {
+        return;
+      }
+
+      floorPlanMarkers = data.map((marker) => ({
+        id: marker.id,
+        label: marker.label,
+        xPercent: Number(marker.x_percent),
+        yPercent: Number(marker.y_percent)
+      }));
+      renderFloorPlanMarkers();
+    }
+
+    async function addFloorPlanMarker(xPercent, yPercent) {
+      const { error } = await supabaseClient
+        .from('floor_plan_markers')
+        .insert({ event_key: EVENT_KEY, label: floorPlanPlacementLabel, x_percent: xPercent, y_percent: yPercent });
+      if (error) {
+        setFloorPlanFeedback('Unable to save marker. Please try again.');
+        return;
+      }
+
+      floorPlanPlacementLabel = '';
+      floorPlanMarkerForm.reset();
+      floorPlanViewport.classList.remove('is-placing');
+      setFloorPlanFeedback('Event marker added.');
+      await synchronizeFloorPlanMarkers();
+    }
+
+    async function deleteFloorPlanMarker(marker) {
+      const { error } = await supabaseClient
+        .from('floor_plan_markers')
+        .delete()
+        .eq('id', marker.id);
+      if (error) {
+        setFloorPlanFeedback('Unable to remove marker. Please try again.');
+        return;
+      }
+
+      setFloorPlanFeedback('Event marker removed.');
+      await synchronizeFloorPlanMarkers();
+    }
+
     floorPlanZoom.addEventListener('input', () => {
       floorPlanScale = Number(floorPlanZoom.value) / 100;
       renderFloorPlan();
     });
     floorPlanReset.addEventListener('click', resetFloorPlan);
+    floorPlanMarkerForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      floorPlanPlacementLabel = floorPlanMarkerLabel.value.trim();
+      if (!floorPlanPlacementLabel) {
+        return;
+      }
+
+      floorPlanViewport.classList.add('is-placing');
+      setFloorPlanFeedback(`Click the plan to place ${floorPlanPlacementLabel}.`);
+    });
     floorPlanViewport.addEventListener('wheel', (event) => {
       event.preventDefault();
       const nextZoom = Math.min(250, Math.max(100, Number(floorPlanZoom.value) - Math.sign(event.deltaY) * 10));
@@ -971,6 +1099,14 @@
       renderFloorPlan();
     }, { passive: false });
     floorPlanViewport.addEventListener('pointerdown', (event) => {
+      if (floorPlanPlacementLabel) {
+        const stageBounds = floorPlanStage.getBoundingClientRect();
+        const xPercent = Math.min(100, Math.max(0, ((event.clientX - stageBounds.left) / stageBounds.width) * 100));
+        const yPercent = Math.min(100, Math.max(0, ((event.clientY - stageBounds.top) / stageBounds.height) * 100));
+        void addFloorPlanMarker(xPercent, yPercent);
+        return;
+      }
+
       floorPlanPointerStart = { x: event.clientX, y: event.clientY, offsetX: floorPlanOffset.x, offsetY: floorPlanOffset.y };
       floorPlanViewport.setPointerCapture(event.pointerId);
       floorPlanViewport.classList.add('is-panning');
@@ -994,6 +1130,16 @@
       floorPlanPointerStart = null;
       floorPlanViewport.classList.remove('is-panning');
     });
+    void synchronizeFloorPlanMarkers();
+
+    supabaseClient
+      .channel('halloween-floor-plan-markers')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'floor_plan_markers', filter: `event_key=eq.${EVENT_KEY}` },
+        synchronizeFloorPlanMarkers
+      )
+      .subscribe();
 
     const TASK_STORAGE_KEY = 'fps-halloween-tasks-v1';
     const TASK_STATUSES = ['todo', 'in-progress', 'completed'];
