@@ -247,13 +247,13 @@
     .event-list-group h4 { margin: 0 0 0.45rem; font-size: 0.9rem; }
     .event-list-table { margin: 0; font-size: 0.85rem; }
     .event-list-table th { width: 50%; }
-    .event-detail-list { display: grid; gap: 0.4rem; }
+    .event-detail-list { display: grid; gap: 0.15rem; }
     .event-detail { border-bottom: 1px solid var(--line); }
     .event-detail summary {
       display: flex;
       align-items: center;
       gap: 0.45rem;
-      min-height: 2.45rem;
+      min-height: 2.15rem;
       cursor: pointer;
       font-weight: bold;
       list-style: none;
@@ -264,12 +264,22 @@
     .event-detail-name { min-width: 0; }
     .event-detail-content {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 180px;
-      gap: 0.8rem;
-      padding: 0 0 0.8rem 1.45rem;
+      grid-template-columns: minmax(0, 1fr) 84px;
+      gap: 0.6rem;
+      padding: 0.1rem 0 0.55rem 1.45rem;
     }
     .event-detail-content p { margin: 0; color: #4a4427; font-size: 0.85rem; line-height: 1.45; }
-    .event-detail-image { width: 100%; height: 108px; object-fit: cover; border: 1px solid var(--line); border-radius: 2px; }
+    .event-detail-image-placeholder {
+      display: grid;
+      min-height: 52px;
+      place-items: center;
+      border: 1px dashed #aea47d;
+      color: #716744;
+      background: #fffbea;
+      font-size: 0.65rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
     .event-list-item { transition: background 160ms ease; }
     .event-list-item.is-pin-target { background: #fff3a3; }
     .event-pin-status {
@@ -286,8 +296,7 @@
     }
     .event-pin-status.is-pinned { color: var(--falcon-black); background: var(--falcon-yellow); }
     @media (max-width: 560px) {
-      .event-detail-content { grid-template-columns: 1fr; padding-left: 1.45rem; }
-      .event-detail-image { height: 160px; }
+      .event-detail-content { grid-template-columns: minmax(0, 1fr) 72px; padding-left: 1.45rem; }
     }
     .countdown {
       margin: 1rem 0;
@@ -1294,7 +1303,6 @@
     let floorPlanMarkers = [];
     let selectedFloorPlanMarker = null;
     const eventDetailGroups = document.getElementById('event-detail-groups');
-    const EVENT_IMAGE = 'Assets/2026-08-27_00-59-52.jpg';
     const markerEventAliases = {
       'bbq station': ['bbq fundraiser'],
       'silent auction and find the ace': ['silent auction', 'find the ace']
@@ -1371,11 +1379,12 @@
           content.className = 'event-detail-content';
           const description = document.createElement('p');
           description.textContent = event.summary;
-          const image = document.createElement('img');
-          image.className = 'event-detail-image';
-          image.src = EVENT_IMAGE;
-          image.alt = `${event.name} event location on the Fun Fair floor plan`;
-          content.append(description, image);
+          const imagePlaceholder = document.createElement('div');
+          imagePlaceholder.className = 'event-detail-image-placeholder';
+          imagePlaceholder.setAttribute('role', 'img');
+          imagePlaceholder.setAttribute('aria-label', `Image placeholder for ${event.name}`);
+          imagePlaceholder.textContent = 'Image';
+          content.append(description, imagePlaceholder);
           detail.append(summary, content);
           list.appendChild(detail);
         });
