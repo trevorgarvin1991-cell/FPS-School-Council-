@@ -165,14 +165,15 @@
       const item = document.getElementById('budget-item').value.trim();
       const category = document.getElementById('budget-category').value.trim();
       const amountValue = Number(document.getElementById('budget-amount').value);
+      const amountCents = Math.round(amountValue * 100);
 
       if (!item || !category || Number.isNaN(amountValue) || amountValue < 0) {
         return;
       }
 
-      appendRow([item, category, `$${amountValue.toFixed(2)}`], budgetBody);
+      appendRow([item, category, `$${(amountCents / 100).toFixed(2)}`], budgetBody);
 
-      budgetCents += Math.round(amountValue * 100);
+      budgetCents += amountCents;
       budgetTotal.textContent = `Total Budget: $${(budgetCents / 100).toFixed(2)}`;
 
       budgetForm.reset();
