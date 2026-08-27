@@ -815,7 +815,6 @@
       </div>
       <div class="event-workspace-panel" id="floor-plan-panel" role="tabpanel" aria-labelledby="floor-plan-tab">
         <div class="floor-plan-toolbar">
-          <label for="floor-plan-zoom">Zoom <input id="floor-plan-zoom" type="range" min="100" max="250" step="10" value="100" /></label>
           <button class="floor-plan-reset" id="floor-plan-reset" type="button">Reset view</button>
         </div>
         <form class="floor-plan-marker-form" id="floor-plan-marker-form" aria-label="Add an event location to the floor plan">
@@ -825,7 +824,7 @@
           <button type="submit">Place marker</button>
         </form>
         <p class="floor-plan-feedback" id="floor-plan-feedback" aria-live="polite"></p>
-        <div class="floor-plan-viewport" id="floor-plan-viewport" tabindex="0" aria-label="Interactive floor plan. Drag to pan, use the zoom slider to inspect the layout, or place event markers.">
+        <div class="floor-plan-viewport" id="floor-plan-viewport" tabindex="0" aria-label="Interactive floor plan. Drag to pan or place event markers.">
           <div class="floor-plan-canvas" id="floor-plan-canvas">
             <div class="floor-plan-stage" id="floor-plan-stage">
               <img class="floor-plan-image" src="Assets/2026-08-27_00-59-52.jpg" alt="Frankford Public School Fun Fair floor plan showing accessible routes, Fun Fair areas, and no-access rooms" />
@@ -838,7 +837,7 @@
           <p id="floor-plan-marker-details-copy"></p>
           <button class="floor-plan-marker-remove" id="floor-plan-marker-remove" type="button">Remove marker</button>
         </div>
-        <p class="hint floor-plan-note">Drag the plan to pan. Use the zoom control to inspect Fun Fair areas, no-access rooms, washrooms, and the accessibility ramp. Select Place marker, then click the plan to add an event location.</p>
+        <p class="hint floor-plan-note">Drag the plan to pan. Select Place marker, then click the plan to add an event location.</p>
       </div>
     </section>
 
@@ -1028,7 +1027,6 @@
     const floorPlanViewport = document.getElementById('floor-plan-viewport');
     const floorPlanCanvas = document.getElementById('floor-plan-canvas');
     const floorPlanStage = document.getElementById('floor-plan-stage');
-    const floorPlanZoom = document.getElementById('floor-plan-zoom');
     const floorPlanReset = document.getElementById('floor-plan-reset');
     const floorPlanMarkerForm = document.getElementById('floor-plan-marker-form');
     const floorPlanMarkerLabel = document.getElementById('floor-plan-marker-label');
@@ -1040,7 +1038,6 @@
     const floorPlanMarkerDetailsTitle = document.getElementById('floor-plan-marker-details-title');
     const floorPlanMarkerDetailsCopy = document.getElementById('floor-plan-marker-details-copy');
     const floorPlanMarkerRemove = document.getElementById('floor-plan-marker-remove');
-    let floorPlanScale = 1;
     let floorPlanOffset = { x: 0, y: 0 };
     let floorPlanPointerStart = null;
     let floorPlanPlacementLabel = '';
@@ -1049,13 +1046,11 @@
     let selectedFloorPlanMarker = null;
 
     function renderFloorPlan() {
-      floorPlanCanvas.style.transform = `translate(${floorPlanOffset.x}px, ${floorPlanOffset.y}px) scale(${floorPlanScale})`;
+      floorPlanCanvas.style.transform = `translate(${floorPlanOffset.x}px, ${floorPlanOffset.y}px)`;
     }
 
     function resetFloorPlan() {
-      floorPlanScale = 1;
       floorPlanOffset = { x: 0, y: 0 };
-      floorPlanZoom.value = '100';
       renderFloorPlan();
     }
 
@@ -1172,10 +1167,6 @@
       await synchronizeFloorPlanMarkers();
     }
 
-    floorPlanZoom.addEventListener('input', () => {
-      floorPlanScale = Number(floorPlanZoom.value) / 100;
-      renderFloorPlan();
-    });
     floorPlanReset.addEventListener('click', resetFloorPlan);
     floorPlanMarkerForm.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -1192,13 +1183,6 @@
         void deleteFloorPlanMarker(selectedFloorPlanMarker);
       }
     });
-    floorPlanViewport.addEventListener('wheel', (event) => {
-      event.preventDefault();
-      const nextZoom = Math.min(250, Math.max(100, Number(floorPlanZoom.value) - Math.sign(event.deltaY) * 10));
-      floorPlanZoom.value = String(nextZoom);
-      floorPlanScale = nextZoom / 100;
-      renderFloorPlan();
-    }, { passive: false });
     floorPlanViewport.addEventListener('pointerdown', (event) => {
       if (floorPlanPlacementLabel) {
         const stageBounds = floorPlanStage.getBoundingClientRect();
