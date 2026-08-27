@@ -329,7 +329,10 @@
           <select id="actual-forecast" aria-label="Forecasted budget item" hidden disabled>
             <option value="" selected disabled>Select forecasted item</option>
           </select>
-          <input id="receipt-file" type="file" accept="image/*,application/pdf" aria-label="Receipt upload" hidden disabled />
+          <label id="receipt-upload" hidden>
+            Upload receipt (required)
+            <input id="receipt-file" type="file" accept="image/*,application/pdf" />
+          </label>
           <input id="budget-amount" type="number" min="0" step="0.01" placeholder="Amount" required />
           <button type="submit">Add Budget Item</button>
         </form>
@@ -677,8 +680,8 @@
       actualForecast.disabled = !isActual;
       actualForecast.required = isActual;
       receiptFile.hidden = !isActual;
-      receiptFile.disabled = !isActual;
       receiptFile.required = isActual;
+      receiptFile.parentElement.hidden = !isActual;
 
       if (isActual) {
         actualForecast.replaceChildren(new Option('Select forecasted item', '', true, true));
