@@ -25,19 +25,19 @@ on conflict (id) do nothing;
 drop policy if exists "Public receipt upload access" on storage.objects;
 create policy "Public receipt upload access"
 on storage.objects for insert
-to anon
+to authenticated
 with check (bucket_id = 'budget-receipts');
 
 drop policy if exists "Public task attachment upload access" on storage.objects;
 drop policy if exists "Public task attachment delete access" on storage.objects;
 create policy "Public task attachment upload access"
 on storage.objects for insert
-to anon
+to authenticated
 with check (bucket_id = 'task-attachments');
 
 create policy "Public task attachment delete access"
 on storage.objects for delete
-to anon
+to authenticated
 using (bucket_id = 'task-attachments');
 
 create table if not exists public.events (
@@ -95,6 +95,64 @@ create table if not exists public.page_visits (
   visitor_id uuid,
   visited_at timestamptz not null default now()
 );
+
+create table if not exists public.activity_log (
+  id bigint generated always as identity primary key,
+  actor_id uuid references auth.users(id) on delete set null,
+  actor_email text not null default '',
+  action text not null check (action in ('budget_added', 'budget_removed', 'task_added', 'task_removed', 'task_updated')),
+  entity_type text not null check (entity_type in ('budget_item', 'task')),
+  entity_id uuid,
+  entity_label text not null default '',
+  occurred_at timestamptz not null default now()
+);
+
+create or replace function public.log_council_activity()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_op = 'DELETE' then
+    insert into public.activity_log (actor_id, actor_email, action, entity_type, entity_id, entity_label)
+    values (
+      auth.uid(),
+      coalesce(auth.jwt() ->> 'email', ''),
+      case when tg_table_name = 'budget_entries' then 'budget_removed' else 'task_removed' end,
+      case when tg_table_name = 'budget_entries' then 'budget_item' else 'task' end,
+      old.id,
+      case when tg_table_name = 'budget_entries' then to_jsonb(old) ->> 'item' else to_jsonb(old) ->> 'title' end
+    );
+    return old;
+  end if;
+
+  insert into public.activity_log (actor_id, actor_email, action, entity_type, entity_id, entity_label)
+  values (
+    auth.uid(),
+    coalesce(auth.jwt() ->> 'email', ''),
+    case
+      when tg_table_name = 'budget_entries' then 'budget_added'
+      when tg_op = 'INSERT' then 'task_added'
+      else 'task_updated'
+    end,
+    case when tg_table_name = 'budget_entries' then 'budget_item' else 'task' end,
+    new.id,
+    case when tg_table_name = 'budget_entries' then to_jsonb(new) ->> 'item' else to_jsonb(new) ->> 'title' end
+  );
+  return new;
+end;
+$$;
+
+drop trigger if exists budget_entry_activity_log on public.budget_entries;
+create trigger budget_entry_activity_log
+after insert or delete on public.budget_entries
+for each row execute function public.log_council_activity();
+
+drop trigger if exists task_activity_log on public.event_tasks;
+create trigger task_activity_log
+after insert or update or delete on public.event_tasks
+for each row execute function public.log_council_activity();
 
 alter table public.page_visits add column if not exists visitor_id uuid;
 create index if not exists page_visits_visitor_id_idx on public.page_visits (visitor_id);
@@ -174,6 +232,7 @@ alter table public.event_tasks enable row level security;
 alter table public.task_attachments enable row level security;
 alter table public.floor_plan_markers enable row level security;
 alter table public.page_visits enable row level security;
+alter table public.activity_log enable row level security;
 
 drop policy if exists "Public event read access" on public.events;
 drop policy if exists "Public event insert access" on public.events;
@@ -197,6 +256,11 @@ drop policy if exists "Public floor plan marker insert access" on public.floor_p
 drop policy if exists "Public floor plan marker update access" on public.floor_plan_markers;
 drop policy if exists "Public floor plan marker delete access" on public.floor_plan_markers;
 drop policy if exists "Public visit insert access" on public.page_visits;
+drop policy if exists "Council budget entry insert access" on public.budget_entries;
+drop policy if exists "Council budget entry delete access" on public.budget_entries;
+drop policy if exists "Council task insert access" on public.event_tasks;
+drop policy if exists "Council task update access" on public.event_tasks;
+drop policy if exists "Council task delete access" on public.event_tasks;
 
 create policy "Public event read access"
 on public.events for select
@@ -239,36 +303,36 @@ on public.budget_entries for select
 to anon
 using (true);
 
-create policy "Public budget entry insert access"
+create policy "Council budget entry insert access"
 on public.budget_entries for insert
-to anon
-with check (true);
+to authenticated
+with check (auth.uid() is not null);
 
-create policy "Public budget entry delete access"
+create policy "Council budget entry delete access"
 on public.budget_entries for delete
-to anon
-using (true);
+to authenticated
+using (auth.uid() is not null);
 
 create policy "Public task read access"
 on public.event_tasks for select
 to anon
 using (true);
 
-create policy "Public task insert access"
+create policy "Council task insert access"
 on public.event_tasks for insert
-to anon
-with check (true);
+to authenticated
+with check (auth.uid() is not null);
 
-create policy "Public task update access"
+create policy "Council task update access"
 on public.event_tasks for update
-to anon
-using (true)
-with check (true);
+to authenticated
+using (auth.uid() is not null)
+with check (auth.uid() is not null);
 
-create policy "Public task delete access"
+create policy "Council task delete access"
 on public.event_tasks for delete
-to anon
-using (true);
+to authenticated
+using (auth.uid() is not null);
 
 create policy "Public task attachment read access"
 on public.task_attachments for select

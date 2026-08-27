@@ -40,6 +40,7 @@
       flex: 0 0 auto;
       white-space: nowrap;
     }
+    .account-button { flex: 0 0 auto; white-space: nowrap; }
     .event-plan-button {
       display: inline-flex;
       align-items: center;
@@ -737,8 +738,9 @@
           </a>
         </p>
       </div>
+      <button class="add-event-button account-button" id="account-button" type="button">Sign in</button>
       <a
-        class="add-event-button event-plan-button"
+        class="event-plan-button"
         href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit#heading=h.dh4oi8o5dkgk"
         target="_blank"
         rel="noopener noreferrer"
@@ -1008,6 +1010,19 @@
     </form>
   </dialog>
 
+  <dialog id="account-dialog" aria-labelledby="account-dialog-title">
+    <div class="dialog-heading">
+      <h2 id="account-dialog-title">Council sign in</h2>
+      <button id="close-account-dialog" class="dialog-close" type="button" aria-label="Close sign in form">Close</button>
+    </div>
+    <form id="account-form" aria-label="Council sign in form">
+      <input id="account-email" type="email" autocomplete="email" placeholder="Email address" required />
+      <input id="account-password" type="password" autocomplete="current-password" placeholder="Password" required />
+      <button type="submit">Sign in</button>
+    </form>
+    <p class="sync-status" id="account-feedback" aria-live="polite"></p>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     function appendRow(cells, bodyElement) {
@@ -1100,6 +1115,56 @@
       'https://oueexkkwbkzynajpddxq.supabase.co',
       'sb_publishable_utwHzWU7rkjWnQJuCIRrTQ_l_RhktGi'
     );
+    const accountButton = document.getElementById('account-button');
+    const accountDialog = document.getElementById('account-dialog');
+    const closeAccountDialog = document.getElementById('close-account-dialog');
+    const accountForm = document.getElementById('account-form');
+    const accountFeedback = document.getElementById('account-feedback');
+    let authenticatedUser = null;
+
+    async function refreshAuthentication() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      authenticatedUser = session?.user || null;
+      accountButton.textContent = authenticatedUser ? 'Sign out' : 'Sign in';
+    }
+
+    async function requireAuthentication() {
+      await refreshAuthentication();
+      if (authenticatedUser) {
+        return true;
+      }
+      accountFeedback.textContent = 'Sign in before making changes.';
+      accountDialog.showModal();
+      return false;
+    }
+
+    accountButton.addEventListener('click', async () => {
+      await refreshAuthentication();
+      if (authenticatedUser) {
+        await supabaseClient.auth.signOut();
+        await refreshAuthentication();
+        return;
+      }
+      accountFeedback.textContent = '';
+      accountDialog.showModal();
+    });
+    closeAccountDialog.addEventListener('click', () => accountDialog.close());
+    accountForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      accountFeedback.textContent = 'Signing in...';
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email: document.getElementById('account-email').value.trim(),
+        password: document.getElementById('account-password').value
+      });
+      if (error) {
+        accountFeedback.textContent = error.message;
+        return;
+      }
+      accountForm.reset();
+      accountDialog.close();
+      await refreshAuthentication();
+    });
+    void refreshAuthentication();
 
     const PAGE_VISIT_STORAGE_KEY = 'page-visit-recorded-v2';
     const VISITOR_ID_STORAGE_KEY = 'fps-visitor-id-v1';
@@ -1614,6 +1679,10 @@
     }
 
     async function deleteTask(taskId) {
+      if (!await requireAuthentication()) {
+        setTaskFeedback('Sign in before removing a task.');
+        return;
+      }
       await supabaseClient
         .from('event_tasks')
         .delete()
@@ -1781,6 +1850,10 @@
 
     taskForm.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (!await requireAuthentication()) {
+        setTaskFeedback('Sign in before adding a task.');
+        return;
+      }
       const title = taskTitle.value.trim();
       const assignee = taskAssignee.value.trim();
       if (!title || !assignee) {
@@ -1959,6 +2032,10 @@
     }
 
     async function deleteBudgetEntry(entry) {
+      if (!await requireAuthentication()) {
+        budgetFeedback.textContent = 'Sign in before removing a budget item.';
+        return;
+      }
       if (entry.id) {
         const { error } = await supabaseClient
           .from('budget_entries')
@@ -2070,6 +2147,11 @@
 
     budgetForm.addEventListener('submit', async (event) => {
       event.preventDefault();
+
+      if (!await requireAuthentication()) {
+        budgetFeedback.textContent = 'Sign in before adding a budget item.';
+        return;
+      }
 
       await initialBudgetSynchronization;
 

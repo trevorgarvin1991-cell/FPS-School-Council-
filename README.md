@@ -44,6 +44,18 @@ Run the script again after pulling future schema updates; its table and column s
 
 The setup also creates `events`, `event_budgets`, `event_tasks`, `task_attachments`, and `floor_plan_markers`, plus the `task-attachments` storage bucket. Each event budget has exactly one owning event through `event_budgets.event_id`, and is deleted automatically when its event is removed. The Halloween event and its $2,500 allocation are seeded on first run.
 
+## Council Member Access
+
+Visitors can view budget and task information, but adding, editing, or removing budget items and tasks requires a Supabase account. Create each council member in **Authentication > Users > Add user** in the Supabase dashboard, setting an email and password. Council members then select **Sign in** on the site before making changes.
+
+Every budget and task change is recorded in `public.activity_log` with the signed-in account, action, item or task name, and timestamp. Review it in the Supabase Table Editor or run:
+
+```sql
+select actor_email, action, entity_label, occurred_at
+from public.activity_log
+order by occurred_at desc;
+```
+
 ## Page Visit Analytics
 
 Each browser session records an anonymous visit timestamp and a randomly generated browser marker in the `page_visits` table. The marker is stored only in that browser's local storage, so it identifies a browser rather than a person. No names, IP addresses, referrers, or device information are stored by the site.
@@ -94,4 +106,4 @@ from public.page_visits
 order by visited_at desc;
 ```
 
-The supplied policies allow visitors to read, add, update, and remove event and budget data without signing in. Add council-member authentication and more restrictive policies before using the public site for sensitive or restricted financial information.
+The supplied policies allow visitors to view public event and budget information. Budget and task changes require a signed-in council member; event and floor-plan changes remain public.
