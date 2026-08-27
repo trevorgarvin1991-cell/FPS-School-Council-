@@ -324,7 +324,7 @@
       position: relative;
       aspect-ratio: 942 / 692;
       height: auto;
-      overflow: hidden;
+      overflow: visible;
       border: 1px solid var(--line);
       background: #f7f4e6;
       cursor: grab;
@@ -332,6 +332,11 @@
     }
     .floor-plan-viewport.is-panning { cursor: grabbing; }
     .floor-plan-viewport.is-placing { cursor: crosshair; }
+    .floor-plan-canvas-frame {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
     .floor-plan-canvas {
       width: 100%;
       height: 100%;
@@ -835,9 +840,11 @@
         </form>
         <p class="floor-plan-feedback" id="floor-plan-feedback" aria-live="polite"></p>
         <div class="floor-plan-viewport" id="floor-plan-viewport" tabindex="0" aria-label="Interactive floor plan. Drag to pan or place event markers.">
-          <div class="floor-plan-canvas" id="floor-plan-canvas">
-            <div class="floor-plan-stage" id="floor-plan-stage">
-              <img class="floor-plan-image" src="Assets/2026-08-27_00-59-52.jpg" alt="Frankford Public School Fun Fair floor plan showing accessible routes, Fun Fair areas, and no-access rooms" />
+          <div class="floor-plan-canvas-frame">
+            <div class="floor-plan-canvas" id="floor-plan-canvas">
+              <div class="floor-plan-stage" id="floor-plan-stage">
+                <img class="floor-plan-image" src="Assets/2026-08-27_00-59-52.jpg" alt="Frankford Public School Fun Fair floor plan showing accessible routes, Fun Fair areas, and no-access rooms" />
+              </div>
             </div>
           </div>
           <div class="floor-plan-marker-details" id="floor-plan-marker-details-panel" hidden>
@@ -1127,9 +1134,14 @@
       floorPlanMarkerEditColor.value = marker.color;
       floorPlanMarkerDetailsLink.href = marker.detailsUrl;
       floorPlanMarkerDetailsLink.hidden = !marker.detailsUrl;
-      floorPlanMarkerDetailsPanel.style.left = `${Math.min(marker.xPercent, 78)}%`;
-      floorPlanMarkerDetailsPanel.style.top = `${Math.min(marker.yPercent, 78)}%`;
       floorPlanMarkerDetailsPanel.hidden = false;
+      const margin = 8;
+      const requestedLeft = (marker.xPercent / 100) * floorPlanViewport.clientWidth;
+      const requestedTop = (marker.yPercent / 100) * floorPlanViewport.clientHeight;
+      const maxLeft = floorPlanViewport.clientWidth - floorPlanMarkerDetailsPanel.offsetWidth - margin;
+      const maxTop = floorPlanViewport.clientHeight - floorPlanMarkerDetailsPanel.offsetHeight - margin;
+      floorPlanMarkerDetailsPanel.style.left = `${Math.max(margin, Math.min(requestedLeft, maxLeft))}px`;
+      floorPlanMarkerDetailsPanel.style.top = `${Math.max(margin, Math.min(requestedTop, maxTop))}px`;
       renderFloorPlanMarkers();
     }
 
@@ -1215,6 +1227,7 @@
         void deleteFloorPlanMarker(selectedFloorPlanMarker);
       }
     });
+    floorPlanMarkerDetailsPanel.addEventListener('pointerdown', (event) => event.stopPropagation());
     floorPlanMarkerEditForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!selectedFloorPlanMarker) {
