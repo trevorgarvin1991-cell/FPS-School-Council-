@@ -33,8 +33,15 @@ After GitHub Pages verifies the domain and issues a certificate, enable HTTPS in
 
 ## Shared Budget Data
 
-Budget entries sync between devices through Supabase. Before using the shared ledger, open the Supabase project's **SQL Editor**, paste the contents of [supabase-setup.sql](supabase-setup.sql), and run it once. Run it again after pulling this update to add linked actuals and receipt uploads.
+Budget entries and uploaded receipts sync between devices through Supabase.
+
+1. Create a project in [Supabase](https://supabase.com/dashboard).
+2. In the project, open **SQL Editor**, paste the contents of [supabase-setup.sql](supabase-setup.sql), and run it. The script creates the budget tables, the public `budget-receipts` storage bucket, and the access policies required by the site.
+3. Open **Connect** or **Project Settings > API** and copy the project URL and publishable key.
+4. In [index.html](index.html), update the two values in `window.supabase.createClient(...)` with that URL and publishable key.
+
+Run the script again after pulling future schema updates; its table and column setup is safe to rerun.
 
 The setup also creates `events` and `event_budgets`. Each event budget has exactly one owning event through `event_budgets.event_id`, and is deleted automatically when its event is removed. The Halloween event and its $2,500 allocation are seeded on first run.
 
-The supplied policies allow visitors to read, add, update, and remove event and budget data without signing in. Add council-member authentication before using the public site for sensitive or restricted financial information.
+The supplied policies allow visitors to read, add, update, and remove event and budget data without signing in. Add council-member authentication and more restrictive policies before using the public site for sensitive or restricted financial information.
