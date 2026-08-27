@@ -76,6 +76,12 @@
   <header>
     <h1>Frankford Public School Council App</h1>
     <p>Track budgetary information and plan school council events.</p>
+    <p>
+      Official school site:
+      <a href="https://frankford.hpedsb.on.ca/" target="_blank" rel="noopener noreferrer" style="color:#dbeafe;">
+        frankford.hpedsb.on.ca
+      </a>
+    </p>
   </header>
 
   <main>
@@ -135,6 +141,19 @@
       bodyElement.appendChild(row);
     }
 
+    function formatDateForDisplay(isoDate) {
+      const parsed = new Date(`${isoDate}T00:00:00`);
+      if (Number.isNaN(parsed.getTime())) {
+        return isoDate;
+      }
+
+      return parsed.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+
     const budgetForm = document.getElementById('budget-form');
     const budgetBody = document.getElementById('budget-body');
     const budgetTotal = document.getElementById('budget-total');
@@ -173,7 +192,7 @@
         return;
       }
 
-      appendRow([name, date, location], eventBody);
+      appendRow([name, formatDateForDisplay(date), location], eventBody);
 
       eventForm.reset();
     });
