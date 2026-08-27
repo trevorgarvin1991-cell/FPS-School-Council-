@@ -34,6 +34,11 @@
       align-items: center;
       gap: 0.9rem;
     }
+    .add-event-button {
+      margin-left: auto;
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
     .school-logo {
       width: 64px;
       height: 64px;
@@ -183,6 +188,28 @@
       padding-left: 1.1rem;
     }
     .event-details li { padding-left: 0.1rem; }
+    dialog {
+      width: min(420px, calc(100% - 2rem));
+      border: 2px solid var(--falcon-black);
+      border-top: 5px solid var(--falcon-yellow);
+      border-radius: 4px;
+      padding: 1.25rem;
+      color: var(--falcon-black);
+    }
+    dialog::backdrop { background: rgba(17, 17, 17, 0.6); }
+    .dialog-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .dialog-heading h2 { margin: 0; }
+    .dialog-close {
+      min-height: 0;
+      padding: 0.25rem 0.5rem;
+      background: #fff;
+    }
     @media (max-width: 520px) {
       body { background-attachment: scroll; }
       h1 { font-size: 1.6rem; }
@@ -206,6 +233,7 @@
           </a>
         </p>
       </div>
+      <button id="open-event-dialog" class="add-event-button" type="button">Add Event</button>
     </div>
   </header>
 
@@ -233,6 +261,11 @@
   <main>
     <section>
       <h2>Halloween Theme</h2>
+      <p>
+        <a href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit#heading=h.dh4oi8o5dkgk" target="_blank" rel="noopener noreferrer">
+          Open Full Event Plan
+        </a>
+      </p>
       <p class="hint">Thursday, October 22, 2026</p>
       <ul class="event-details">
         <li>Fun Fair runs from 6:00 to 8:00 p.m.</li>
@@ -279,6 +312,7 @@
           <input id="budget-amount" type="number" min="0" step="0.01" placeholder="Amount" required />
           <button type="submit">Add Budget Item</button>
         </form>
+        <p class="sync-status" id="budget-feedback" aria-live="polite"></p>
         <table aria-label="Halloween event budget table">
           <thead>
             <tr><th>Item</th><th>Category</th><th>Type</th><th>Amount</th><th>Action</th></tr>
@@ -286,30 +320,32 @@
           <tbody id="budget-body"></tbody>
         </table>
       </div>
-      <p>
-        <a href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit#heading=h.dh4oi8o5dkgk" target="_blank" rel="noopener noreferrer">
-          Open Full Event Plan
-        </a>
-      </p>
     </section>
 
     <section>
       <h2>Event Planning</h2>
-      <form id="event-form" aria-label="Event form">
-        <input id="event-name" type="text" placeholder="Event name" required />
-        <input id="event-date" type="date" required />
-        <input id="event-location" type="text" placeholder="Location" required />
-        <button type="submit">Add Event</button>
-      </form>
       <table aria-label="Event table">
         <thead>
-          <tr><th>Event</th><th>Date</th><th>Location</th></tr>
+          <tr><th>Event</th><th>Date</th><th>Location</th><th>Action</th></tr>
         </thead>
         <tbody id="event-body"></tbody>
       </table>
       <p class="hint">Tip: Add each school council event to keep planning visible for everyone.</p>
     </section>
   </main>
+
+  <dialog id="event-dialog" aria-labelledby="event-dialog-title">
+    <div class="dialog-heading">
+      <h2 id="event-dialog-title">Add Event</h2>
+      <button id="close-event-dialog" class="dialog-close" type="button" aria-label="Close add event form">Close</button>
+    </div>
+    <form id="event-form" aria-label="Event form">
+      <input id="event-name" type="text" placeholder="Event name" required />
+      <input id="event-date" type="date" aria-label="Event date" required />
+      <input id="event-location" type="text" placeholder="Location" required />
+      <button type="submit">Add Event</button>
+    </form>
+  </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -320,6 +356,25 @@
         cell.textContent = cellText;
         row.appendChild(cell);
       });
+      bodyElement.appendChild(row);
+    }
+
+    function appendEventRow(cells, bodyElement) {
+      const row = document.createElement('tr');
+      cells.forEach((cellText) => {
+        const cell = document.createElement('td');
+        cell.textContent = cellText;
+        row.appendChild(cell);
+      });
+
+      const actionCell = document.createElement('td');
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'remove-forecast';
+      removeButton.textContent = 'Remove';
+      removeButton.addEventListener('click', () => row.remove());
+      actionCell.appendChild(removeButton);
+      row.appendChild(actionCell);
       bodyElement.appendChild(row);
     }
 
@@ -370,6 +425,7 @@
     const eventForecast = document.getElementById('event-forecast');
     const eventActuals = document.getElementById('event-actuals');
     const eventAvailable = document.getElementById('event-available');
+    const budgetFeedback = document.getElementById('budget-feedback');
     const APPROVED_BUDGET_CENTS = 250_000;
     const TOTAL_COUNCIL_FUNDS_CENTS = 841_275;
     const EVENT_ALLOCATIONS_CENTS = [APPROVED_BUDGET_CENTS];
@@ -563,7 +619,7 @@
     renderBudgetEntries();
     updateEventBudget();
     saveBudgetEntries();
-    synchronizeBudgetEntries();
+    const initialBudgetSynchronization = synchronizeBudgetEntries();
 
     supabaseClient
       .channel('halloween-budget-entries')
@@ -576,6 +632,8 @@
 
     budgetForm.addEventListener('submit', async (event) => {
       event.preventDefault();
+
+      await initialBudgetSynchronization;
 
       const item = document.getElementById('budget-item').value.trim();
       const category = document.getElementById('budget-category').value.trim();
@@ -599,6 +657,12 @@
         amountValue > MAX_BUDGET_AMOUNT ||
         Math.max(nextForecastCents, nextActualCents) > MAX_TOTAL_BUDGET_CENTS
       ) {
+        if (Math.max(nextForecastCents, nextActualCents) > MAX_TOTAL_BUDGET_CENTS) {
+          const remainingCents = MAX_TOTAL_BUDGET_CENTS - (type === 'forecast' ? forecastCents : actualCents);
+          budgetFeedback.textContent = `This ${type} entry exceeds the remaining ${formatCurrency(remainingCents)} budget.`;
+        } else {
+          budgetFeedback.textContent = 'Enter a budget item, category, and a valid amount.';
+        }
         return;
       }
 
@@ -621,12 +685,23 @@
       updateEventBudget();
 
       budgetForm.reset();
+      budgetFeedback.textContent = 'Budget item added.';
     });
 
     const eventForm = document.getElementById('event-form');
     const eventBody = document.getElementById('event-body');
+    const eventDialog = document.getElementById('event-dialog');
+    const openEventDialog = document.getElementById('open-event-dialog');
+    const closeEventDialog = document.getElementById('close-event-dialog');
 
-    appendRow(
+    openEventDialog.addEventListener('click', () => {
+      eventDialog.showModal();
+      document.getElementById('event-name').focus();
+    });
+
+    closeEventDialog.addEventListener('click', () => eventDialog.close());
+
+    appendEventRow(
       ['Halloween Theme', formatDateForDisplay('2026-10-22'), 'Frankford Public School'],
       eventBody
     );
@@ -642,9 +717,10 @@
         return;
       }
 
-      appendRow([name, formatDateForDisplay(date), location], eventBody);
+      appendEventRow([name, formatDateForDisplay(date), location], eventBody);
 
       eventForm.reset();
+      eventDialog.close();
     });
   </script>
 </body>
