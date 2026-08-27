@@ -395,12 +395,29 @@
       box-shadow: 0 -3px 0 var(--falcon-yellow);
     }
     .event-workspace-panel { padding-top: 0.15rem; }
+    .floor-plan-controls {
+      margin: 0.7rem 0 0.65rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .floor-plan-controls summary {
+      display: flex;
+      align-items: center;
+      min-height: 2.3rem;
+      cursor: pointer;
+      color: #4a4427;
+      font-size: 0.85rem;
+      font-weight: bold;
+      list-style: none;
+    }
+    .floor-plan-controls summary::-webkit-details-marker { display: none; }
+    .floor-plan-controls summary::before { content: '+'; width: 1.2rem; color: #7a5b00; font-size: 1.15rem; text-align: center; }
+    .floor-plan-controls[open] summary::before { content: '-'; }
     .floor-plan-toolbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 0.75rem;
-      margin: 1rem 0 0.65rem;
+      margin: 0.45rem 0 0.65rem;
     }
     .floor-plan-toolbar label {
       display: flex;
@@ -992,17 +1009,20 @@
         </div>
       </div>
       <div class="event-workspace-panel" id="floor-plan-panel" role="tabpanel" aria-labelledby="floor-plan-tab">
-        <div class="floor-plan-toolbar">
-          <button class="floor-plan-reset" id="floor-plan-reset" type="button">Reset view</button>
-        </div>
-        <form class="floor-plan-marker-form" id="floor-plan-marker-form" aria-label="Add an event location to the floor plan">
-          <input id="floor-plan-marker-label" type="text" maxlength="80" placeholder="Event or station name" required />
-          <input id="floor-plan-marker-details" type="text" maxlength="160" placeholder="Location details" />
-          <input id="floor-plan-marker-details-url" type="url" maxlength="500" placeholder="More details link (optional)" />
-          <input class="floor-plan-marker-color" id="floor-plan-marker-color" type="color" value="#d71920" aria-label="Marker color" />
-          <button type="submit">Place marker</button>
-        </form>
-        <p class="floor-plan-feedback" id="floor-plan-feedback" aria-live="polite"></p>
+        <details class="floor-plan-controls">
+          <summary>Floor plan controls</summary>
+          <div class="floor-plan-toolbar">
+            <button class="floor-plan-reset" id="floor-plan-reset" type="button">Reset view</button>
+          </div>
+          <form class="floor-plan-marker-form" id="floor-plan-marker-form" aria-label="Add an event location to the floor plan">
+            <input id="floor-plan-marker-label" type="text" maxlength="80" placeholder="Event or station name" required />
+            <input id="floor-plan-marker-details" type="text" maxlength="160" placeholder="Location details" />
+            <input id="floor-plan-marker-details-url" type="url" maxlength="500" placeholder="More details link (optional)" />
+            <input class="floor-plan-marker-color" id="floor-plan-marker-color" type="color" value="#d71920" aria-label="Marker color" />
+            <button type="submit">Place marker</button>
+          </form>
+          <p class="floor-plan-feedback" id="floor-plan-feedback" aria-live="polite"></p>
+        </details>
         <div class="floor-plan-viewport" id="floor-plan-viewport" tabindex="0" aria-label="Interactive floor plan. Drag to pan or place event markers.">
           <div class="floor-plan-canvas-frame">
             <div class="floor-plan-canvas" id="floor-plan-canvas">
