@@ -144,7 +144,7 @@
     lockForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       lockError.textContent = '';
-      if (await hashAccessCode(accessCode.value) !== ACCESS_CODE_HASH) {
+      if (await hashAccessCode(accessCode.value.trim().toUpperCase()) !== ACCESS_CODE_HASH) {
         lockError.textContent = 'Incorrect access code.';
         accessCode.select();
         return;
