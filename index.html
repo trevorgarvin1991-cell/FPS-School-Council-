@@ -357,19 +357,21 @@
     .floor-plan-marker {
       position: absolute;
       display: grid;
-      width: 2rem;
-      height: 2rem;
+      width: 1.25rem;
+      height: 1.25rem;
+      min-height: 0;
       place-items: center;
       transform: translate(-50%, -50%);
-      border: 3px solid #fff;
+      padding: 0;
+      border: 2px solid #fff;
       border-radius: 50%;
       color: #fff;
       box-shadow: 0 1px 5px rgba(17, 17, 17, 0.35);
-      font-size: 1rem;
+      font-size: 0.75rem;
       line-height: 0;
     }
     .floor-plan-marker:hover,
-    .floor-plan-marker.is-selected { outline: 3px solid var(--falcon-black); outline-offset: 2px; }
+    .floor-plan-marker.is-selected { outline: 2px solid var(--falcon-black); outline-offset: 1px; }
     .floor-plan-legend {
       display: flex;
       flex-wrap: wrap;
