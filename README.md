@@ -11,6 +11,10 @@ Frankford Public School Council application for:
 
 Open `index.html` in a browser to use the app.
 
+## Design Reference
+
+- [Figma Make website redesign](https://www.figma.com/make/B3aFKpqigNmIuuGYrDKzit/Website-redesign?t=OchqemIWc6CylqBP-1)
+
 ## Hosting And DNS
 
 The site is published with GitHub Pages at `www.fpscouncil.com`.
