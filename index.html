@@ -596,7 +596,16 @@
       justify-content: space-between;
       gap: 0.5rem;
     }
-    .kanban-task-title { font-weight: bold; overflow-wrap: anywhere; }
+    .kanban-task-title {
+      width: 100%;
+      min-height: 2rem;
+      padding: 0.3rem;
+      border-color: transparent;
+      background: transparent;
+      font-weight: bold;
+    }
+    .kanban-task-title:hover { border-color: var(--line); }
+    .kanban-task-title:focus { border-color: var(--falcon-black); background: #fff; }
     .kanban-task-actions {
       display: flex;
       flex: 0 0 auto;
@@ -1506,7 +1515,7 @@
     async function updateTaskInDatabase(task) {
       await supabaseClient
         .from('event_tasks')
-        .update({ assignee: task.assignee, status: task.status })
+        .update({ title: task.title, assignee: task.assignee, status: task.status })
         .eq('id', task.id);
     }
 
@@ -1609,9 +1618,24 @@
 
           const taskHeader = document.createElement('div');
           taskHeader.className = 'kanban-task-header';
-          const taskName = document.createElement('span');
+          const taskName = document.createElement('input');
           taskName.className = 'kanban-task-title';
+          taskName.type = 'text';
           taskName.textContent = task.title;
+          taskName.value = task.title;
+          taskName.maxLength = 120;
+          taskName.setAttribute('aria-label', `Title for ${task.title}`);
+          taskName.addEventListener('change', () => {
+            const title = taskName.value.trim();
+            if (!title) {
+              taskName.value = task.title;
+              return;
+            }
+
+            task.title = title;
+            saveTasks();
+            void updateTaskInDatabase(task);
+          });
           const deleteButton = document.createElement('button');
           deleteButton.className = 'kanban-delete';
           deleteButton.type = 'button';
