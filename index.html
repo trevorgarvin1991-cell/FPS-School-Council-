@@ -213,6 +213,35 @@
       padding-left: 1.1rem;
     }
     .event-details li { padding-left: 0.1rem; }
+    .schedule-meta {
+      margin: -0.25rem 0 0.7rem;
+      color: #625b38;
+      font-size: 0.82rem;
+    }
+    .schedule-timeline {
+      display: grid;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      border-top: 1px solid var(--line);
+    }
+    .schedule-timeline li {
+      display: grid;
+      grid-template-columns: 4.5rem minmax(0, 1fr);
+      gap: 0.75rem;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .schedule-time { color: #7a5b00; font-weight: bold; }
+    .schedule-notes {
+      margin: 0.8rem 0 0;
+      padding: 0.7rem 0.85rem;
+      border-left: 4px solid var(--falcon-yellow);
+      background: #fffbea;
+      font-size: 0.85rem;
+    }
+    .schedule-notes strong { display: block; margin-bottom: 0.25rem; }
     .countdown {
       margin: 1rem 0;
       padding: 0.8rem 0;
@@ -807,14 +836,20 @@
       <div class="event-workspace-panel" id="schedule-panel" role="tabpanel" aria-labelledby="schedule-tab" hidden>
         <div class="planning-block">
           <h3>Schedule</h3>
-          <ul class="event-details">
-            <li><strong>3:45</strong> Volunteers setting up</li>
-            <li><strong>5:30</strong> Outdoor BBQ begins by gazebo</li>
-            <li><strong>6:00</strong> Doors open for guests and games begin</li>
-            <li><strong>7:00</strong> Meet in gym to start hallway costume parade (teacher surprise flash mob at 7?)</li>
-            <li><strong>7:30</strong> BBQ clean up</li>
-            <li><strong>7:30</strong> Silent auction closes. Winners can pay and pick up between 7:30 and 8:00.</li>
-            <li><strong>8:00</strong> Games end and volunteers clean up</li>
+          <p class="schedule-meta">Thursday, October 22, 2026. All times are PM.</p>
+          <ol class="schedule-timeline">
+            <li><time class="schedule-time">3:45 PM</time><span>Volunteers set up.</span></li>
+            <li><time class="schedule-time">5:30 PM</time><span>Outdoor BBQ begins by the gazebo.</span></li>
+            <li><time class="schedule-time">6:00 PM</time><span>Doors open for guests and games begin.</span></li>
+            <li><time class="schedule-time">7:00 PM</time><span>Meet in the gym to begin the hallway costume parade. Teacher surprise flash mob planned.</span></li>
+            <li><time class="schedule-time">7:30 PM</time><span>BBQ clean up begins.</span></li>
+            <li><time class="schedule-time">7:30 PM</time><span>Silent auction closes. Winners may pay and pick up items until 8:00 PM.</span></li>
+            <li><time class="schedule-time">8:00 PM</time><span>Games end and volunteers clean up.</span></li>
+          </ol>
+          <aside class="schedule-notes">
+            <strong>At a glance</strong>
+            Guest activities run from 6:00 to 8:00 PM. The BBQ is available from 5:30 to 7:30 PM, and silent auction winners should complete payment and pickup before 8:00 PM.
+          </aside>
           </ul>
         </div>
         <div class="planning-block">
