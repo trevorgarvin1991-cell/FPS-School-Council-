@@ -22,6 +22,10 @@ insert into storage.buckets (id, name, public)
 values ('task-attachments', 'task-attachments', true)
 on conflict (id) do nothing;
 
+insert into storage.buckets (id, name, public)
+values ('council-documents', 'council-documents', true)
+on conflict (id) do nothing;
+
 drop policy if exists "Public receipt upload access" on storage.objects;
 create policy "Public receipt upload access"
 on storage.objects for insert
@@ -39,6 +43,12 @@ create policy "Public task attachment delete access"
 on storage.objects for delete
 to authenticated
 using (bucket_id = 'task-attachments');
+
+drop policy if exists "Council document upload access" on storage.objects;
+create policy "Council document upload access"
+on storage.objects for insert
+to authenticated
+with check (bucket_id = 'council-documents');
 
 create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
@@ -74,6 +84,13 @@ create table if not exists public.task_attachments (
   task_id uuid not null references public.event_tasks(id) on delete cascade,
   file_name text not null,
   file_path text not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.council_documents (
+  id uuid primary key default gen_random_uuid(),
+  file_name text not null,
+  file_path text not null unique,
   created_at timestamptz not null default now()
 );
 
@@ -238,6 +255,7 @@ alter table public.events enable row level security;
 alter table public.event_budgets enable row level security;
 alter table public.event_tasks enable row level security;
 alter table public.task_attachments enable row level security;
+alter table public.council_documents enable row level security;
 alter table public.floor_plan_markers enable row level security;
 alter table public.page_visits enable row level security;
 alter table public.activity_log enable row level security;
@@ -273,6 +291,8 @@ drop policy if exists "Council task delete access" on public.event_tasks;
 drop policy if exists "Guest task update access" on public.event_tasks;
 drop policy if exists "Council task read access" on public.event_tasks;
 drop policy if exists "Council task attachment read access" on public.task_attachments;
+drop policy if exists "Public council document read access" on public.council_documents;
+drop policy if exists "Council document insert access" on public.council_documents;
 
 create policy "Public event read access"
 on public.events for select
@@ -381,6 +401,16 @@ create policy "Public task attachment delete access"
 on public.task_attachments for delete
 to anon
 using (true);
+
+create policy "Public council document read access"
+on public.council_documents for select
+to anon, authenticated
+using (true);
+
+create policy "Council document insert access"
+on public.council_documents for insert
+to authenticated
+with check (auth.uid() is not null);
 
 create policy "Public floor plan marker read access"
 on public.floor_plan_markers for select
