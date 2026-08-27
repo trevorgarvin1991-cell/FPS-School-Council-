@@ -150,8 +150,35 @@
       padding: 0 1rem 1rem;
       color: #625b38;
       font-size: 0.72rem;
-      text-align: right;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
     }
+    .footer-link {
+      color: #625b38;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .footer-link:hover {
+      color: #7a5b00;
+      text-decoration: underline;
+    }
+    .footer-donate-link {
+      padding: 0.32rem 0.55rem;
+      border: 1px solid var(--falcon-black);
+      border-radius: 2px;
+      background: var(--falcon-yellow);
+      color: var(--falcon-black);
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .footer-donate-link:hover { background: var(--falcon-yellow-dark); }
+    #site-version {
+      margin-left: 0;
+      padding-left: 0.7rem;
+      border-left: 1px solid var(--line);
+    }
+    .footer-spacer { margin-left: auto; }
     section {
       background: var(--surface);
       border: 1px solid #d9d9d9;
@@ -1055,7 +1082,7 @@
     </section>
 
   </main>
-  <footer class="site-version"><a class="analytics-link" href="analytics.html">Site analytics</a><a class="event-plan-button" href="donate.html">Donate</a><span id="site-version">v1.0.57</span></footer>
+  <footer class="site-version"><a class="footer-donate-link" href="donate.html">Donate</a><span class="footer-spacer" aria-hidden="true"></span><a class="footer-link analytics-link" href="analytics.html">Site analytics</a><span id="site-version">v1.0.57</span></footer>
 
   <dialog id="event-dialog" aria-labelledby="event-dialog-title">
     <div class="dialog-heading">
