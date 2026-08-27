@@ -247,6 +247,29 @@
     .event-list-group h4 { margin: 0 0 0.45rem; font-size: 0.9rem; }
     .event-list-table { margin: 0; font-size: 0.85rem; }
     .event-list-table th { width: 50%; }
+    .event-detail-list { display: grid; gap: 0.4rem; }
+    .event-detail { border-bottom: 1px solid var(--line); }
+    .event-detail summary {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-height: 2.45rem;
+      cursor: pointer;
+      font-weight: bold;
+      list-style: none;
+    }
+    .event-detail summary::-webkit-details-marker { display: none; }
+    .event-detail summary::before { content: '+'; width: 1rem; color: #7a5b00; font-size: 1.15rem; text-align: center; }
+    .event-detail[open] summary::before { content: '-'; }
+    .event-detail-name { min-width: 0; }
+    .event-detail-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px;
+      gap: 0.8rem;
+      padding: 0 0 0.8rem 1.45rem;
+    }
+    .event-detail-content p { margin: 0; color: #4a4427; font-size: 0.85rem; line-height: 1.45; }
+    .event-detail-image { width: 100%; height: 108px; object-fit: cover; border: 1px solid var(--line); border-radius: 2px; }
     .event-list-item { transition: background 160ms ease; }
     .event-list-item.is-pin-target { background: #fff3a3; }
     .event-pin-status {
@@ -262,6 +285,10 @@
       vertical-align: middle;
     }
     .event-pin-status.is-pinned { color: var(--falcon-black); background: var(--falcon-yellow); }
+    @media (max-width: 560px) {
+      .event-detail-content { grid-template-columns: 1fr; padding-left: 1.45rem; }
+      .event-detail-image { height: 160px; }
+    }
     .countdown {
       margin: 1rem 0;
       padding: 0.8rem 0;
@@ -934,35 +961,7 @@
         <div class="planning-block">
           <h3>Schedule and Events</h3>
           <p class="hint">Stations included in the Fun Fair passport.</p>
-          <div class="event-list-group">
-            <h4>Activities</h4>
-            <table class="event-list-table" aria-label="Fun Fair activity stations">
-              <tbody>
-                <tr><td>Balloon jars and candy jar guess</td><td>Pumpkin bowling</td></tr>
-                <tr><td>Pencil spoon race</td><td>Cupcake walk</td></tr>
-                <tr><td>Ring toss and Captain Hook zombie hands</td><td>Halloween Just Dance for kids</td></tr>
-                <tr><td>Bag toss</td><td>Fish pond</td></tr>
-                <tr><td>Basketball shoot</td><td>Hockey shot</td></tr>
-                <tr><td>Lollipop guess</td><td>Cotton candy</td></tr>
-                <tr><td>Popcorn</td><td>Face painting</td></tr>
-                <tr><td>Temporary tattoos</td><td>Haunted house</td></tr>
-                <tr><td>Costume parade</td><td>Photo booth</td></tr>
-                <tr><td>Police mask house</td><td></td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="event-list-group">
-            <h4>Food</h4>
-            <table class="event-list-table" aria-label="Fun Fair food stations">
-              <tbody><tr><td>BBQ fundraiser</td><td>Unicorn Poop ice cream truck</td></tr></tbody>
-            </table>
-          </div>
-          <div class="event-list-group">
-            <h4>Adult-Focused Activities</h4>
-            <table class="event-list-table" aria-label="Adult-focused activities">
-              <tbody><tr><td>Silent auction</td><td>Find the Ace</td></tr></tbody>
-            </table>
-          </div>
+          <div id="event-detail-groups"></div>
         </div>
       </div>
       <div class="event-workspace-panel" id="floor-plan-panel" role="tabpanel" aria-labelledby="floor-plan-tab">
@@ -1294,8 +1293,8 @@
     let floorPlanMarkerSaveInProgress = false;
     let floorPlanMarkers = [];
     let selectedFloorPlanMarker = null;
-    const eventListItems = Array.from(document.querySelectorAll('.event-list-table td'))
-      .filter((item) => item.textContent.trim());
+    const eventDetailGroups = document.getElementById('event-detail-groups');
+    const EVENT_IMAGE = 'Assets/2026-08-27_00-59-52.jpg';
     const markerEventAliases = {
       'bbq station': ['bbq fundraiser'],
       'silent auction and find the ace': ['silent auction', 'find the ace']
@@ -1305,41 +1304,108 @@
       return label.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim();
     }
 
+    const eventCatalog = [
+      ['Activities', 'Balloon jars and candy jar guess', 'Guess the number of treats in each jar for a chance to win a sweet prize.'],
+      ['Activities', 'Pumpkin bowling', 'Roll for a strike in this seasonal take on a classic carnival game.'],
+      ['Activities', 'Pencil spoon race', 'Carry a pencil on a spoon and race carefully to the finish line.'],
+      ['Activities', 'Cupcake walk', 'Follow the music and see whether your number wins a cupcake.'],
+      ['Activities', 'Ring toss and Captain Hook zombie hands', 'Test your aim with two playful Halloween tossing challenges.'],
+      ['Activities', 'Halloween Just Dance for kids', 'Join the kid-friendly dance activity with Halloween-themed music and moves.'],
+      ['Activities', 'Bag toss', 'Take turns tossing bean bags toward the target for points.'],
+      ['Activities', 'Fish pond', 'Cast a line into the mystery pond to catch a surprise.'],
+      ['Activities', 'Basketball shoot', 'Take your best shot at the basketball challenge.'],
+      ['Activities', 'Hockey shot', 'Aim for the target in the hockey shooting challenge.'],
+      ['Activities', 'Lollipop guess', 'Make a guess for a chance to win a lollipop-themed prize.'],
+      ['Activities', 'Cotton candy', 'Pick up a fluffy fun-fair treat while supplies last.'],
+      ['Activities', 'Popcorn', 'Enjoy freshly made popcorn during the Fun Fair.'],
+      ['Activities', 'Face painting', 'Choose a fun design and let a volunteer transform your look.'],
+      ['Activities', 'Temporary tattoos', 'Select a temporary tattoo to add a little Halloween flair.'],
+      ['Activities', 'Haunted house', 'Step inside for a spooky, age-appropriate Halloween experience.'],
+      ['Activities', 'Costume parade', 'Show off your costume during the hallway parade at 7:00 PM.'],
+      ['Activities', 'Photo booth', 'Capture a Fun Fair memory with themed props and a photo.'],
+      ['Activities', 'Police mask house', 'Visit the police mask house activity for a creative Halloween stop.'],
+      ['Food', 'BBQ fundraiser', 'Enjoy BBQ food by the gazebo from 5:30 to 7:30 PM in support of school improvements.'],
+      ['Food', 'Unicorn Poop ice cream truck', 'Cool off with a sweet treat from the visiting ice cream truck.'],
+      ['Adult-Focused Activities', 'Silent auction', 'Browse auction items and place bids before the 7:30 PM close.'],
+      ['Adult-Focused Activities', 'Find the Ace', 'Take part in the Find the Ace draw for a chance at the prize.']
+    ].map(([group, name, summary]) => ({ group, name, summary, key: normalizeEventLabel(name) }));
+
     function getMarkerEventKeys(marker) {
       const markerKey = normalizeEventLabel(marker.label);
       return markerEventAliases[markerKey] || [markerKey];
     }
 
+    function createEventPinStatus(eventKey) {
+      const matchingMarkers = floorPlanMarkers.filter((marker) => getMarkerEventKeys(marker).includes(eventKey));
+      const status = document.createElement('span');
+      status.className = 'event-pin-status';
+      if (matchingMarkers.length > 0) {
+        status.classList.add('is-pinned');
+        status.textContent = 'Pinned';
+        status.title = `Floor-plan pin: ${matchingMarkers.map((marker) => marker.label).join(', ')}`;
+      } else {
+        status.textContent = 'No floor-plan pin';
+      }
+      return status;
+    }
+
+    function renderEventDetails() {
+      eventDetailGroups.replaceChildren();
+      ['Activities', 'Food', 'Adult-Focused Activities'].forEach((groupName) => {
+        const group = document.createElement('div');
+        group.className = 'event-list-group';
+        const heading = document.createElement('h4');
+        heading.textContent = groupName;
+        const list = document.createElement('div');
+        list.className = 'event-detail-list';
+        eventCatalog.filter((event) => event.group === groupName).forEach((event) => {
+          const detail = document.createElement('details');
+          detail.className = 'event-detail event-list-item';
+          detail.dataset.eventKey = event.key;
+          const summary = document.createElement('summary');
+          const name = document.createElement('span');
+          name.className = 'event-detail-name';
+          name.textContent = event.name;
+          summary.append(name, createEventPinStatus(event.key));
+          const content = document.createElement('div');
+          content.className = 'event-detail-content';
+          const description = document.createElement('p');
+          description.textContent = event.summary;
+          const image = document.createElement('img');
+          image.className = 'event-detail-image';
+          image.src = EVENT_IMAGE;
+          image.alt = `${event.name} event location on the Fun Fair floor plan`;
+          content.append(description, image);
+          detail.append(summary, content);
+          list.appendChild(detail);
+        });
+        group.append(heading, list);
+        eventDetailGroups.appendChild(group);
+      });
+    }
+
     function renderEventPinStatus() {
-      eventListItems.forEach((item) => {
-        const eventKey = normalizeEventLabel(item.childNodes[0].textContent);
-        const matchingMarkers = floorPlanMarkers.filter((marker) => getMarkerEventKeys(marker).includes(eventKey));
-        item.classList.add('event-list-item');
+      document.querySelectorAll('.event-detail').forEach((item) => {
         item.querySelector('.event-pin-status')?.remove();
-        const status = document.createElement('span');
-        status.className = 'event-pin-status';
-        if (matchingMarkers.length > 0) {
-          status.classList.add('is-pinned');
-          status.textContent = 'Pinned';
-          status.title = `Floor-plan pin: ${matchingMarkers.map((marker) => marker.label).join(', ')}`;
-        } else {
-          status.textContent = 'No floor-plan pin';
-        }
-        item.appendChild(status);
+        item.querySelector('summary').appendChild(createEventPinStatus(item.dataset.eventKey));
       });
     }
 
     function showMarkerEvents(marker) {
       const markerEventKeys = getMarkerEventKeys(marker);
-      const matchingItems = eventListItems.filter((item) => markerEventKeys.includes(normalizeEventLabel(item.childNodes[0].textContent)));
+      const matchingItems = Array.from(document.querySelectorAll('.event-detail'))
+        .filter((item) => markerEventKeys.includes(item.dataset.eventKey));
       if (matchingItems.length === 0) {
         return;
       }
       document.getElementById('event-list-tab').click();
+      matchingItems.forEach((item) => { item.open = true; });
       matchingItems.forEach((item) => item.classList.add('is-pin-target'));
       matchingItems[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(() => matchingItems.forEach((item) => item.classList.remove('is-pin-target')), 2_000);
     }
+
+    renderEventDetails();
 
     function renderFloorPlan() {
       floorPlanCanvas.style.transform = `translate(${floorPlanOffset.x}px, ${floorPlanOffset.y}px)`;
