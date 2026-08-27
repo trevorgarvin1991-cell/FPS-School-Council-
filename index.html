@@ -242,6 +242,10 @@
       font-size: 0.85rem;
     }
     .schedule-notes strong { display: block; margin-bottom: 0.25rem; }
+    .event-list-group { margin: 1rem 0; }
+    .event-list-group h4 { margin: 0 0 0.45rem; font-size: 0.9rem; }
+    .event-list-table { margin: 0; font-size: 0.85rem; }
+    .event-list-table th { width: 50%; }
     .countdown {
       margin: 1rem 0;
       padding: 0.8rem 0;
@@ -710,7 +714,7 @@
       main { margin-top: 1rem; }
       .school-logo { width: 68px; height: 68px; }
       .budget-metrics { grid-template-columns: repeat(2, 1fr); }
-      .event-workspace-tabs { display: grid; grid-template-columns: repeat(4, 1fr); }
+      .event-workspace-tabs { display: grid; grid-template-columns: repeat(5, 1fr); }
       .event-workspace-tab { min-height: 3.1rem; padding: 0.4rem; font-size: 0.75rem; }
       .kanban-board { grid-template-columns: repeat(3, minmax(12rem, 1fr)); overflow-x: auto; }
       .task-form { grid-template-columns: 1fr; }
@@ -784,6 +788,7 @@
         <button class="event-workspace-tab" id="floor-plan-tab" type="button" role="tab" aria-selected="true" aria-controls="floor-plan-panel">Floor Plan</button>
         <button class="event-workspace-tab" id="budget-tab" type="button" role="tab" aria-selected="false" aria-controls="budget-panel">Budget</button>
         <button class="event-workspace-tab" id="schedule-tab" type="button" role="tab" aria-selected="false" aria-controls="schedule-panel">Schedules &amp; Tasks</button>
+        <button class="event-workspace-tab" id="event-list-tab" type="button" role="tab" aria-selected="false" aria-controls="event-list-panel">Event List</button>
         <button class="event-workspace-tab" id="resources-tab" type="button" role="tab" aria-selected="false" aria-controls="resources-panel">Resources &amp; Members</button>
       </div>
       <div class="event-workspace-panel" id="budget-panel" role="tabpanel" aria-labelledby="budget-tab" hidden>
@@ -906,6 +911,42 @@
               <a href="tel:+16132423681">(613) 242-3681</a>
               <a href="mailto:Trevor.Garvin1991@gmail.com">Trevor.Garvin1991@gmail.com</a>
             </div>
+          </div>
+        </div>
+      </div>
+      <div class="event-workspace-panel" id="event-list-panel" role="tabpanel" aria-labelledby="event-list-tab" hidden>
+        <div class="planning-block">
+          <h3>Event List</h3>
+          <p class="hint">Stations included in the Fun Fair passport.</p>
+          <div class="event-list-group">
+            <h4>Activities</h4>
+            <table class="event-list-table" aria-label="Fun Fair activity stations">
+              <thead><tr><th colspan="2">Activities</th></tr></thead>
+              <tbody>
+                <tr><td>Balloon jars and candy jar guess</td><td>Pumpkin bowling</td></tr>
+                <tr><td>Pencil spoon race</td><td>Cupcake walk</td></tr>
+                <tr><td>Ring toss and Captain Hook zombie hands</td><td>Halloween Just Dance for kids</td></tr>
+                <tr><td>Bag toss</td><td>Fish pond</td></tr>
+                <tr><td>Basketball shoot</td><td>Hockey shot</td></tr>
+                <tr><td>Lollipop guess</td><td>Cotton candy</td></tr>
+                <tr><td>Popcorn</td><td>Face painting</td></tr>
+                <tr><td>Temporary tattoos</td><td>Haunted house</td></tr>
+                <tr><td>Costume parade</td><td>Photo booth</td></tr>
+                <tr><td>Police mask house</td><td></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="event-list-group">
+            <h4>Food</h4>
+            <table class="event-list-table" aria-label="Fun Fair food stations">
+              <tbody><tr><td>BBQ fundraiser</td><td>Unicorn Poop ice cream truck</td></tr></tbody>
+            </table>
+          </div>
+          <div class="event-list-group">
+            <h4>Adult-Focused Activities</h4>
+            <table class="event-list-table" aria-label="Adult-focused activities">
+              <tbody><tr><td>Silent auction</td><td>Find the Ace</td></tr></tbody>
+            </table>
           </div>
         </div>
       </div>
