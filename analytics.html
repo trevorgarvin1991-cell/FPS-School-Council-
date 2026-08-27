@@ -34,6 +34,16 @@
     .badge-me { background: var(--yellow); color: var(--ink); }
     .badge-others { background: #ece8d6; color: #4a4427; }
     .empty { color: var(--muted); }
+    .lock-screen { min-height: calc(100vh - 104px); display: grid; place-items: center; padding: 1rem; }
+    .lock-panel { width: min(100%, 360px); padding: 1.25rem; background: var(--paper); border: 1px solid #d9d9d9; border-top: 4px solid var(--yellow); border-radius: 4px; box-shadow: 0 5px 16px rgba(17, 17, 17, 0.1); }
+    .lock-panel h2 { margin-bottom: 0.35rem; }
+    .lock-panel p { margin: 0 0 1rem; color: var(--muted); font-size: 0.88rem; }
+    .lock-form { display: grid; gap: 0.65rem; }
+    input, button { min-height: 2.5rem; padding: 0.55rem 0.65rem; border: 1px solid #aaa; border-radius: 2px; font: inherit; }
+    input:focus { outline: 2px solid var(--yellow); outline-offset: 1px; }
+    button { background: var(--yellow); border-color: var(--ink); color: var(--ink); font-weight: bold; cursor: pointer; }
+    button:hover { background: var(--yellow-dark); }
+    .lock-error { min-height: 1.2rem; margin: 0; color: #b00020 !important; font-size: 0.82rem !important; }
     footer { max-width: 960px; margin: 0 auto; padding: 0 1rem 1rem; color: var(--muted); font-size: 0.72rem; text-align: right; }
     @media (max-width: 650px) { .header-content { min-height: 88px; } .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .back-link { font-size: 0.82rem; } .metric-value { font-size: 1.55rem; } }
   </style>
@@ -46,7 +56,18 @@
       <a class="back-link" href="index.html">Back to council</a>
     </div>
   </header>
-  <main>
+  <div class="lock-screen" id="lock-screen">
+    <section class="lock-panel" aria-labelledby="lock-title">
+      <h2 id="lock-title">Analytics access</h2>
+      <p>Enter the access code to continue.</p>
+      <form class="lock-form" id="lock-form">
+        <input id="access-code" type="password" autocomplete="current-password" aria-label="Access code" required autofocus />
+        <button type="submit">Unlock</button>
+        <p class="lock-error" id="lock-error" role="alert"></p>
+      </form>
+    </section>
+  </div>
+  <main id="analytics-content" hidden>
     <p class="status" id="status" role="status">Loading analytics...</p>
     <div class="metrics" aria-label="Visit summary">
       <article class="metric"><span class="metric-label">Total visits</span><strong class="metric-value" id="total-visits">-</strong></article>
@@ -102,7 +123,40 @@
       if (visits.length === 0) { dailyBody.innerHTML = '<tr><td class="empty" colspan="4">No visits recorded yet.</td></tr>'; recentBody.innerHTML = '<tr><td class="empty" colspan="4">No visits recorded yet.</td></tr>'; }
       status.textContent = `Updated ${new Date().toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit' })}`;
     }
-    void loadAnalytics();
+    const ACCESS_CODE_HASH = '85869174459f3b9c451a9ae6cc9c32fbde46d2e83dd4ca3e2234f6558eb4f7dc';
+    const lockScreen = document.getElementById('lock-screen');
+    const analyticsContent = document.getElementById('analytics-content');
+    const lockForm = document.getElementById('lock-form');
+    const accessCode = document.getElementById('access-code');
+    const lockError = document.getElementById('lock-error');
+
+    async function hashAccessCode(value) {
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+      return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    function unlockAnalytics() {
+      sessionStorage.setItem('fps-analytics-unlocked', 'true');
+      lockScreen.hidden = true;
+      analyticsContent.hidden = false;
+      void loadAnalytics();
+    }
+
+    if (sessionStorage.getItem('fps-analytics-unlocked') === 'true') {
+      unlockAnalytics();
+    }
+
+    lockForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      lockError.textContent = '';
+      if (await hashAccessCode(accessCode.value) !== ACCESS_CODE_HASH) {
+        lockError.textContent = 'Incorrect access code.';
+        accessCode.select();
+        return;
+      }
+      accessCode.value = '';
+      unlockAnalytics();
+    });
   </script>
 </body>
 </html>
