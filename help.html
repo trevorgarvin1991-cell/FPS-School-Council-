@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Help | Frankford Public School Council</title>
+  <link rel="icon" type="image/jpeg" href="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" />
+  <style>
+    :root { --yellow: #ffde00; --yellow-dark: #c5a100; --ink: #111111; --paper: #ffffff; --line: #e3dfc7; --muted: #625b38; }
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; color: var(--ink); font-family: 'Trebuchet MS', 'Gill Sans', sans-serif; background: linear-gradient(rgba(255, 253, 240, 0.82), rgba(255, 249, 214, 0.86)), url('Assets/OIP.webp') center / cover fixed; }
+    header { background: var(--ink); border-bottom: 5px solid var(--yellow); color: #fff; }
+    .header-content { max-width: 960px; min-height: 104px; margin: 0 auto; padding: 1rem; display: flex; align-items: center; gap: 0.85rem; }
+    .logo { width: 64px; height: 64px; padding: 3px; object-fit: contain; background: #fff; border: 2px solid var(--yellow); border-radius: 4px; }
+    h1 { margin: 0; color: var(--yellow); font-size: 1.55rem; }
+    .subtitle { margin: 0.3rem 0 0; font-size: 0.9rem; }
+    .back-link { display: inline-flex; align-items: center; justify-content: center; min-height: 2.5rem; margin-left: auto; padding: 0.55rem 0.7rem; border: 1px solid var(--ink); border-radius: 2px; background: var(--yellow); color: var(--ink); font-weight: bold; text-decoration: none; white-space: nowrap; }
+    .back-link:hover { background: var(--yellow-dark); }
+    main { width: min(100% - 2rem, 900px); margin: 1.5rem auto 2rem; }
+    .intro, .help-section { padding: clamp(1.1rem, 4vw, 1.6rem); border: 1px solid #d9d9d9; border-top: 5px solid var(--yellow); border-radius: 4px; background: var(--paper); box-shadow: 0 8px 24px rgba(17, 17, 17, 0.14); }
+    .help-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.9rem; margin-top: 0.9rem; }
+    .help-section { border-top-width: 4px; box-shadow: 0 5px 16px rgba(17, 17, 17, 0.1); }
+    .help-section-wide { margin-top: 0.9rem; }
+    h2 { margin: 0; font-size: 1.35rem; }
+    h3 { margin: 0; font-size: 1rem; }
+    p { margin: 0.6rem 0 0; line-height: 1.5; }
+    .intro p { max-width: 65ch; font-size: 1.02rem; }
+    ul { display: grid; gap: 0.4rem; margin: 0.65rem 0 0; padding-left: 1.2rem; line-height: 1.45; }
+    .note { margin-top: 0.75rem; padding: 0.75rem; border-left: 4px solid var(--yellow); background: #fffbea; color: #4a4427; }
+    a { color: #7a5b00; font-weight: bold; }
+    footer { width: min(100% - 2rem, 900px); margin: 0 auto; padding-bottom: 1rem; color: var(--muted); font-size: 0.76rem; text-align: right; }
+    @media (max-width: 620px) { body { background-attachment: scroll; } .header-content { min-height: 88px; } .back-link { font-size: 0.82rem; } .help-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <img class="logo" src="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" alt="Frankford Falcons logo" />
+      <div><h1>Help</h1><p class="subtitle">Frankford Public School Council</p></div>
+      <a class="back-link" href="index.html">Back to council</a>
+    </div>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="help-title">
+      <h2 id="help-title">Using the council site</h2>
+      <p>This site shares Frankford Public School Council information, current event planning, documents, and ways to support school fundraising.</p>
+    </section>
+    <div class="help-grid">
+      <section class="help-section">
+        <h3>Event workspace</h3>
+        <p>Each event workspace uses tabs to organize planning information and keep teams coordinated.</p>
+        <ul>
+          <li><strong>Floor Plan:</strong> view locations, select a marker for details, and drag to pan the map.</li>
+          <li><strong>Schedule &amp; Events:</strong> see event timing and participating stations.</li>
+          <li><strong>Tasks:</strong> view planning tasks and their current status.</li>
+          <li><strong>Resources &amp; Members:</strong> find key contacts and council information.</li>
+          <li><strong>Budget:</strong> review event funding and budget information.</li>
+        </ul>
+      </section>
+      <section class="help-section">
+        <h3>General documents</h3>
+        <p>Open <a href="documents.html">Documents</a> from the site header for council-wide files that are not tied to a single event.</p>
+        <ul>
+          <li>Everyone can open shared documents.</li>
+          <li>Signed-in council members can add supported documents up to 10 MB.</li>
+          <li>Signed-in council members can remove uploaded documents.</li>
+        </ul>
+      </section>
+      <section class="help-section">
+        <h3>Donations</h3>
+        <p>Use the <a href="donate.html">Donate</a> link in the site footer to access the donation page.</p>
+        <ul>
+          <li>Scan the QR code to open the donation page on a phone.</li>
+          <li>Use the donation request letter to share fundraising details.</li>
+          <li>Contact the school office to arrange a donation.</li>
+        </ul>
+      </section>
+      <section class="help-section">
+        <h3>Council member access</h3>
+        <p>The site is viewable without an account. Select <strong>Sign in</strong> in the main header when you need to make an approved change.</p>
+        <ul>
+          <li>Document uploads and removals require a council account.</li>
+          <li>Budget changes and task creation or removal require a council account.</li>
+          <li>Use <strong>Sign out</strong> when finished on a shared device.</li>
+        </ul>
+      </section>
+    </div>
+    <section class="help-section help-section-wide">
+      <h3>Privacy and support</h3>
+      <p>The site records anonymous browser-level visit analytics. It does not collect names, IP addresses, referrers, or device information for visitor analytics.</p>
+      <p class="note">For school questions, contact Frankford Public School at <a href="tel:+16133986425">(613) 398-6425</a> or <a href="mailto:frankford@hpedsb.on.ca">frankford@hpedsb.on.ca</a>.</p>
+    </section>
+  </main>
+  <footer>Frankford Public School Council</footer>
+</body>
+</html>
