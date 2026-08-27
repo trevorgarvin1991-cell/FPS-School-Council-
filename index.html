@@ -290,6 +290,50 @@
       border-bottom: 1px solid var(--line);
     }
     .planning-block h3 { margin: 0 0 0.55rem; }
+    .member-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.8rem;
+      align-items: center;
+      max-width: 26rem;
+      padding: 0.85rem;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--falcon-yellow);
+      border-radius: 4px;
+      background: #fffbea;
+    }
+    .member-card-initials {
+      display: grid;
+      width: 2.7rem;
+      height: 2.7rem;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--falcon-black);
+      color: var(--falcon-yellow);
+      font-size: 1rem;
+      font-weight: bold;
+    }
+    .member-card-name {
+      display: block;
+      font-size: 1rem;
+    }
+    .member-card-role {
+      display: block;
+      margin-top: 0.1rem;
+      color: #625b38;
+      font-size: 0.82rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .member-card-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.75rem;
+      grid-column: 1 / -1;
+      padding-top: 0.65rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.85rem;
+    }
     .planning-heading {
       display: flex;
       align-items: baseline;
@@ -642,9 +686,17 @@
         </div>
         <div class="planning-block">
           <h3>Members</h3>
-          <p><strong>Trevor Garvin</strong> - Treasurer</p>
-          <p><a href="tel:+16132423681">(613) 242-3681</a></p>
-          <p><a href="mailto:Trevor.Garvin1991@gmail.com">Trevor.Garvin1991@gmail.com</a></p>
+          <div class="member-card">
+            <span class="member-card-initials" aria-hidden="true">TG</span>
+            <div>
+              <strong class="member-card-name">Trevor Garvin</strong>
+              <span class="member-card-role">Treasurer</span>
+            </div>
+            <div class="member-card-links">
+              <a href="tel:+16132423681">(613) 242-3681</a>
+              <a href="mailto:Trevor.Garvin1991@gmail.com">Trevor.Garvin1991@gmail.com</a>
+            </div>
+          </div>
         </div>
       </div>
     </section>
