@@ -18,8 +18,9 @@
     h1 { margin: 0; color: var(--yellow); font-size: 1.55rem; }
     .subtitle { margin: 0.3rem 0 0; font-size: 0.9rem; }
     .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
-    .header-button, .back-link { display: inline-flex; align-items: center; justify-content: center; min-height: 2.5rem; padding: 0.55rem 0.7rem; border: 1px solid var(--ink); border-radius: 2px; background: var(--yellow); color: var(--ink); font: inherit; font-weight: bold; text-decoration: none; cursor: pointer; white-space: nowrap; }
+    .header-button, .back-link { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 2.5rem; padding: 0.55rem 0.7rem; border: 1px solid var(--ink); border-radius: 10px; background: var(--yellow); color: var(--ink); font: inherit; font-weight: bold; text-decoration: none; cursor: pointer; white-space: nowrap; }
     .header-button:hover, .back-link:hover, button:hover { background: var(--yellow-dark); }
+    .action-icon { width: 1rem; height: 1rem; flex: 0 0 auto; }
     main { width: min(100% - 2rem, 760px); margin: 1.5rem auto; }
     section { padding: clamp(1.1rem, 4vw, 1.8rem); background: var(--paper); border: 1px solid #d9d9d9; border-top: 5px solid var(--yellow); border-radius: 4px; box-shadow: 0 8px 24px rgba(17, 17, 17, 0.14); }
     h2 { margin: 0; font-size: 1.35rem; }
@@ -28,7 +29,7 @@
     .upload-form { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin: 1.1rem 0 0; padding: 0.85rem; border: 1px solid var(--line); background: #fffbea; }
     input, button { min-height: 2.4rem; padding: 0.5rem 0.65rem; border: 1px solid #aaa; border-radius: 2px; font: inherit; }
     input { min-width: 0; max-width: 100%; background: #fff; }
-    button { border-color: var(--ink); background: var(--yellow); color: var(--ink); font-weight: bold; cursor: pointer; }
+    button { border-radius: 10px; border-color: var(--ink); background: var(--yellow); color: var(--ink); font-weight: bold; cursor: pointer; }
     .feedback { min-height: 1.2rem; margin: 0.6rem 0 0; color: var(--muted); font-size: 0.84rem; }
     .document-list { display: grid; gap: 0.65rem; margin-top: 1rem; }
     .document-item { display: block; padding: 0.8rem; border: 1px solid var(--line); border-left: 4px solid var(--yellow); background: #fffbea; text-decoration: none; }
@@ -55,7 +56,7 @@
     <div class="header-content">
       <img class="logo" src="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" alt="Frankford Falcons logo" />
       <div><h1>General Document Repository</h1><p class="subtitle">Frankford Public School Council</p></div>
-      <div class="header-actions"><button class="header-button" id="account-button" type="button">Sign in</button><a class="back-link" href="index.html">Back to council</a></div>
+      <div class="header-actions"><button class="header-button" id="account-button" type="button">Sign in</button><a class="back-link" href="index.html"><i class="action-icon" data-lucide="arrow-left" aria-hidden="true"></i>Back to council</a></div>
     </div>
   </header>
   <main id="main-content" tabindex="-1">
@@ -65,7 +66,7 @@
       <form class="upload-form" id="document-upload-form" aria-label="Upload a document">
         <label class="visually-hidden" for="document-upload-input">Choose a document to upload</label>
         <input id="document-upload-input" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" required />
-        <button type="submit">Add document</button>
+        <button type="submit"><i class="action-icon" data-lucide="upload" aria-hidden="true"></i>Add document</button>
       </form>
       <p class="feedback" id="document-upload-feedback" aria-live="polite"></p>
       <div class="document-list">
@@ -85,6 +86,7 @@
     </form>
   </dialog>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script>
     const supabaseClient = window.supabase.createClient('https://oueexkkwbkzynajpddxq.supabase.co', 'sb_publishable_utwHzWU7rkjWnQJuCIRrTQ_l_RhktGi');
     const accountButton = document.getElementById('account-button');
@@ -204,5 +206,6 @@
     void refreshAuthentication();
     void loadUploadedDocuments();
   </script>
+  <script>lucide.createIcons();</script>
 </body>
 </html>

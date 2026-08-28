@@ -17,8 +17,9 @@
     .logo { width: 64px; height: 64px; padding: 3px; object-fit: contain; background: #fff; border: 2px solid var(--yellow); border-radius: 4px; }
     h1 { margin: 0; color: var(--yellow); font-size: 1.55rem; }
     .subtitle { margin: 0.3rem 0 0; font-size: 0.9rem; }
-    .back-link { display: inline-flex; align-items: center; justify-content: center; min-height: 2.5rem; margin-left: auto; padding: 0.55rem 0.7rem; border: 1px solid var(--ink); border-radius: 2px; background: var(--yellow); color: var(--ink); font-weight: bold; text-decoration: none; white-space: nowrap; }
+    .back-link { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 2.5rem; margin-left: auto; padding: 0.55rem 0.7rem; border: 1px solid var(--ink); border-radius: 10px; background: var(--yellow); color: var(--ink); font-weight: bold; text-decoration: none; white-space: nowrap; }
     .back-link:hover { background: var(--yellow-dark); }
+    .action-icon { width: 1rem; height: 1rem; flex: 0 0 auto; }
     main { width: min(100% - 2rem, 900px); margin: 1.5rem auto 2rem; }
     .intro, .help-section { padding: clamp(1.1rem, 4vw, 1.6rem); border: 1px solid #d9d9d9; border-top: 5px solid var(--yellow); border-radius: 4px; background: var(--paper); box-shadow: 0 8px 24px rgba(17, 17, 17, 0.14); }
     .help-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.9rem; margin-top: 0.9rem; }
@@ -41,7 +42,7 @@
     <div class="header-content">
       <img class="logo" src="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" alt="Frankford Falcons logo" />
       <div><h1>Help</h1><p class="subtitle">Frankford Public School Council</p></div>
-      <a class="back-link" href="index.html">Back to council</a>
+      <a class="back-link" href="index.html"><i class="action-icon" data-lucide="arrow-left" aria-hidden="true"></i>Back to council</a>
     </div>
   </header>
   <main id="main-content" tabindex="-1">
@@ -111,5 +112,7 @@
     </section>
   </main>
   <footer>Frankford Public School Council</footer>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script>lucide.createIcons();</script>
 </body>
 </html>

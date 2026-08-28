@@ -44,11 +44,12 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 0.4rem;
       min-height: 2.2rem;
       padding: 0.42rem 0.55rem;
       box-sizing: border-box;
       border: 1px solid var(--falcon-yellow);
-      border-radius: 2px;
+      border-radius: 10px;
       background: var(--falcon-yellow);
       color: var(--falcon-black) !important;
       font-size: 0.84rem;
@@ -56,6 +57,7 @@
       text-decoration: none;
     }
     .event-plan-button:hover { background: var(--falcon-yellow-dark); }
+    .action-icon { width: 1rem; height: 1rem; flex: 0 0 auto; }
     .event-heading {
       display: flex;
       align-items: flex-start;
@@ -67,6 +69,9 @@
     .event-plan-button--card { flex: 0 0 auto; gap: 0.35rem; }
     .event-plan-button--card img { width: 1.1rem; height: 1.1rem; object-fit: contain; }
     .header-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
       padding: 0.4rem 0.25rem;
       color: #fff !important;
       font-size: 0.78rem;
@@ -209,10 +214,13 @@
       text-decoration: underline;
     }
     .footer-donate-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
       justify-self: start;
       padding: 0.32rem 0.55rem;
       border: 1px solid var(--falcon-black);
-      border-radius: 2px;
+      border-radius: 10px;
       background: var(--falcon-yellow);
       color: var(--falcon-black);
       font-weight: bold;
@@ -255,6 +263,7 @@
     }
     input:focus, select:focus { outline: 2px solid var(--falcon-yellow); outline-offset: 1px; }
     button {
+      border-radius: 10px;
       background: var(--falcon-yellow);
       color: var(--falcon-black);
       border: 1px solid var(--falcon-black);
@@ -989,8 +998,8 @@
       </div>
       <nav class="header-actions" aria-label="Site actions">
         <a class="header-link" href="https://frankford.hpedsb.on.ca/" target="_blank" rel="noopener noreferrer">Official School website</a>
-        <a class="header-link" href="help.html">Help</a>
-        <a class="event-plan-button" href="documents.html">Documents</a>
+        <a class="header-link" href="help.html"><i class="action-icon" data-lucide="circle-help" aria-hidden="true"></i>Help</a>
+        <a class="event-plan-button" href="documents.html"><i class="action-icon" data-lucide="folder-open" aria-hidden="true"></i>Documents</a>
         <button class="account-button" id="account-button" type="button">Sign in</button>
       </nav>
     </div>
@@ -1023,7 +1032,7 @@
         <h2>Halloween Event</h2>
         <div class="event-heading-actions">
           <a class="event-plan-button event-plan-button--card" href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit#heading=h.dh4oi8o5dkgk" target="_blank" rel="noopener noreferrer"><img src="https://www.gstatic.com/images/branding/product/1x/docs_2020q4_48dp.png" alt="" />Event Plan</a>
-          <a class="event-plan-button event-plan-button--card" href="https://www.google.com/maps/dir/?api=1&amp;destination=Frankford%20Public%20School%2C%2036%20Adelaide%20Street%2C%20Frankford%2C%20ON%20K0K%202C0" target="_blank" rel="noopener noreferrer" aria-label="Get directions to Frankford Public School in Google Maps">Directions</a>
+          <a class="event-plan-button event-plan-button--card" href="https://www.google.com/maps/dir/?api=1&amp;destination=Frankford%20Public%20School%2C%2036%20Adelaide%20Street%2C%20Frankford%2C%20ON%20K0K%202C0" target="_blank" rel="noopener noreferrer" aria-label="Get directions to Frankford Public School in Google Maps"><i class="action-icon" data-lucide="map-pin" aria-hidden="true"></i>Directions</a>
         </div>
       </div>
       <p class="hint">Thursday, October 22, 2026</p>
@@ -1248,12 +1257,12 @@
 
   </main>
   <footer class="site-version">
-    <a class="footer-donate-link" href="donate.html">Donate</a>
+    <a class="footer-donate-link" href="donate.html"><i class="action-icon" data-lucide="heart" aria-hidden="true"></i>Donate</a>
     <nav class="footer-social-links" aria-label="Facebook pages">
       <a class="footer-social-link" href="https://www.facebook.com/FrankfordPS" target="_blank" rel="noopener noreferrer" title="Frankford Public School on Facebook"><img class="footer-social-icon" src="https://cdn.simpleicons.org/facebook/1877F2" alt="" />School Facebook</a>
       <a class="footer-social-link" href="https://www.facebook.com/groups/fpsparentcouncil" target="_blank" rel="noopener noreferrer" title="FPS School Council on Facebook"><img class="footer-social-icon" src="https://cdn.simpleicons.org/facebook/1877F2" alt="" />Council Facebook</a>
     </nav>
-    <div class="footer-utilities"><a class="footer-link analytics-link" href="analytics.html">Site analytics</a><span id="site-version">v1.1.0</span></div>
+    <div class="footer-utilities"><a class="footer-link analytics-link" href="analytics.html"><i class="action-icon" data-lucide="bar-chart-3" aria-hidden="true"></i>Site analytics</a><span id="site-version">v1.1.0</span></div>
   </footer>
 
   <dialog id="event-dialog" aria-labelledby="event-dialog-title">
@@ -1283,6 +1292,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script>
     function appendRow(cells, bodyElement) {
       const row = document.createElement('tr');
@@ -2801,5 +2811,6 @@
       });
     }
   </script>
+  <script>lucide.createIcons();</script>
 </body>
 </html>
