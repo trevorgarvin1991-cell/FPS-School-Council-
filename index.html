@@ -751,6 +751,29 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 0.75rem;
     }
+    .task-progress {
+      display: grid;
+      grid-template-columns: auto minmax(6rem, 1fr) auto;
+      align-items: center;
+      gap: 0.65rem;
+      margin: 0.75rem 0;
+      color: #625b38;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .task-progress-track {
+      height: 0.45rem;
+      overflow: hidden;
+      border-radius: 2px;
+      background: #d9d9d9;
+    }
+    .task-progress-value {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: #4d8d52;
+      transition: width 180ms ease;
+    }
     .kanban-column {
       min-width: 0;
       padding: 0.7rem;
@@ -1090,6 +1113,11 @@
             <button type="submit">Add Task</button>
           </form>
           <p class="task-feedback" id="task-feedback" aria-live="polite"></p>
+          <div class="task-progress" aria-label="Task completion progress">
+            <span>Progress</span>
+            <div class="task-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="0 of 0 tasks completed"><div class="task-progress-value" id="task-progress-value"></div></div>
+            <span id="task-progress-label">0 / 0</span>
+          </div>
           <div class="kanban-board" aria-label="Halloween task board">
             <section class="kanban-column" data-status="todo" aria-labelledby="todo-heading">
               <div class="kanban-column-header"><span id="todo-heading">To Do</span><span class="kanban-count" id="todo-count">0</span></div>
@@ -1966,6 +1994,9 @@
     const taskTitle = document.getElementById('task-title');
     const taskAssignee = document.getElementById('task-assignee');
     const taskFeedback = document.getElementById('task-feedback');
+    const taskProgressTrack = document.querySelector('.task-progress-track');
+    const taskProgressValue = document.getElementById('task-progress-value');
+    const taskProgressLabel = document.getElementById('task-progress-label');
     const MAX_TASK_ATTACHMENT_BYTES = 10 * 1024 * 1024;
     const taskLists = Object.fromEntries(TASK_STATUSES.map((status) => [
       status,
@@ -2143,6 +2174,13 @@
     }
 
     function renderTasks() {
+      const completedTaskCount = tasks.filter((task) => task.status === 'completed').length;
+      const completionPercentage = tasks.length === 0 ? 0 : Math.round((completedTaskCount / tasks.length) * 100);
+      taskProgressValue.style.width = `${completionPercentage}%`;
+      taskProgressLabel.textContent = `${completedTaskCount} / ${tasks.length}`;
+      taskProgressTrack.setAttribute('aria-valuemax', String(tasks.length));
+      taskProgressTrack.setAttribute('aria-valuenow', String(completedTaskCount));
+      taskProgressTrack.setAttribute('aria-valuetext', `${completedTaskCount} of ${tasks.length} tasks completed`);
       TASK_STATUSES.forEach((status) => {
         const taskList = taskLists[status];
         const columnTasks = tasks.filter((task) => task.status === status);
