@@ -51,9 +51,13 @@
     .days { gap: 1px; padding: 0.3rem; background: var(--line); }
     .day { position: relative; min-width: 0; min-height: 2.7rem; padding: 0.25rem; background: #fff; font-size: 0.72rem; }
     .day.empty { background: #f5f2e5; }
+    .day.has-events { border: 2px solid var(--yellow-dark); padding: calc(0.25rem - 1px); background: #fffbea; }
+    .day.has-task { border-color: var(--task); background: #fff1ec; }
+    .day.has-meeting { border-color: var(--meeting); background: #f0f7ff; }
+    .day.has-school { border-color: var(--school); background: #edf8ef; }
     .day-number { display: block; color: var(--muted); font-weight: bold; }
     .day.today .day-number { display: grid; width: 1.35rem; height: 1.35rem; place-items: center; border-radius: 50%; background: var(--ink); color: #fff; }
-    .event-dot { display: block; width: 0.42rem; height: 0.42rem; margin: 0.2rem 0.1rem 0 0; border-radius: 50%; background: var(--yellow); }
+    .event-dot { display: block; width: 0.58rem; height: 0.58rem; margin: 0.18rem 0.14rem 0 0; border: 1px solid rgba(17, 17, 17, 0.4); border-radius: 50%; background: var(--yellow); box-shadow: 0 1px 2px rgba(17, 17, 17, 0.22); }
     .event-dot.meeting { background: var(--meeting); }
     .event-dot.school { background: var(--school); }
     .event-dot.task { background: var(--task); }
@@ -158,7 +162,14 @@
           if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === day) dayElement.classList.add('today');
           const number = document.createElement('span'); number.className = 'day-number'; number.textContent = day; dayElement.appendChild(number);
           const eventList = document.createElement('div'); eventList.className = 'day-events';
-          eventsForDate(year, month, day).forEach((event) => { const dot = document.createElement('span'); dot.className = `event-dot ${event.source === 'school' ? 'school' : event.source === 'task' ? 'task' : event.event_type === 'meeting' ? 'meeting' : ''}`; dot.title = `${event.name}${event.location ? ` - ${event.location}` : ''}${event.source === 'school' ? ' - School date' : event.source === 'task' ? ' - Task due' : ''}`; dot.setAttribute('aria-label', dot.title); eventList.appendChild(dot); });
+          const dayEvents = eventsForDate(year, month, day);
+          if (dayEvents.length > 0) {
+            dayElement.classList.add('has-events');
+            if (dayEvents.some((event) => event.source === 'task')) dayElement.classList.add('has-task');
+            else if (dayEvents.some((event) => event.event_type === 'meeting')) dayElement.classList.add('has-meeting');
+            else if (dayEvents.some((event) => event.source === 'school')) dayElement.classList.add('has-school');
+          }
+          dayEvents.forEach((event) => { const dot = document.createElement('span'); dot.className = `event-dot ${event.source === 'school' ? 'school' : event.source === 'task' ? 'task' : event.event_type === 'meeting' ? 'meeting' : ''}`; dot.title = `${event.name}${event.location ? ` - ${event.location}` : ''}${event.source === 'school' ? ' - School date' : event.source === 'task' ? ' - Task due' : ''}`; dot.setAttribute('aria-label', dot.title); eventList.appendChild(dot); });
           dayElement.appendChild(eventList); days.appendChild(dayElement);
         }
         monthElement.append(heading, weekdays, days);
@@ -197,8 +208,8 @@
     }
 
     async function loadCalendarEvents() {
-      const [{ data, error }, { data: taskData, error: taskError }, schoolEvents, nextYearSchoolEvents] = await Promise.all([supabaseClient.from('events').select('name, event_date, location, event_type').order('event_date'), supabaseClient.from('event_tasks').select('title, assignee, due_date, status').not('due_date', 'is', null).neq('status', 'completed'), loadSchoolEvents().catch(() => []), loadSchoolEventsForYear(selectedYear + 1).catch(() => [])]);
-      const dueTasks = !taskError && taskData ? taskData.map((task) => ({ name: task.title, event_date: task.due_date, location: task.assignee ? `Assigned to ${task.assignee}` : '', event_type: 'task', source: 'task' })) : [];
+      const [{ data, error }, { data: taskData, error: taskError }, schoolEvents, nextYearSchoolEvents] = await Promise.all([supabaseClient.from('events').select('name, event_date, location, event_type').order('event_date'), supabaseClient.from('calendar_due_tasks').select('title, due_date'), loadSchoolEvents().catch(() => []), loadSchoolEventsForYear(selectedYear + 1).catch(() => [])]);
+      const dueTasks = !taskError && taskData ? taskData.map((task) => ({ name: task.title, event_date: task.due_date, location: 'Council task', event_type: 'task', source: 'task' })) : [];
       calendarEvents = !error && data?.length ? [...data, ...dueTasks, ...schoolEvents, ...nextYearSchoolEvents] : [...fallbackEvents, ...dueTasks, ...schoolEvents, ...nextYearSchoolEvents];
       renderCalendar();
     }

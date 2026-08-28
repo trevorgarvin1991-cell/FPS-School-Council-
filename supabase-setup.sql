@@ -95,6 +95,14 @@ alter table public.event_tasks add column if not exists last_editor_id uuid;
 alter table public.event_tasks add column if not exists last_comment text not null default '';
 alter table public.event_tasks add column if not exists due_date date;
 
+create or replace view public.calendar_due_tasks as
+select title, due_date
+from public.event_tasks
+where due_date is not null
+  and status <> 'completed';
+
+grant select on public.calendar_due_tasks to anon, authenticated;
+
 create table if not exists public.task_attachments (
   id uuid primary key default gen_random_uuid(),
   task_id uuid not null references public.event_tasks(id) on delete cascade,
