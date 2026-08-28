@@ -413,8 +413,8 @@ using (true);
 
 create policy "Public task attachment insert access"
 on public.task_attachments for insert
-to anon
-with check (true);
+to authenticated
+with check (auth.uid() is not null);
 
 create policy "Public task attachment delete access"
 on public.task_attachments for delete
