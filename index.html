@@ -753,7 +753,7 @@
     .planning-heading a { font-size: 0.85rem; }
     .task-form {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.6fr) auto;
+      grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.6fr) minmax(8rem, 0.45fr) auto;
       gap: 0.5rem;
       margin: 0 0 0.8rem;
     }
@@ -881,6 +881,15 @@
       padding: 0.3rem;
       border-color: var(--line);
       color: #625b38;
+      font-size: 0.8rem;
+    }
+    .kanban-due-date-input {
+      width: 100%;
+      min-height: 2rem;
+      padding: 0.3rem;
+      border-color: var(--line);
+      color: #625b38;
+      font: inherit;
       font-size: 0.8rem;
     }
     .kanban-comment-input {
@@ -1135,6 +1144,7 @@
           <form class="task-form" id="task-form" aria-label="Add a task">
             <input id="task-title" type="text" aria-label="Task title" placeholder="Add a task" maxlength="120" required />
             <input id="task-assignee" type="text" aria-label="Assignee" placeholder="Assignee" maxlength="80" required />
+            <input id="task-due-date" type="date" aria-label="Task due date" />
             <button type="submit">Add Task</button>
           </form>
           <p class="task-feedback" id="task-feedback" aria-live="polite"></p>
@@ -2047,6 +2057,7 @@
     const taskForm = document.getElementById('task-form');
     const taskTitle = document.getElementById('task-title');
     const taskAssignee = document.getElementById('task-assignee');
+    const taskDueDate = document.getElementById('task-due-date');
     const taskFeedback = document.getElementById('task-feedback');
     const taskProgressTrack = document.querySelector('.task-progress-track');
     const taskProgress = Object.fromEntries(TASK_STATUSES.map((status) => [
@@ -2078,6 +2089,7 @@
               ...task,
               assignee: typeof task.assignee === 'string' ? task.assignee : '',
               lastComment: typeof task.lastComment === 'string' ? task.lastComment : '',
+              dueDate: typeof task.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(task.dueDate) ? task.dueDate : '',
               attachments: Array.isArray(task.attachments) ? task.attachments : []
             }))
           : [];
@@ -2097,6 +2109,7 @@
         title: task.title,
         assignee: task.assignee,
         last_comment: task.lastComment,
+        due_date: task.dueDate || null,
         status: task.status,
         last_editor_id: getVisitorId()
       };
@@ -2108,6 +2121,7 @@
         title: task.title,
         assignee: task.assignee,
         lastComment: task.last_comment || '',
+        dueDate: task.due_date || '',
         status: task.status,
         attachments: Array.isArray(task.task_attachments)
           ? await Promise.all(task.task_attachments.map(async (attachment) => {
@@ -2148,7 +2162,7 @@
     async function updateTaskInDatabase(task) {
       await supabaseClient
         .from('event_tasks')
-        .update({ title: task.title, assignee: task.assignee, last_comment: task.lastComment, status: task.status, last_editor_id: getVisitorId() })
+        .update({ title: task.title, assignee: task.assignee, last_comment: task.lastComment, due_date: task.dueDate || null, status: task.status, last_editor_id: getVisitorId() })
         .eq('id', task.id);
     }
 
@@ -2358,6 +2372,17 @@
             void updateTaskInDatabase(task);
           });
 
+          const dueDateInput = document.createElement('input');
+          dueDateInput.className = 'kanban-due-date-input';
+          dueDateInput.type = 'date';
+          dueDateInput.value = task.dueDate || '';
+          dueDateInput.setAttribute('aria-label', `Due date for ${task.title}`);
+          dueDateInput.addEventListener('change', () => {
+            task.dueDate = dueDateInput.value;
+            saveTasks();
+            void updateTaskInDatabase(task);
+          });
+
           const commentInput = document.createElement('textarea');
           commentInput.className = 'kanban-comment-input';
           commentInput.placeholder = 'Last comment';
@@ -2394,7 +2419,7 @@
           if (task.attachments.length > 0) {
             taskCard.appendChild(attachments);
           }
-          taskCard.append(assigneeInput, commentInput, statusSelect);
+          taskCard.append(assigneeInput, dueDateInput, commentInput, statusSelect);
           taskList.appendChild(taskCard);
         });
       });
@@ -2408,11 +2433,12 @@
       }
       const title = taskTitle.value.trim();
       const assignee = taskAssignee.value.trim();
+      const dueDate = taskDueDate.value;
       if (!title || !assignee) {
         return;
       }
 
-      const task = { id: createEntryId(), title, assignee, lastComment: '', status: 'todo', attachments: [] };
+      const task = { id: createEntryId(), title, assignee, dueDate, lastComment: '', status: 'todo', attachments: [] };
       tasks.unshift(task);
       saveTasks();
       renderTasks();

@@ -6,7 +6,7 @@
   <title>Yearly Calendar | Frankford Public School Council</title>
   <link rel="icon" type="image/jpeg" href="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" />
   <style>
-    :root { --yellow: #ffde00; --yellow-dark: #c5a100; --ink: #111111; --paper: #ffffff; --line: #e3dfc7; --muted: #625b38; --meeting: #005fcc; --school: #14804a; }
+    :root { --yellow: #ffde00; --yellow-dark: #c5a100; --ink: #111111; --paper: #ffffff; --line: #e3dfc7; --muted: #625b38; --meeting: #005fcc; --school: #14804a; --task: #bd3e21; }
     * { box-sizing: border-box; }
     body { min-height: 100vh; margin: 0; color: var(--ink); font-family: 'Trebuchet MS', 'Gill Sans', sans-serif; background: linear-gradient(rgba(255, 253, 240, 0.82), rgba(255, 249, 214, 0.86)), url('Assets/OIP.webp') center / cover fixed; }
     .skip-link { position: fixed; top: -4rem; left: 1rem; z-index: 1000; padding: 0.65rem 0.85rem; background: #fff; border: 3px solid #005fcc; color: var(--ink); font-weight: bold; text-decoration: none; }
@@ -36,6 +36,7 @@
     .legend-swatch { width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--yellow); }
     .legend-swatch.meeting { background: var(--meeting); }
     .legend-swatch.school { background: var(--school); }
+    .legend-swatch.task { background: var(--task); }
     .previous-month-details { margin-bottom: 0.9rem; border: 1px solid var(--line); background: #f5f2e5; }
     .previous-month-details summary { padding: 0.65rem; color: var(--muted); font-size: 0.85rem; font-weight: bold; cursor: pointer; }
     .previous-month-details[open] summary { border-bottom: 1px solid var(--line); }
@@ -55,6 +56,7 @@
     .event-dot { display: block; width: 0.42rem; height: 0.42rem; margin: 0.2rem 0.1rem 0 0; border-radius: 50%; background: var(--yellow); }
     .event-dot.meeting { background: var(--meeting); }
     .event-dot.school { background: var(--school); }
+    .event-dot.task { background: var(--task); }
     .day-events { display: flex; flex-wrap: wrap; }
     .event-dot[title] { cursor: help; }
     .upcoming-panel { margin-top: 0.9rem; }
@@ -62,12 +64,14 @@
     .upcoming-item { display: grid; grid-template-columns: 4rem 1fr auto auto; gap: 0.65rem; align-items: center; padding: 0.7rem; border-left: 4px solid var(--yellow); background: #fffbea; }
     .upcoming-item.meeting { border-left-color: var(--meeting); background: #f0f7ff; }
     .upcoming-item.school { border-left-color: var(--school); background: #edf8ef; }
+    .upcoming-item.task { border-left-color: var(--task); background: #fff1ec; }
     .upcoming-date { color: var(--muted); font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
     .upcoming-name { font-size: 0.9rem; font-weight: bold; }
     .upcoming-location { color: var(--muted); font-size: 0.78rem; }
     .type-label { padding: 0.2rem 0.4rem; border-radius: 10px; background: var(--yellow); font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
     .type-label.meeting { background: #d9ebff; color: #003f7f; }
     .type-label.school { background: #ccefd6; color: #075d30; }
+    .type-label.task { background: #ffd9cc; color: #81230f; }
     .calendar-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; justify-content: flex-end; }
     .calendar-action { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.45rem; border: 1px solid var(--ink); border-radius: 10px; color: var(--ink); font-size: 0.72rem; font-weight: bold; text-decoration: none; white-space: nowrap; }
     .calendar-action:hover { background: #f3f0df; }
@@ -96,7 +100,7 @@
       </div>
     </section>
     <section class="calendar-panel" aria-label="Calendar months">
-      <div class="legend" aria-label="Calendar legend"><span class="legend-item"><span class="legend-swatch" aria-hidden="true"></span>Event</span><span class="legend-item"><span class="legend-swatch meeting" aria-hidden="true"></span>Meeting</span><span class="legend-item"><span class="legend-swatch school" aria-hidden="true"></span>School date</span></div>
+      <div class="legend" aria-label="Calendar legend"><span class="legend-item"><span class="legend-swatch" aria-hidden="true"></span>Event</span><span class="legend-item"><span class="legend-swatch meeting" aria-hidden="true"></span>Meeting</span><span class="legend-item"><span class="legend-swatch school" aria-hidden="true"></span>School date</span><span class="legend-item"><span class="legend-swatch task" aria-hidden="true"></span>Task due</span></div>
       <div class="months" id="months"></div>
     </section>
     <section class="upcoming-panel" aria-labelledby="upcoming-title">
@@ -132,14 +136,6 @@
       const parameters = new URLSearchParams({ action: 'TEMPLATE', text: event.name, dates: `${startDate}/${endDateKey}`, location: event.location || '' });
       return `https://calendar.google.com/calendar/render?${parameters}`;
     }
-    function escapeIcsValue(value) { return String(value || '').replaceAll('\\', '\\\\').replaceAll(';', '\\;').replaceAll(',', '\\,').replaceAll(/\r?\n/g, '\\n'); }
-    function downloadCalendarFile(event) {
-      const startDate = event.event_date.replaceAll('-', '');
-      const endDate = new Date(`${event.event_date}T12:00:00`); endDate.setDate(endDate.getDate() + 1);
-      const endDateKey = `${endDate.getFullYear()}${String(endDate.getMonth() + 1).padStart(2, '0')}${String(endDate.getDate()).padStart(2, '0')}`;
-      const calendarFile = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Frankford Public School Council//Calendar//EN', 'BEGIN:VEVENT', `UID:${startDate}-${encodeURIComponent(event.name)}@fpscouncil.com`, `DTSTAMP:${new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15)}Z`, `DTSTART;VALUE=DATE:${startDate}`, `DTEND;VALUE=DATE:${endDateKey}`, `SUMMARY:${escapeIcsValue(event.name)}`, `LOCATION:${escapeIcsValue(event.location)}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
-      const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([calendarFile], { type: 'text/calendar;charset=utf-8' })); link.download = `${event.name.replaceAll(/[^a-z0-9]+/gi, '-').replaceAll(/(^-|-$)/g, '') || 'council-event'}.ics`; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
-    }
 
     function renderCalendar() {
       calendarYear.textContent = selectedYear;
@@ -162,7 +158,7 @@
           if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === day) dayElement.classList.add('today');
           const number = document.createElement('span'); number.className = 'day-number'; number.textContent = day; dayElement.appendChild(number);
           const eventList = document.createElement('div'); eventList.className = 'day-events';
-          eventsForDate(year, month, day).forEach((event) => { const dot = document.createElement('span'); dot.className = `event-dot ${event.source === 'school' ? 'school' : event.event_type === 'meeting' ? 'meeting' : ''}`; dot.title = `${event.name}${event.location ? ` - ${event.location}` : ''}${event.source === 'school' ? ' - School date' : ''}`; dot.setAttribute('aria-label', dot.title); eventList.appendChild(dot); });
+          eventsForDate(year, month, day).forEach((event) => { const dot = document.createElement('span'); dot.className = `event-dot ${event.source === 'school' ? 'school' : event.source === 'task' ? 'task' : event.event_type === 'meeting' ? 'meeting' : ''}`; dot.title = `${event.name}${event.location ? ` - ${event.location}` : ''}${event.source === 'school' ? ' - School date' : event.source === 'task' ? ' - Task due' : ''}`; dot.setAttribute('aria-label', dot.title); eventList.appendChild(dot); });
           dayElement.appendChild(eventList); days.appendChild(dayElement);
         }
         monthElement.append(heading, weekdays, days);
@@ -177,17 +173,16 @@
       const scheduled = calendarEvents.filter((event) => { const eventDate = new Date(`${event.event_date}T12:00:00`); return eventDate >= windowStart && eventDate < windowEnd; }).sort((left, right) => left.event_date.localeCompare(right.event_date));
       upcomingList.replaceChildren(); upcomingEmpty.hidden = scheduled.length > 0;
       scheduled.forEach((event) => {
-        const item = document.createElement('article'); item.className = `upcoming-item ${event.source === 'school' ? 'school' : event.event_type === 'meeting' ? 'meeting' : ''}`;
+        const item = document.createElement('article'); item.className = `upcoming-item ${event.source === 'school' ? 'school' : event.source === 'task' ? 'task' : event.event_type === 'meeting' ? 'meeting' : ''}`;
         const date = document.createElement('time'); date.className = 'upcoming-date'; date.dateTime = event.event_date; date.textContent = formatDate(new Date(`${event.event_date}T12:00:00`));
         const details = document.createElement('div'); const name = document.createElement('div'); name.className = 'upcoming-name'; name.textContent = event.name; const location = document.createElement('div'); location.className = 'upcoming-location'; location.textContent = event.location || 'Location to be confirmed'; details.append(name, location);
-        const type = document.createElement('span'); type.className = `type-label ${event.source === 'school' ? 'school' : event.event_type === 'meeting' ? 'meeting' : ''}`; type.textContent = event.source === 'school' ? 'School date' : event.event_type === 'meeting' ? 'Meeting' : 'Event';
+        const type = document.createElement('span'); type.className = `type-label ${event.source === 'school' ? 'school' : event.source === 'task' ? 'task' : event.event_type === 'meeting' ? 'meeting' : ''}`; type.textContent = event.source === 'school' ? 'School date' : event.source === 'task' ? 'Task due' : event.event_type === 'meeting' ? 'Meeting' : 'Event';
         const actions = document.createElement('div'); actions.className = 'calendar-actions';
         if (event.source === 'school') {
           const action = document.createElement('a'); action.className = 'calendar-action'; action.href = schoolCalendarUrl; action.target = '_blank'; action.rel = 'noopener noreferrer'; action.innerHTML = '<i class="action-icon" data-lucide="external-link" aria-hidden="true"></i>School calendar'; actions.appendChild(action);
-        } else {
+        } else if (event.source !== 'task') {
           const addToGoogle = document.createElement('a'); addToGoogle.className = 'calendar-action'; addToGoogle.href = googleCalendarUrl(event); addToGoogle.target = '_blank'; addToGoogle.rel = 'noopener noreferrer'; addToGoogle.innerHTML = '<i class="action-icon" data-lucide="calendar-plus" aria-hidden="true"></i>Google Calendar';
-          const downloadIcs = document.createElement('button'); downloadIcs.className = 'calendar-action'; downloadIcs.type = 'button'; downloadIcs.title = 'Add to Apple Calendar, Outlook, or another calendar app'; downloadIcs.innerHTML = '<i class="action-icon" data-lucide="download" aria-hidden="true"></i>Download calendar file'; downloadIcs.addEventListener('click', () => downloadCalendarFile(event));
-          actions.append(addToGoogle, downloadIcs);
+          actions.appendChild(addToGoogle);
         }
         item.append(date, details, type, actions); upcomingList.appendChild(item);
       });
@@ -202,8 +197,9 @@
     }
 
     async function loadCalendarEvents() {
-      const [{ data, error }, schoolEvents, nextYearSchoolEvents] = await Promise.all([supabaseClient.from('events').select('name, event_date, location, event_type').order('event_date'), loadSchoolEvents().catch(() => []), loadSchoolEventsForYear(selectedYear + 1).catch(() => [])]);
-      calendarEvents = !error && data?.length ? [...data, ...schoolEvents, ...nextYearSchoolEvents] : [...fallbackEvents, ...schoolEvents, ...nextYearSchoolEvents];
+      const [{ data, error }, { data: taskData, error: taskError }, schoolEvents, nextYearSchoolEvents] = await Promise.all([supabaseClient.from('events').select('name, event_date, location, event_type').order('event_date'), supabaseClient.from('event_tasks').select('title, assignee, due_date, status').not('due_date', 'is', null).neq('status', 'completed'), loadSchoolEvents().catch(() => []), loadSchoolEventsForYear(selectedYear + 1).catch(() => [])]);
+      const dueTasks = !taskError && taskData ? taskData.map((task) => ({ name: task.title, event_date: task.due_date, location: task.assignee ? `Assigned to ${task.assignee}` : '', event_type: 'task', source: 'task' })) : [];
+      calendarEvents = !error && data?.length ? [...data, ...dueTasks, ...schoolEvents, ...nextYearSchoolEvents] : [...fallbackEvents, ...dueTasks, ...schoolEvents, ...nextYearSchoolEvents];
       renderCalendar();
     }
 
