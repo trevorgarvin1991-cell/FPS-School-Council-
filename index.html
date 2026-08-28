@@ -56,6 +56,15 @@
       text-decoration: none;
     }
     .event-plan-button:hover { background: var(--falcon-yellow-dark); }
+    .event-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .event-heading h2 { margin: 0; }
+    .event-plan-button--card { flex: 0 0 auto; gap: 0.35rem; }
+    .event-plan-button--card img { width: 1.1rem; height: 1.1rem; object-fit: contain; }
     .header-link {
       padding: 0.4rem 0.25rem;
       color: #fff !important;
@@ -952,7 +961,6 @@
         <a class="header-link" href="https://frankford.hpedsb.on.ca/" target="_blank" rel="noopener noreferrer">Official School website</a>
         <a class="header-link" href="help.html">Help</a>
         <a class="event-plan-button" href="documents.html">Documents</a>
-        <a class="event-plan-button" href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit#heading=h.dh4oi8o5dkgk" target="_blank" rel="noopener noreferrer">Event Plan</a>
         <button class="account-button" id="account-button" type="button">Sign in</button>
       </nav>
     </div>
@@ -981,7 +989,10 @@
 
   <main id="main-content" tabindex="-1">
     <section>
-      <h2>Halloween Event</h2>
+      <div class="event-heading">
+        <h2>Halloween Event</h2>
+        <a class="event-plan-button event-plan-button--card" href="https://docs.google.com/document/d/1tRlltvUgo4CXIGNcMsVoEapQ-vEQ4isxLiYVFMPLACI/edit#heading=h.dh4oi8o5dkgk" target="_blank" rel="noopener noreferrer"><img src="https://www.gstatic.com/images/branding/product/1x/docs_2020q4_48dp.png" alt="" />Event Plan</a>
+      </div>
       <p class="hint">Thursday, October 22, 2026</p>
       <div class="countdown" aria-live="polite">
         <span class="countdown-label" id="countdown-label"><span class="countdown-pumpkin" aria-hidden="true">&#127875;</span>Time until the Fun Fair begins</span>
