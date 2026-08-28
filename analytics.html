@@ -82,7 +82,7 @@
     </section>
     <section>
       <div class="section-heading"><h2>Recent Visits</h2><p class="section-note">Most recent 25 records</p></div>
-      <div class="table-wrap"><table><thead><tr><th>When</th><th>Visitor</th><th>Visit type</th><th>Browser</th></tr></thead><tbody id="recent-body"></tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>When</th><th>Visitor</th><th>Visit type</th><th>Device type</th><th>Browser</th></tr></thead><tbody id="recent-body"></tbody></table></div>
     </section>
   </main>
   <footer>Anonymous browser-level analytics only</footer>
@@ -93,8 +93,10 @@
     const dailyBody = document.getElementById('daily-body');
     const recentBody = document.getElementById('recent-body');
     const numberFormat = new Intl.NumberFormat('en-CA');
-    const dateFormat = new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
-    const dateTimeFormat = new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    const easternTimeZone = 'America/Toronto';
+    const dateFormat = new Intl.DateTimeFormat('en-CA', { timeZone: easternTimeZone, month: 'short', day: 'numeric', year: 'numeric' });
+    const dateTimeFormat = new Intl.DateTimeFormat('en-CA', { timeZone: easternTimeZone, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    const dateKeyFormat = new Intl.DateTimeFormat('en-CA', { timeZone: easternTimeZone, year: 'numeric', month: '2-digit', day: '2-digit' });
 
     function appendCells(row, values) {
       values.forEach((value) => { const cell = document.createElement('td'); cell.textContent = value; row.appendChild(cell); });
@@ -102,27 +104,33 @@
 
     function setMetric(id, value) { document.getElementById(id).textContent = numberFormat.format(value); }
 
+    function easternDateKey(date) {
+      const parts = Object.fromEntries(dateKeyFormat.formatToParts(date).map(({ type, value }) => [type, value]));
+      return `${parts.year}-${parts.month}-${parts.day}`;
+    }
+
     async function loadAnalytics() {
       const { data: visits, error } = await supabaseClient.from('page_visit_audience').select('*').order('visited_at', { ascending: false });
       if (error) { status.textContent = 'Analytics are unavailable. Confirm the setup script has been run in Supabase.'; return; }
-      const today = new Date().toISOString().slice(0, 10);
+      const today = easternDateKey(new Date());
       const daily = new Map();
       const browsers = new Set();
       let myVisits = 0;
       visits.forEach((visit) => {
         browsers.add(visit.visitor_id);
         if (visit.visitor === 'Me') myVisits += 1;
-        const summary = daily.get(visit.visit_date) || { visits: 0, browsers: new Set(), myVisits: 0 };
+        const visitDate = easternDateKey(new Date(visit.visited_at));
+        const summary = daily.get(visitDate) || { visits: 0, browsers: new Set(), myVisits: 0 };
         summary.visits += 1; summary.browsers.add(visit.visitor_id); if (visit.visitor === 'Me') summary.myVisits += 1;
-        daily.set(visit.visit_date, summary);
+        daily.set(visitDate, summary);
       });
       setMetric('total-visits', visits.length); setMetric('unique-browsers', browsers.size); setMetric('my-visits', myVisits); setMetric('today-visits', daily.get(today)?.visits || 0);
       dailyBody.replaceChildren();
       [...daily.entries()].sort(([left], [right]) => right.localeCompare(left)).slice(0, 14).forEach(([day, summary]) => { const row = document.createElement('tr'); appendCells(row, [dateFormat.format(new Date(`${day}T12:00:00`)), summary.visits, summary.browsers.size, summary.myVisits]); dailyBody.appendChild(row); });
       recentBody.replaceChildren();
-      visits.slice(0, 25).forEach((visit) => { const row = document.createElement('tr'); const when = document.createElement('td'); when.textContent = dateTimeFormat.format(new Date(visit.visited_at)); const visitor = document.createElement('td'); const badge = document.createElement('span'); badge.className = `badge ${visit.visitor === 'Me' ? 'badge-me' : 'badge-others'}`; badge.textContent = visit.visitor; visitor.appendChild(badge); row.append(when, visitor); appendCells(row, [visit.visit_type, visit.browser_marker]); recentBody.appendChild(row); });
-      if (visits.length === 0) { dailyBody.innerHTML = '<tr><td class="empty" colspan="4">No visits recorded yet.</td></tr>'; recentBody.innerHTML = '<tr><td class="empty" colspan="4">No visits recorded yet.</td></tr>'; }
-      status.textContent = `Updated ${new Date().toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit' })}`;
+      visits.slice(0, 25).forEach((visit) => { const row = document.createElement('tr'); const when = document.createElement('td'); when.textContent = dateTimeFormat.format(new Date(visit.visited_at)); const visitor = document.createElement('td'); const badge = document.createElement('span'); badge.className = `badge ${visit.visitor === 'Me' ? 'badge-me' : 'badge-others'}`; badge.textContent = visit.visitor; visitor.appendChild(badge); row.append(when, visitor); appendCells(row, [visit.visit_type, visit.device_type || 'Unknown', visit.browser_marker]); recentBody.appendChild(row); });
+      if (visits.length === 0) { dailyBody.innerHTML = '<tr><td class="empty" colspan="4">No visits recorded yet.</td></tr>'; recentBody.innerHTML = '<tr><td class="empty" colspan="5">No visits recorded yet.</td></tr>'; }
+      status.textContent = `Updated ${new Date().toLocaleTimeString('en-CA', { timeZone: easternTimeZone, hour: 'numeric', minute: '2-digit' })}`;
     }
     const ACCESS_CODE_HASH = '85869174459f3b9c451a9ae6cc9c32fbde46d2e83dd4ca3e2234f6558eb4f7dc';
     const lockScreen = document.getElementById('lock-screen');

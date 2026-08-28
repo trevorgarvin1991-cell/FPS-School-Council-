@@ -62,7 +62,7 @@ order by occurred_at desc;
 
 ## Page Visit Analytics
 
-Each browser session records an anonymous visit timestamp and a randomly generated browser marker in the `page_visits` table. The marker is stored only in that browser's local storage, so it identifies a browser rather than a person. No names, IP addresses, referrers, or device information are stored by the site.
+Each browser session records an anonymous visit timestamp, a randomly generated browser marker, and a coarse device type (`Desktop`, `Mobile`, or `Tablet`) in the `page_visits` table. The marker is stored only in that browser's local storage, so it identifies a browser rather than a person. No names, IP addresses, referrers, or full device information are stored by the site.
 
 Run this query in the Supabase SQL Editor to see the most recent visitors:
 

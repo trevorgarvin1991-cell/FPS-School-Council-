@@ -1388,6 +1388,17 @@
       return visitorId;
     }
 
+    function getDeviceType() {
+      const userAgent = navigator.userAgent;
+      if (/iPad|Tablet|PlayBook|Silk/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+        return 'Tablet';
+      }
+      if (navigator.userAgentData?.mobile || /Mobi|Android|iPhone|iPod|IEMobile|Opera Mini/.test(userAgent)) {
+        return 'Mobile';
+      }
+      return 'Desktop';
+    }
+
     async function recordPageVisit() {
       if (sessionStorage.getItem(PAGE_VISIT_STORAGE_KEY)) {
         return;
@@ -1395,7 +1406,7 @@
 
       const { error } = await supabaseClient
         .from('page_visits')
-        .insert({ visitor_id: getVisitorId() });
+        .insert({ visitor_id: getVisitorId(), device_type: getDeviceType() });
       if (!error) {
         sessionStorage.setItem(PAGE_VISIT_STORAGE_KEY, 'true');
       }

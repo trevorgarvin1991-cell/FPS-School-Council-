@@ -121,6 +121,7 @@ alter table public.floor_plan_markers add column if not exists details_url text 
 create table if not exists public.page_visits (
   id bigint generated always as identity primary key,
   visitor_id uuid,
+  device_type text not null default 'Unknown' check (device_type in ('Desktop', 'Mobile', 'Tablet', 'Unknown')),
   visited_at timestamptz not null default now()
 );
 
@@ -188,6 +189,7 @@ after insert or update or delete on public.event_tasks
 for each row execute function public.log_council_activity();
 
 alter table public.page_visits add column if not exists visitor_id uuid;
+alter table public.page_visits add column if not exists device_type text not null default 'Unknown' check (device_type in ('Desktop', 'Mobile', 'Tablet', 'Unknown'));
 create index if not exists page_visits_visitor_id_idx on public.page_visits (visitor_id);
 
 create or replace view public.page_visit_audience as
@@ -195,6 +197,7 @@ with visits as (
   select
     id,
     visitor_id,
+    device_type,
     visited_at,
     row_number() over (
       partition by visitor_id
@@ -244,7 +247,8 @@ select
   visits.previous_visit_at,
   extract(day from visits.visited_at - visits.previous_visit_at)::integer as days_since_previous_visit,
   daily_visits.daily_total,
-  daily_visits.daily_unique_browsers
+  daily_visits.daily_unique_browsers,
+  visits.device_type
 from visits
 join daily_visits on daily_visits.visit_date = visits.visited_at::date;
 
