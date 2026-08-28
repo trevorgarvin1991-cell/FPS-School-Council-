@@ -9,6 +9,9 @@
     :root { --yellow: #ffde00; --yellow-dark: #c5a100; --ink: #111111; --paper: #ffffff; --line: #e3dfc7; --muted: #625b38; }
     * { box-sizing: border-box; }
     body { min-height: 100vh; margin: 0; color: var(--ink); font-family: 'Trebuchet MS', 'Gill Sans', sans-serif; background: linear-gradient(rgba(255, 253, 240, 0.82), rgba(255, 249, 214, 0.86)), url('Assets/OIP.webp') center / cover fixed; }
+    .skip-link { position: fixed; top: -4rem; left: 1rem; z-index: 1000; padding: 0.65rem 0.85rem; background: #fff; border: 3px solid #005fcc; color: var(--ink); font-weight: bold; text-decoration: none; }
+    .skip-link:focus { top: 1rem; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline: 3px solid #005fcc; outline-offset: 3px; }
     header { background: var(--ink); border-bottom: 5px solid var(--yellow); color: #fff; }
     .header-content { max-width: 960px; min-height: 104px; margin: 0 auto; padding: 1rem; display: flex; align-items: center; gap: 0.85rem; }
     .logo { width: 64px; height: 64px; padding: 3px; object-fit: contain; background: #fff; border: 2px solid var(--yellow); border-radius: 4px; }
@@ -33,6 +36,7 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <header>
     <div class="header-content">
       <img class="logo" src="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" alt="Frankford Falcons logo" />
@@ -40,7 +44,7 @@
       <a class="back-link" href="index.html">Back to council</a>
     </div>
   </header>
-  <main>
+  <main id="main-content" tabindex="-1">
     <section class="intro" aria-labelledby="help-title">
       <h2 id="help-title">Using the council site</h2>
       <p>This site shares Frankford Public School Council information, current event planning, documents, and ways to support school fundraising.</p>
@@ -86,8 +90,22 @@
       </section>
     </div>
     <section class="help-section help-section-wide">
+      <h3>Accessibility audit</h3>
+      <p>This site is designed to meet <strong>WCAG 2.2 Level AA</strong>. This is an accessibility target, not a formal certification.</p>
+      <ul>
+        <li>Checked page titles, heading order, landmarks, image text alternatives, link text, and external-link safety.</li>
+        <li>Added skip-to-content links and visible keyboard focus indicators on every public page.</li>
+        <li>Added accessible names for form controls, including event, budget, task, sign-in, and document-upload controls.</li>
+        <li>Tested keyboard operation for the event workspace tabs and analytics access controls.</li>
+      </ul>
+      <p>For accessibility guidance, see the <a href="https://guia-wcag.com/en/" target="_blank" rel="noopener noreferrer">WCAG - Quick reference guide</a>.</p>
+    </section>
+    <section class="help-section help-section-wide">
       <h3>Privacy and support</h3>
-      <p>The site records anonymous browser-level visit analytics. It does not collect names, IP addresses, referrers, or device information for visitor analytics.</p>
+      <p>The site records a persistent browser identifier, visit time, and coarse device type to understand site usage. Council accounts provide an email address for sign-in, and change logs record the account, action, item or task name, and time.</p>
+      <p>Council documents, task attachments, and receipts are restricted to signed-in council members. Do not upload student records, health information, personal contact details, payment information, or other sensitive personal information.</p>
+      <p>The site uses Supabase for authentication, data, and file storage, and loads services such as SharpSchool, jsDelivr, GitHub, and QRServer. These services may receive standard connection details such as an IP address and browser information.</p>
+      <p>For questions about personal information or requests to access or remove it, contact the school office.</p>
       <p>View the <a href="https://www.figma.com/make/B3aFKpqigNmIuuGYrDKzit/Website-redesign?t=OchqemIWc6CylqBP-1" target="_blank" rel="noopener noreferrer">Figma Make website redesign</a> for the current design reference.</p>
       <p class="note">For school questions, contact Frankford Public School at <a href="tel:+16133986425">(613) 398-6425</a> or <a href="mailto:frankford@hpedsb.on.ca">frankford@hpedsb.on.ca</a>.</p>
     </section>

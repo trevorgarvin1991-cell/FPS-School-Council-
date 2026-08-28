@@ -9,6 +9,9 @@
     :root { --yellow: #ffde00; --yellow-dark: #c5a100; --ink: #111111; --paper: #ffffff; --line: #e3dfc7; --muted: #625b38; }
     * { box-sizing: border-box; }
     body { min-height: 100vh; margin: 0; color: var(--ink); font-family: 'Trebuchet MS', 'Gill Sans', sans-serif; background: linear-gradient(rgba(255, 253, 240, 0.82), rgba(255, 249, 214, 0.86)), url('Assets/OIP.webp') center / cover fixed; }
+    .skip-link { position: fixed; top: -4rem; left: 1rem; z-index: 1000; padding: 0.65rem 0.85rem; background: #fff; border: 3px solid #005fcc; color: var(--ink); font-weight: bold; text-decoration: none; }
+    .skip-link:focus { top: 1rem; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline: 3px solid #005fcc; outline-offset: 3px; }
     header { background: var(--ink); border-bottom: 5px solid var(--yellow); color: #fff; }
     .header-content { max-width: 960px; min-height: 104px; margin: 0 auto; padding: 1rem; display: flex; align-items: center; gap: 0.85rem; }
     .logo { width: 64px; height: 64px; padding: 3px; object-fit: contain; background: #fff; border: 2px solid var(--yellow); border-radius: 4px; }
@@ -47,6 +50,7 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <header>
     <div class="header-content">
       <img class="logo" src="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" alt="Frankford Falcons logo" />
@@ -54,7 +58,7 @@
       <div class="header-actions"><button class="header-button" id="account-button" type="button">Sign in</button><a class="back-link" href="index.html">Back to council</a></div>
     </div>
   </header>
-  <main>
+  <main id="main-content" tabindex="-1">
     <section aria-labelledby="repository-title">
       <h2 id="repository-title">Council Documents</h2>
       <p class="hint">Shared council documents and fundraising materials.</p>
@@ -74,8 +78,8 @@
   <dialog id="account-dialog" aria-labelledby="account-dialog-title">
     <div class="dialog-heading"><h2 id="account-dialog-title">Council sign in</h2><button class="dialog-close" id="close-account-dialog" type="button">Close</button></div>
     <form class="sign-in-form" id="account-form">
-      <input id="account-email" type="email" autocomplete="email" placeholder="Email address" required />
-      <input id="account-password" type="password" autocomplete="current-password" placeholder="Password" required />
+      <input id="account-email" type="email" aria-label="Email address" autocomplete="email" placeholder="Email address" required />
+      <input id="account-password" type="password" aria-label="Password" autocomplete="current-password" placeholder="Password" required />
       <button type="submit">Sign in</button>
       <p class="feedback" id="account-feedback" role="alert"></p>
     </form>
@@ -108,14 +112,16 @@
       return false;
     }
 
-    function renderUploadedDocuments(documents) {
+    async function renderUploadedDocuments(documents) {
       uploadedDocumentList.replaceChildren();
-      documents.forEach((uploadedDocument) => {
+      await Promise.all(documents.map(async (uploadedDocument) => {
         const row = document.createElement('div');
         row.className = 'uploaded-document-row';
         const link = document.createElement('a');
         link.className = 'document-item';
-        link.href = supabaseClient.storage.from('council-documents').getPublicUrl(uploadedDocument.file_path).data.publicUrl;
+        const { data: signedUrl } = await supabaseClient.storage.from('council-documents').createSignedUrl(uploadedDocument.file_path, 3600);
+        if (!signedUrl) return;
+        link.href = signedUrl.signedUrl;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         const title = document.createElement('strong');
@@ -130,16 +136,22 @@
         removeButton.addEventListener('click', () => void deleteUploadedDocument(uploadedDocument));
         row.append(link, removeButton);
         uploadedDocumentList.appendChild(row);
-      });
+      }));
     }
 
     async function loadUploadedDocuments() {
+      await refreshAuthentication();
+      if (!authenticatedUser) {
+        uploadedDocumentList.replaceChildren();
+        documentUploadFeedback.textContent = 'Sign in to view council documents.';
+        return;
+      }
       const { data, error } = await supabaseClient.from('council_documents').select('*').order('created_at', { ascending: false });
       if (error) {
         documentUploadFeedback.textContent = 'Document uploads are unavailable until the latest Supabase setup script is run.';
         return;
       }
-      renderUploadedDocuments(data);
+      await renderUploadedDocuments(data);
     }
 
     async function deleteUploadedDocument(uploadedDocument) {
@@ -187,6 +199,7 @@
       accountForm.reset();
       accountDialog.close();
       await refreshAuthentication();
+      await loadUploadedDocuments();
     });
     void refreshAuthentication();
     void loadUploadedDocuments();

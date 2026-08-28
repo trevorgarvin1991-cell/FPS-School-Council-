@@ -9,6 +9,9 @@
     :root { --yellow: #ffde00; --yellow-dark: #c5a100; --ink: #111111; --paper: #ffffff; --line: #e3dfc7; --muted: #625b38; }
     * { box-sizing: border-box; }
     body { margin: 0; color: var(--ink); font-family: 'Trebuchet MS', 'Gill Sans', sans-serif; background: linear-gradient(rgba(255, 253, 240, 0.82), rgba(255, 249, 214, 0.86)), url('Assets/OIP.webp') center / cover fixed; }
+    .skip-link { position: fixed; top: -4rem; left: 1rem; z-index: 1000; padding: 0.65rem 0.85rem; background: #fff; border: 3px solid #005fcc; color: var(--ink); font-weight: bold; text-decoration: none; }
+    .skip-link:focus { top: 1rem; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline: 3px solid #005fcc; outline-offset: 3px; }
     header { background: var(--ink); border-bottom: 5px solid var(--yellow); color: #fff; }
     .header-content { max-width: 960px; min-height: 104px; margin: 0 auto; padding: 1rem; display: flex; align-items: center; gap: 0.85rem; }
     .logo { width: 64px; height: 64px; padding: 3px; object-fit: contain; background: #fff; border: 2px solid var(--yellow); border-radius: 4px; }
@@ -50,6 +53,7 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" id="skip-link" href="#lock-screen">Skip to access form</a>
   <header>
     <div class="header-content">
       <img class="logo" src="https://cdnsm5-ss11.sharpschool.com/UserFiles/Servers/Server_10158604/Image/Frankford%20100th%20logo1.jpg" alt="Frankford Falcons logo" />
@@ -57,18 +61,19 @@
       <a class="back-link" href="index.html">Back to council</a>
     </div>
   </header>
-  <div class="lock-screen" id="lock-screen">
+  <div class="lock-screen" id="lock-screen" tabindex="-1">
     <section class="lock-panel" aria-labelledby="lock-title">
       <h2 id="lock-title">Analytics access</h2>
-      <p>Enter the access code to continue.</p>
+      <p>Sign in with a council account to continue.</p>
       <form class="lock-form" id="lock-form">
-        <input id="access-code" type="password" autocomplete="current-password" aria-label="Access code" required autofocus />
-        <button type="submit">Unlock</button>
+        <input id="account-email" type="email" autocomplete="email" aria-label="Email address" required autofocus />
+        <input id="account-password" type="password" autocomplete="current-password" aria-label="Password" required />
+        <button type="submit">Sign in</button>
         <p class="lock-error" id="lock-error" role="alert"></p>
       </form>
     </section>
   </div>
-  <main id="analytics-content" hidden>
+  <main id="analytics-content" tabindex="-1" hidden>
     <p class="status" id="status" role="status">Loading analytics...</p>
     <div class="metrics" aria-label="Visit summary">
       <article class="metric"><span class="metric-label">Total visits</span><strong class="metric-value" id="total-visits">-</strong></article>
@@ -132,35 +137,36 @@
       if (visits.length === 0) { dailyBody.innerHTML = '<tr><td class="empty" colspan="4">No visits recorded yet.</td></tr>'; recentBody.innerHTML = '<tr><td class="empty" colspan="5">No visits recorded yet.</td></tr>'; }
       status.textContent = `Updated ${new Date().toLocaleTimeString('en-CA', { timeZone: easternTimeZone, hour: 'numeric', minute: '2-digit' })}`;
     }
-    const ACCESS_CODE_HASH = '85869174459f3b9c451a9ae6cc9c32fbde46d2e83dd4ca3e2234f6558eb4f7dc';
     const lockScreen = document.getElementById('lock-screen');
     const analyticsContent = document.getElementById('analytics-content');
     const lockForm = document.getElementById('lock-form');
-    const accessCode = document.getElementById('access-code');
+    const accountEmail = document.getElementById('account-email');
+    const accountPassword = document.getElementById('account-password');
     const lockError = document.getElementById('lock-error');
-
-    async function hashAccessCode(value) {
-      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-      return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
-    }
+    const skipLink = document.getElementById('skip-link');
 
     function unlockAnalytics() {
       lockScreen.hidden = true;
       analyticsContent.hidden = false;
+      skipLink.href = '#analytics-content';
+      skipLink.textContent = 'Skip to main content';
       void loadAnalytics();
     }
 
     lockForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       lockError.textContent = '';
-      if (await hashAccessCode(accessCode.value.trim().toUpperCase()) !== ACCESS_CODE_HASH) {
-        lockError.textContent = 'Incorrect access code.';
-        accessCode.select();
+      const { error } = await supabaseClient.auth.signInWithPassword({ email: accountEmail.value.trim(), password: accountPassword.value });
+      if (error) {
+        lockError.textContent = 'Unable to sign in. Check the email address and password.';
+        accountPassword.select();
         return;
       }
-      accessCode.value = '';
+      lockForm.reset();
       unlockAnalytics();
     });
+
+    void supabaseClient.auth.getSession().then(({ data: { session } }) => { if (session) unlockAnalytics(); });
   </script>
 </body>
 </html>

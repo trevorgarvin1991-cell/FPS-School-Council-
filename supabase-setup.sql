@@ -26,6 +26,10 @@ insert into storage.buckets (id, name, public)
 values ('council-documents', 'council-documents', true)
 on conflict (id) do nothing;
 
+update storage.buckets
+set public = false
+where id in ('budget-receipts', 'task-attachments', 'council-documents');
+
 drop policy if exists "Public receipt upload access" on storage.objects;
 create policy "Public receipt upload access"
 on storage.objects for insert
@@ -252,6 +256,8 @@ select
 from visits
 join daily_visits on daily_visits.visit_date = visits.visited_at::date;
 
+alter view public.page_visit_audience set (security_invoker = true);
+
 insert into public.events (event_key, name, event_date, location)
 values ('halloween-2026', 'Halloween Theme', '2026-10-22', 'Frankford Public School')
 on conflict (event_key) do nothing;
@@ -455,6 +461,28 @@ create policy "Public visit insert access"
 on public.page_visits for insert
 to anon
 with check (true);
+
+drop policy if exists "Council visit read access" on public.page_visits;
+create policy "Council visit read access"
+on public.page_visits for select
+to authenticated
+using (true);
+
+drop policy if exists "Council file read access" on storage.objects;
+create policy "Council file read access"
+on storage.objects for select
+to authenticated
+using (bucket_id in ('budget-receipts', 'task-attachments', 'council-documents'));
+
+alter policy "Public event insert access" on public.events to authenticated with check (auth.uid() is not null);
+alter policy "Public event delete access" on public.events to authenticated using (auth.uid() is not null);
+alter policy "Public task read access" on public.event_tasks to authenticated using (true);
+alter policy "Guest task update access" on public.event_tasks to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
+alter policy "Public task attachment read access" on public.task_attachments to authenticated using (true);
+alter policy "Public council document read access" on public.council_documents to authenticated using (true);
+alter policy "Public floor plan marker insert access" on public.floor_plan_markers to authenticated with check (auth.uid() is not null);
+alter policy "Public floor plan marker update access" on public.floor_plan_markers to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
+alter policy "Public floor plan marker delete access" on public.floor_plan_markers to authenticated using (auth.uid() is not null);
 
 do $$
 begin
