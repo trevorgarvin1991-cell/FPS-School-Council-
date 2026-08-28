@@ -48,6 +48,18 @@ Run the script again after pulling future schema updates; its table and column s
 
 The setup also creates `events`, `event_budgets`, `event_tasks`, `task_attachments`, `council_documents`, and `floor_plan_markers`, plus the `task-attachments` and `council-documents` storage buckets. Signed-in council members can add or remove documents through the Document Repository tab; visitors can view the shared document list. Each event budget has exactly one owning event through `event_budgets.event_id`, and is deleted automatically when its event is removed. The Halloween event and its $2,500 allocation are seeded on first run.
 
+## School Calendar Overlay
+
+The yearly calendar combines council events with official Frankford Public School dates. Deploy the included Supabase Edge Function once so the website can retrieve the school calendar without browser cross-origin restrictions:
+
+```powershell
+npx.cmd supabase login
+npx.cmd supabase link --project-ref oueexkkwbkzynajpddxq
+npx.cmd supabase functions deploy school-calendar --no-verify-jwt
+```
+
+The function reads the public school calendar when the yearly calendar is opened or its year is changed. It does not store school events in Supabase.
+
 ## Council Member Access
 
 Visitors can view budget and task information. Adding or removing budget items and tasks requires a Supabase account. Guests can edit existing tasks; each guest edit records the anonymous browser marker that made it. Create each council member in **Authentication > Users > Add user** in the Supabase dashboard, setting an email and password. Council members then select **Sign in** on the site before making protected changes.
