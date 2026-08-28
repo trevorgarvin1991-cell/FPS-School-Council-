@@ -22,7 +22,7 @@
     .back-link:hover, .year-button:hover { background: var(--yellow-dark); }
     .action-icon { width: 1rem; height: 1rem; flex: 0 0 auto; }
     main { width: min(100% - 2rem, 1100px); margin: 1.5rem auto 2rem; }
-    .calendar-intro, .calendar-panel, .upcoming-panel { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid #d9d9d9; border-top: 5px solid var(--yellow); border-radius: 4px; background: var(--paper); box-shadow: 0 8px 24px rgba(17, 17, 17, 0.14); }
+    .calendar-intro, .meeting-panel, .calendar-panel, .upcoming-panel { padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid #d9d9d9; border-top: 5px solid var(--yellow); border-radius: 4px; background: var(--paper); box-shadow: 0 8px 24px rgba(17, 17, 17, 0.14); }
     .calendar-intro { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
     h2, h3 { margin: 0; }
     h2 { font-size: 1.35rem; }
@@ -30,6 +30,13 @@
     .year-controls { display: flex; align-items: center; gap: 0.5rem; }
     .year-controls strong { min-width: 4.2rem; text-align: center; font-size: 1.15rem; }
     .year-button { min-width: 2.5rem; padding: 0.5rem; }
+    .meeting-panel { margin-top: 0.9rem; }
+    .meeting-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; }
+    .meeting-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(9rem, 0.5fr) minmax(0, 0.8fr) auto; gap: 0.5rem; margin-top: 0.8rem; }
+    input { min-width: 0; min-height: 2.5rem; padding: 0.5rem 0.6rem; border: 1px solid #8d865f; border-radius: 4px; color: var(--ink); font: inherit; }
+    .schedule-button, .account-button { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 2.5rem; padding: 0.55rem 0.7rem; border: 1px solid var(--ink); border-radius: 10px; background: var(--yellow); color: var(--ink); font: inherit; font-weight: bold; cursor: pointer; white-space: nowrap; }
+    .schedule-button:hover, .account-button:hover { background: var(--yellow-dark); }
+    .meeting-feedback { min-height: 1.25rem; margin: 0.55rem 0 0; color: var(--muted); font-size: 0.85rem; }
     .calendar-panel { margin-top: 0.9rem; }
     .legend { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.9rem; color: var(--muted); font-size: 0.8rem; }
     .legend-item { display: inline-flex; align-items: center; gap: 0.35rem; }
@@ -80,9 +87,15 @@
     .calendar-action { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.45rem; border: 1px solid var(--ink); border-radius: 10px; color: var(--ink); font-size: 0.72rem; font-weight: bold; text-decoration: none; white-space: nowrap; }
     .calendar-action:hover { background: #f3f0df; }
     .empty { margin: 0.85rem 0 0; color: var(--muted); }
+    dialog { width: min(calc(100% - 2rem), 28rem); border: 0; border-top: 5px solid var(--yellow); border-radius: 4px; box-shadow: 0 12px 36px rgba(17, 17, 17, 0.35); }
+    dialog::backdrop { background: rgba(17, 17, 17, 0.55); }
+    .dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+    .dialog-close { min-height: 2rem; border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: bold; cursor: pointer; }
+    .account-form { display: grid; gap: 0.6rem; margin-top: 1rem; }
     footer { width: min(100% - 2rem, 1100px); margin: 0 auto; padding-bottom: 1rem; color: var(--muted); font-size: 0.76rem; text-align: right; }
     @media (max-width: 800px) { .months { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 560px) { body { background-attachment: scroll; } .header-content { min-height: 88px; flex-wrap: wrap; } .back-link { margin-left: 0; } .calendar-intro { align-items: flex-start; flex-direction: column; } .months { grid-template-columns: 1fr; } .day { min-height: 3.15rem; font-size: 0.78rem; } .upcoming-item { grid-template-columns: 3.4rem 1fr; } .type-label, .calendar-actions { grid-column: 2; justify-self: start; } .calendar-actions { justify-content: flex-start; } }
+    @media (max-width: 700px) { .meeting-form { grid-template-columns: 1fr 1fr; } .meeting-form button { grid-column: 1 / -1; } }
+    @media (max-width: 560px) { body { background-attachment: scroll; } .header-content { min-height: 88px; flex-wrap: wrap; } .back-link { margin-left: 0; } .calendar-intro { align-items: flex-start; flex-direction: column; } .meeting-form { grid-template-columns: 1fr; } .meeting-form button { grid-column: auto; } .months { grid-template-columns: 1fr; } .day { min-height: 3.15rem; font-size: 0.78rem; } .upcoming-item { grid-template-columns: 3.4rem 1fr; } .type-label, .calendar-actions { grid-column: 2; justify-self: start; } .calendar-actions { justify-content: flex-start; } }
   </style>
 </head>
 <body>
@@ -103,6 +116,16 @@
         <button class="year-button" id="next-year" type="button" aria-label="Next year" title="Next year"><i class="action-icon" data-lucide="chevron-right" aria-hidden="true"></i></button>
       </div>
     </section>
+    <section class="meeting-panel" aria-labelledby="schedule-meeting-title">
+      <div class="meeting-heading"><h2 id="schedule-meeting-title">Schedule a meeting</h2><button class="account-button" id="account-button" type="button">Sign in</button></div>
+      <form class="meeting-form" id="meeting-form" aria-label="Schedule a meeting">
+        <input id="meeting-name" type="text" aria-label="Meeting title" placeholder="Meeting title" maxlength="120" required />
+        <input id="meeting-date" type="date" aria-label="Meeting date" required />
+        <input id="meeting-location" type="text" aria-label="Meeting location" placeholder="Location or online link" maxlength="160" required />
+        <button class="schedule-button" type="submit"><i class="action-icon" data-lucide="calendar-plus" aria-hidden="true"></i>Schedule</button>
+      </form>
+      <p class="meeting-feedback" id="meeting-feedback" aria-live="polite"></p>
+    </section>
     <section class="calendar-panel" aria-label="Calendar months">
       <div class="legend" aria-label="Calendar legend"><span class="legend-item"><span class="legend-swatch" aria-hidden="true"></span>Event</span><span class="legend-item"><span class="legend-swatch meeting" aria-hidden="true"></span>Meeting</span><span class="legend-item"><span class="legend-swatch school" aria-hidden="true"></span>School date</span><span class="legend-item"><span class="legend-swatch task" aria-hidden="true"></span>Task due</span></div>
       <div class="months" id="months"></div>
@@ -114,6 +137,15 @@
     </section>
   </main>
   <footer>Frankford Public School Council</footer>
+  <dialog id="account-dialog" aria-labelledby="account-dialog-title">
+    <div class="dialog-heading"><h2 id="account-dialog-title">Council sign in</h2><button id="close-account-dialog" class="dialog-close" type="button">Close</button></div>
+    <form class="account-form" id="account-form" aria-label="Council sign in form">
+      <input id="account-email" type="email" aria-label="Email address" autocomplete="email" placeholder="Email address" required />
+      <input id="account-password" type="password" aria-label="Password" autocomplete="current-password" placeholder="Password" required />
+      <button class="schedule-button" type="submit">Sign in</button>
+    </form>
+    <p class="meeting-feedback" id="account-feedback" aria-live="polite"></p>
+  </dialog>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script>
@@ -122,6 +154,12 @@
     const calendarYear = document.getElementById('calendar-year');
     const upcomingList = document.getElementById('upcoming-list');
     const upcomingEmpty = document.getElementById('upcoming-empty');
+    const meetingForm = document.getElementById('meeting-form');
+    const meetingFeedback = document.getElementById('meeting-feedback');
+    const accountButton = document.getElementById('account-button');
+    const accountDialog = document.getElementById('account-dialog');
+    const accountForm = document.getElementById('account-form');
+    const accountFeedback = document.getElementById('account-feedback');
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const fallbackEvents = [{ name: 'Halloween Event', event_date: '2026-10-22', location: 'Frankford Public School', event_type: 'event' }];
@@ -130,6 +168,22 @@
     const currentDate = new Date();
     let selectedYear = currentDate.getFullYear();
     let calendarEvents = fallbackEvents;
+    let authenticatedUser = null;
+    let pendingMeetingAction = null;
+
+    async function refreshAuthentication() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      authenticatedUser = session?.user || null;
+      accountButton.textContent = authenticatedUser ? 'Sign out' : 'Sign in';
+    }
+
+    async function requireAuthentication() {
+      await refreshAuthentication();
+      if (authenticatedUser) return true;
+      accountFeedback.textContent = 'Sign in before scheduling a meeting.';
+      accountDialog.showModal();
+      return false;
+    }
 
     function formatDate(date) { return new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric' }).format(date); }
     function eventsForDate(year, month, day) { const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; return calendarEvents.filter((event) => event.event_date === dateKey); }
@@ -195,6 +249,11 @@
           const addToGoogle = document.createElement('a'); addToGoogle.className = 'calendar-action'; addToGoogle.href = googleCalendarUrl(event); addToGoogle.target = '_blank'; addToGoogle.rel = 'noopener noreferrer'; addToGoogle.innerHTML = '<i class="action-icon" data-lucide="calendar-plus" aria-hidden="true"></i>Google Calendar';
           actions.appendChild(addToGoogle);
         }
+        if (event.event_type === 'meeting' && event.id) {
+          const removeMeeting = document.createElement('button'); removeMeeting.className = 'calendar-action'; removeMeeting.type = 'button'; removeMeeting.innerHTML = '<i class="action-icon" data-lucide="trash-2" aria-hidden="true"></i>Remove';
+          removeMeeting.addEventListener('click', () => void deleteMeeting(event));
+          actions.appendChild(removeMeeting);
+        }
         item.append(date, details, type, actions); upcomingList.appendChild(item);
       });
       lucide.createIcons();
@@ -208,7 +267,7 @@
     }
 
     async function loadCalendarEvents() {
-      const [{ data, error }, { data: taskData, error: taskError }, schoolEvents, nextYearSchoolEvents] = await Promise.all([supabaseClient.from('events').select('name, event_date, location, event_type').order('event_date'), supabaseClient.from('calendar_due_tasks').select('title, due_date'), loadSchoolEvents().catch(() => []), loadSchoolEventsForYear(selectedYear + 1).catch(() => [])]);
+      const [{ data, error }, { data: taskData, error: taskError }, schoolEvents, nextYearSchoolEvents] = await Promise.all([supabaseClient.from('events').select('id, name, event_date, location, event_type').order('event_date'), supabaseClient.from('calendar_due_tasks').select('title, due_date'), loadSchoolEvents().catch(() => []), loadSchoolEventsForYear(selectedYear + 1).catch(() => [])]);
       const dueTasks = !taskError && taskData ? taskData.map((task) => ({ name: task.title, event_date: task.due_date, location: 'Council task', event_type: 'task', source: 'task' })) : [];
       calendarEvents = !error && data?.length ? [...data, ...dueTasks, ...schoolEvents, ...nextYearSchoolEvents] : [...fallbackEvents, ...dueTasks, ...schoolEvents, ...nextYearSchoolEvents];
       renderCalendar();
@@ -221,9 +280,73 @@
       return Array.isArray(schoolEvents) ? schoolEvents : [];
     }
 
+    async function deleteMeeting(meeting) {
+      if (!await requireAuthentication()) {
+        pendingMeetingAction = () => deleteMeeting(meeting);
+        return;
+      }
+      pendingMeetingAction = null;
+      if (!confirm(`Remove "${meeting.name}" from the calendar?`)) return;
+      meetingFeedback.textContent = 'Removing meeting...';
+      const { error } = await supabaseClient.from('events').delete().eq('id', meeting.id);
+      if (error) { meetingFeedback.textContent = error.message; return; }
+      meetingFeedback.textContent = 'Meeting removed.';
+      await loadCalendarEvents();
+    }
+
+    accountButton.addEventListener('click', async () => {
+      await refreshAuthentication();
+      if (authenticatedUser) {
+        await supabaseClient.auth.signOut();
+        await refreshAuthentication();
+        meetingFeedback.textContent = 'Signed out.';
+        return;
+      }
+      accountFeedback.textContent = '';
+      accountDialog.showModal();
+    });
+    document.getElementById('close-account-dialog').addEventListener('click', () => accountDialog.close());
+    accountForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      accountFeedback.textContent = 'Signing in...';
+      const { error } = await supabaseClient.auth.signInWithPassword({ email: document.getElementById('account-email').value.trim(), password: document.getElementById('account-password').value });
+      if (error) { accountFeedback.textContent = error.message; return; }
+      accountForm.reset();
+      accountDialog.close();
+      await refreshAuthentication();
+      const action = pendingMeetingAction;
+      pendingMeetingAction = null;
+      if (action) {
+        await action();
+        return;
+      }
+      meetingFeedback.textContent = 'Signed in. You can schedule a meeting.';
+    });
+    meetingForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const name = document.getElementById('meeting-name').value.trim();
+      const eventDate = document.getElementById('meeting-date').value;
+      const location = document.getElementById('meeting-location').value.trim();
+      if (!name || !eventDate || !location) return;
+      if (!await requireAuthentication()) {
+        pendingMeetingAction = () => meetingForm.requestSubmit();
+        return;
+      }
+      pendingMeetingAction = null;
+      meetingFeedback.textContent = 'Scheduling meeting...';
+      const eventKey = `meeting-${crypto.randomUUID ? crypto.randomUUID() : Date.now()}`;
+      const { error } = await supabaseClient.from('events').insert({ event_key: eventKey, name, event_date: eventDate, location, event_type: 'meeting' });
+      if (error) { meetingFeedback.textContent = error.message; return; }
+      meetingForm.reset();
+      meetingFeedback.textContent = 'Meeting scheduled.';
+      selectedYear = new Date(`${eventDate}T12:00:00`).getFullYear();
+      await loadCalendarEvents();
+    });
+
     document.getElementById('previous-year').addEventListener('click', () => { selectedYear -= 1; void loadCalendarEvents(); });
     document.getElementById('next-year').addEventListener('click', () => { selectedYear += 1; void loadCalendarEvents(); });
     void loadCalendarEvents();
+    void refreshAuthentication();
     lucide.createIcons();
   </script>
 </body>
