@@ -22,7 +22,7 @@
     .action-icon { width: 1rem; height: 1rem; flex: 0 0 auto; }
     main { max-width: 960px; margin: 1.25rem auto; padding: 0 1rem 2rem; }
     .status { min-height: 1.4rem; margin: 0 0 0.75rem; color: var(--muted); font-size: 0.82rem; }
-    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
     .metric { min-height: 114px; padding: 0.85rem; background: var(--paper); border: 1px solid #d9d9d9; border-top: 4px solid var(--yellow); border-radius: 4px; box-shadow: 0 5px 16px rgba(17, 17, 17, 0.1); }
     .metric-label { display: block; color: var(--muted); font-size: 0.72rem; font-weight: bold; text-transform: uppercase; }
     .metric-value { display: block; margin-top: 0.45rem; font-size: 1.8rem; font-weight: bold; }
@@ -81,6 +81,8 @@
       <article class="metric"><span class="metric-label">Unique browsers</span><strong class="metric-value" id="unique-browsers">-</strong></article>
       <article class="metric"><span class="metric-label">Your visits</span><strong class="metric-value" id="my-visits">-</strong></article>
       <article class="metric"><span class="metric-label">Today's visits</span><strong class="metric-value" id="today-visits">-</strong></article>
+      <article class="metric"><span class="metric-label">Tracked clicks</span><strong class="metric-value" id="total-clicks">-</strong></article>
+      <article class="metric"><span class="metric-label">Navigations</span><strong class="metric-value" id="total-navigations">-</strong></article>
     </div>
     <section>
       <div class="section-heading"><h2>Daily Activity</h2><p class="section-note">Most recent 14 days</p></div>
@@ -89,6 +91,14 @@
     <section>
       <div class="section-heading"><h2>Recent Visits</h2><p class="section-note">Most recent 25 records</p></div>
       <div class="table-wrap"><table><thead><tr><th>When</th><th>Visitor</th><th>Visit type</th><th>Device type</th><th>Browser</th></tr></thead><tbody id="recent-body"></tbody></table></div>
+    </section>
+    <section>
+      <div class="section-heading"><h2>Top Actions</h2><p class="section-note">Most selected destinations and controls</p></div>
+      <div class="table-wrap"><table><thead><tr><th>Action</th><th>Destination</th><th>Selections</th></tr></thead><tbody id="top-actions-body"></tbody></table></div>
+    </section>
+    <section>
+      <div class="section-heading"><h2>Recent Interactions</h2><p class="section-note">Most recent 25 clicks and navigations</p></div>
+      <div class="table-wrap"><table><thead><tr><th>When</th><th>Action</th><th>Type</th><th>Destination</th><th>Device</th></tr></thead><tbody id="recent-interactions-body"></tbody></table></div>
     </section>
   </main>
   <footer>Anonymous browser-level analytics only</footer>
@@ -99,11 +109,20 @@
     const status = document.getElementById('status');
     const dailyBody = document.getElementById('daily-body');
     const recentBody = document.getElementById('recent-body');
+    const topActionsBody = document.getElementById('top-actions-body');
+    const recentInteractionsBody = document.getElementById('recent-interactions-body');
     const numberFormat = new Intl.NumberFormat('en-CA');
     const easternTimeZone = 'America/Toronto';
     const dateFormat = new Intl.DateTimeFormat('en-CA', { timeZone: easternTimeZone, month: 'short', day: 'numeric', year: 'numeric' });
     const dateTimeFormat = new Intl.DateTimeFormat('en-CA', { timeZone: easternTimeZone, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     const dateKeyFormat = new Intl.DateTimeFormat('en-CA', { timeZone: easternTimeZone, year: 'numeric', month: '2-digit', day: '2-digit' });
+    const VISITOR_ID_STORAGE_KEY = 'fps-visitor-id-v1';
+
+    function getVisitorId() { const savedVisitorId = localStorage.getItem(VISITOR_ID_STORAGE_KEY); if (savedVisitorId) return savedVisitorId; const visitorId = crypto.randomUUID(); localStorage.setItem(VISITOR_ID_STORAGE_KEY, visitorId); return visitorId; }
+    function getDeviceType() { if (/iPad|Tablet|PlayBook|Silk/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'Tablet'; return navigator.userAgentData?.mobile || /Mobi|Android|iPhone|iPod|IEMobile|Opera Mini/.test(navigator.userAgent) ? 'Mobile' : 'Desktop'; }
+    function interactionDestination(action) { if (action.tagName !== 'A') return ''; const destination = new URL(action.href, window.location.href); return destination.origin === window.location.origin ? destination.pathname : destination.hostname; }
+    async function recordInteraction(action, interactionType) { const actionLabel = (action.getAttribute('aria-label') || action.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120); await supabaseClient.from('page_interactions').insert({ visitor_id: getVisitorId(), device_type: getDeviceType(), interaction_type: interactionType, action_label: actionLabel, page_path: window.location.pathname, destination: interactionDestination(action) }); }
+    document.addEventListener('click', (event) => { const action = event.target.closest('a, button'); if (!action || action.closest('[data-analytics-ignore]')) return; const isSameTabLink = action.tagName === 'A' && !action.target && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey; if (!isSameTabLink) { void recordInteraction(action, action.tagName === 'A' ? 'navigation' : 'click'); return; } event.preventDefault(); void Promise.race([recordInteraction(action, 'navigation'), new Promise((resolve) => setTimeout(resolve, 180))]).finally(() => { window.location.assign(action.href); }); });
 
     function appendCells(row, values) {
       values.forEach((value) => { const cell = document.createElement('td'); cell.textContent = value; row.appendChild(cell); });
@@ -117,8 +136,11 @@
     }
 
     async function loadAnalytics() {
-      const { data: visits, error } = await supabaseClient.from('page_visit_audience').select('*').order('visited_at', { ascending: false });
-      if (error) { status.textContent = 'Analytics are unavailable. Confirm the setup script has been run in Supabase.'; return; }
+      const [{ data: visits, error: visitError }, { data: interactions, error: interactionError }] = await Promise.all([
+        supabaseClient.from('page_visit_audience').select('*').order('visited_at', { ascending: false }),
+        supabaseClient.from('page_interactions').select('*').order('occurred_at', { ascending: false })
+      ]);
+      if (visitError || interactionError) { status.textContent = 'Analytics are unavailable. Confirm the latest setup script has been run in Supabase.'; return; }
       const today = easternDateKey(new Date());
       const daily = new Map();
       const browsers = new Set();
@@ -136,7 +158,25 @@
       [...daily.entries()].sort(([left], [right]) => right.localeCompare(left)).slice(0, 14).forEach(([day, summary]) => { const row = document.createElement('tr'); appendCells(row, [dateFormat.format(new Date(`${day}T12:00:00`)), summary.visits, summary.browsers.size, summary.myVisits]); dailyBody.appendChild(row); });
       recentBody.replaceChildren();
       visits.slice(0, 25).forEach((visit) => { const row = document.createElement('tr'); const when = document.createElement('td'); when.textContent = dateTimeFormat.format(new Date(visit.visited_at)); const visitor = document.createElement('td'); const badge = document.createElement('span'); badge.className = `badge ${visit.visitor === 'Me' ? 'badge-me' : 'badge-others'}`; badge.textContent = visit.visitor; visitor.appendChild(badge); row.append(when, visitor); appendCells(row, [visit.visit_type, visit.device_type || 'Unknown', visit.browser_marker]); recentBody.appendChild(row); });
+      const clicks = interactions.filter((interaction) => interaction.interaction_type === 'click');
+      const navigations = interactions.filter((interaction) => interaction.interaction_type === 'navigation');
+      setMetric('total-clicks', clicks.length); setMetric('total-navigations', navigations.length);
+      const actionTotals = new Map();
+      interactions.forEach((interaction) => {
+        const key = `${interaction.action_label}\u0000${interaction.destination}`;
+        actionTotals.set(key, (actionTotals.get(key) || 0) + 1);
+      });
+      topActionsBody.replaceChildren();
+      [...actionTotals.entries()].sort(([, left], [, right]) => right - left).slice(0, 10).forEach(([key, total]) => {
+        const [label, destination] = key.split('\u0000');
+        const row = document.createElement('tr'); appendCells(row, [label || 'Unnamed action', destination || '-', total]); topActionsBody.appendChild(row);
+      });
+      recentInteractionsBody.replaceChildren();
+      interactions.slice(0, 25).forEach((interaction) => {
+        const row = document.createElement('tr'); appendCells(row, [dateTimeFormat.format(new Date(interaction.occurred_at)), interaction.action_label || 'Unnamed action', interaction.interaction_type, interaction.destination || '-', interaction.device_type || 'Unknown']); recentInteractionsBody.appendChild(row);
+      });
       if (visits.length === 0) { dailyBody.innerHTML = '<tr><td class="empty" colspan="4">No visits recorded yet.</td></tr>'; recentBody.innerHTML = '<tr><td class="empty" colspan="5">No visits recorded yet.</td></tr>'; }
+      if (interactions.length === 0) { topActionsBody.innerHTML = '<tr><td class="empty" colspan="3">No interactions recorded yet.</td></tr>'; recentInteractionsBody.innerHTML = '<tr><td class="empty" colspan="5">No interactions recorded yet.</td></tr>'; }
       status.textContent = `Updated ${new Date().toLocaleTimeString('en-CA', { timeZone: easternTimeZone, hour: 'numeric', minute: '2-digit' })}`;
     }
     const lockScreen = document.getElementById('lock-screen');

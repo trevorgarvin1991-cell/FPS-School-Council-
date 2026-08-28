@@ -129,6 +129,20 @@ create table if not exists public.page_visits (
   visited_at timestamptz not null default now()
 );
 
+create table if not exists public.page_interactions (
+  id bigint generated always as identity primary key,
+  visitor_id uuid,
+  device_type text not null default 'Unknown' check (device_type in ('Desktop', 'Mobile', 'Tablet', 'Unknown')),
+  interaction_type text not null check (interaction_type in ('click', 'navigation')),
+  action_label text not null default '',
+  page_path text not null default '/',
+  destination text not null default '',
+  occurred_at timestamptz not null default now()
+);
+
+create index if not exists page_interactions_occurred_at_idx on public.page_interactions (occurred_at desc);
+create index if not exists page_interactions_action_idx on public.page_interactions (action_label);
+
 create table if not exists public.activity_log (
   id bigint generated always as identity primary key,
   actor_id uuid references auth.users(id) on delete set null,
@@ -276,6 +290,7 @@ alter table public.task_attachments enable row level security;
 alter table public.council_documents enable row level security;
 alter table public.floor_plan_markers enable row level security;
 alter table public.page_visits enable row level security;
+alter table public.page_interactions enable row level security;
 alter table public.activity_log enable row level security;
 
 drop policy if exists "Public event read access" on public.events;
@@ -300,6 +315,8 @@ drop policy if exists "Public floor plan marker insert access" on public.floor_p
 drop policy if exists "Public floor plan marker update access" on public.floor_plan_markers;
 drop policy if exists "Public floor plan marker delete access" on public.floor_plan_markers;
 drop policy if exists "Public visit insert access" on public.page_visits;
+drop policy if exists "Public interaction insert access" on public.page_interactions;
+drop policy if exists "Council interaction read access" on public.page_interactions;
 drop policy if exists "Council budget entry insert access" on public.budget_entries;
 drop policy if exists "Council budget entry delete access" on public.budget_entries;
 drop policy if exists "Council budget entry read access" on public.budget_entries;
@@ -461,6 +478,16 @@ create policy "Public visit insert access"
 on public.page_visits for insert
 to anon
 with check (true);
+
+create policy "Public interaction insert access"
+on public.page_interactions for insert
+to anon, authenticated
+with check (true);
+
+create policy "Council interaction read access"
+on public.page_interactions for select
+to authenticated
+using (true);
 
 drop policy if exists "Council visit read access" on public.page_visits;
 create policy "Council visit read access"

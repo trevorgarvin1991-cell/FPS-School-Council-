@@ -99,6 +99,41 @@
     const uploadedDocumentList = document.getElementById('uploaded-document-list');
     const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
     let authenticatedUser = null;
+    const VISITOR_ID_STORAGE_KEY = 'fps-visitor-id-v1';
+
+    function getVisitorId() {
+      const savedVisitorId = localStorage.getItem(VISITOR_ID_STORAGE_KEY);
+      if (savedVisitorId) return savedVisitorId;
+      const visitorId = crypto.randomUUID();
+      localStorage.setItem(VISITOR_ID_STORAGE_KEY, visitorId);
+      return visitorId;
+    }
+
+    function getDeviceType() {
+      if (/iPad|Tablet|PlayBook|Silk/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'Tablet';
+      return navigator.userAgentData?.mobile || /Mobi|Android|iPhone|iPod|IEMobile|Opera Mini/.test(navigator.userAgent) ? 'Mobile' : 'Desktop';
+    }
+
+    function interactionDestination(action) {
+      if (action.tagName !== 'A') return '';
+      const destination = new URL(action.href, window.location.href);
+      if (destination.protocol === 'mailto:' || destination.protocol === 'tel:') return destination.protocol.slice(0, -1);
+      return destination.origin === window.location.origin ? destination.pathname : destination.hostname;
+    }
+
+    async function recordInteraction(action, interactionType) {
+      const actionLabel = (action.getAttribute('aria-label') || action.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+      await supabaseClient.from('page_interactions').insert({ visitor_id: getVisitorId(), device_type: getDeviceType(), interaction_type: interactionType, action_label: actionLabel, page_path: window.location.pathname, destination: interactionDestination(action) });
+    }
+
+    document.addEventListener('click', (event) => {
+      const action = event.target.closest('a, button');
+      if (!action || action.closest('[data-analytics-ignore]')) return;
+      const isSameTabLink = action.tagName === 'A' && !action.target && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+      if (!isSameTabLink) { void recordInteraction(action, action.tagName === 'A' ? 'navigation' : 'click'); return; }
+      event.preventDefault();
+      void Promise.race([recordInteraction(action, 'navigation'), new Promise((resolve) => setTimeout(resolve, 180))]).finally(() => { window.location.assign(action.href); });
+    });
 
     async function refreshAuthentication() {
       const { data: { session } } = await supabaseClient.auth.getSession();

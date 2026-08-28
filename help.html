@@ -103,7 +103,7 @@
     </section>
     <section class="help-section help-section-wide">
       <h3>Privacy and support</h3>
-      <p>The site records a persistent browser identifier, visit time, and coarse device type to understand site usage. Council accounts provide an email address for sign-in, and change logs record the account, action, item or task name, and time.</p>
+      <p>The site records a persistent browser identifier, visit time, coarse device type, and selected action labels or destinations to understand site usage. It does not record form values, URL query strings, names, IP addresses, or referrers. Council accounts provide an email address for sign-in, and change logs record the account, action, item or task name, and time.</p>
       <p>Council documents, task attachments, and receipts are restricted to signed-in council members. Do not upload student records, health information, personal contact details, payment information, or other sensitive personal information.</p>
       <p>The site uses Supabase for authentication, data, and file storage, and loads services such as SharpSchool, jsDelivr, GitHub, and QRServer. These services may receive standard connection details such as an IP address and browser information.</p>
       <p>For questions about personal information or requests to access or remove it, contact the school office.</p>
@@ -112,7 +112,17 @@
     </section>
   </main>
   <footer>Frankford Public School Council</footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-  <script>lucide.createIcons();</script>
+  <script>
+    const supabaseClient = window.supabase.createClient('https://oueexkkwbkzynajpddxq.supabase.co', 'sb_publishable_utwHzWU7rkjWnQJuCIRrTQ_l_RhktGi');
+    const VISITOR_ID_STORAGE_KEY = 'fps-visitor-id-v1';
+    function getVisitorId() { const savedVisitorId = localStorage.getItem(VISITOR_ID_STORAGE_KEY); if (savedVisitorId) return savedVisitorId; const visitorId = crypto.randomUUID(); localStorage.setItem(VISITOR_ID_STORAGE_KEY, visitorId); return visitorId; }
+    function getDeviceType() { if (/iPad|Tablet|PlayBook|Silk/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'Tablet'; return navigator.userAgentData?.mobile || /Mobi|Android|iPhone|iPod|IEMobile|Opera Mini/.test(navigator.userAgent) ? 'Mobile' : 'Desktop'; }
+    function interactionDestination(action) { if (action.tagName !== 'A') return ''; const destination = new URL(action.href, window.location.href); if (destination.protocol === 'mailto:' || destination.protocol === 'tel:') return destination.protocol.slice(0, -1); return destination.origin === window.location.origin ? destination.pathname : destination.hostname; }
+    async function recordInteraction(action, interactionType) { const actionLabel = (action.getAttribute('aria-label') || action.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120); await supabaseClient.from('page_interactions').insert({ visitor_id: getVisitorId(), device_type: getDeviceType(), interaction_type: interactionType, action_label: actionLabel, page_path: window.location.pathname, destination: interactionDestination(action) }); }
+    document.addEventListener('click', (event) => { const action = event.target.closest('a, button'); if (!action || action.closest('[data-analytics-ignore]')) return; const isSameTabLink = action.tagName === 'A' && !action.target && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey; if (!isSameTabLink) { void recordInteraction(action, action.tagName === 'A' ? 'navigation' : 'click'); return; } event.preventDefault(); void Promise.race([recordInteraction(action, 'navigation'), new Promise((resolve) => setTimeout(resolve, 180))]).finally(() => { window.location.assign(action.href); }); });
+    lucide.createIcons();
+  </script>
 </body>
 </html>

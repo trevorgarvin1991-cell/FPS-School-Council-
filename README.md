@@ -110,4 +110,25 @@ from public.page_visits
 order by visited_at desc;
 ```
 
+## Click and Navigation Analytics
+
+Rerun [supabase-setup.sql](supabase-setup.sql) in the Supabase SQL Editor to create `page_interactions`. The site then records an anonymous browser marker, coarse device type, action label, current page path, destination path or hostname, interaction type (`click` or `navigation`), and timestamp. It does not record form field values, search terms, URL query strings, names, IP addresses, or referrers.
+
+The signed-in Site Analytics page shows click and navigation totals, the most selected actions, and the 25 most recent interactions. To review raw interactions in Supabase:
+
+```sql
+select occurred_at, interaction_type, action_label, page_path, destination, device_type
+from public.page_interactions
+order by occurred_at desc;
+```
+
+To find the most selected destinations:
+
+```sql
+select action_label, destination, count(*) as selections
+from public.page_interactions
+group by action_label, destination
+order by selections desc;
+```
+
 The supplied policies allow visitors to view public event and budget information. Budget and task changes require a signed-in council member; event and floor-plan changes remain public.
