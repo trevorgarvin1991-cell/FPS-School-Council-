@@ -176,6 +176,7 @@
     .budget-chart-bar-track { fill: #ece8d6; }
     .budget-chart-bar-forecast { fill: #7a5b00; }
     .budget-chart-bar-actual { fill: #d71920; }
+    .event-budget > table { display: block; max-width: 100%; overflow-x: auto; }
     .event-budget .budget-form { margin: 1rem 0 0.75rem; }
     .budget-form [hidden] { display: none; }
     .remove-forecast {
@@ -2577,6 +2578,7 @@
       };
 
       budgetChart.replaceChildren();
+  budgetChart.setAttribute('viewBox', `0 0 ${width} ${height}`);
       [0, 0.5, 1].forEach((ratio) => {
         const x = padding.left + plotWidth * ratio;
         appendSvg('line', { x1: x, y1: padding.top, x2: x, y2: height - padding.bottom, class: 'budget-chart-grid' });
