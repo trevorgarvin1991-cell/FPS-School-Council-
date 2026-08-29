@@ -65,12 +65,14 @@ create table if not exists public.events (
   event_key text not null unique,
   name text not null,
   event_date date not null,
+  event_time time,
   location text not null,
   event_type text not null default 'event' check (event_type in ('event', 'meeting')),
   created_at timestamptz not null default now()
 );
 
 alter table public.events add column if not exists event_type text not null default 'event' check (event_type in ('event', 'meeting'));
+alter table public.events add column if not exists event_time time;
 
 create table if not exists public.event_budgets (
   event_id uuid primary key references public.events(id) on delete cascade,

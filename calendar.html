@@ -32,7 +32,7 @@
     .year-button { min-width: 2.5rem; padding: 0.5rem; }
     .meeting-panel { margin-top: 0.9rem; }
     .meeting-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; }
-    .meeting-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(9rem, 0.5fr) minmax(0, 0.8fr) auto; gap: 0.5rem; margin-top: 0.8rem; }
+    .meeting-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(9rem, 0.5fr) minmax(7rem, 0.4fr) minmax(0, 0.8fr) auto; gap: 0.5rem; margin-top: 0.8rem; }
     input { min-width: 0; min-height: 2.5rem; padding: 0.5rem 0.6rem; border: 1px solid #8d865f; border-radius: 4px; color: var(--ink); font: inherit; }
     .schedule-button, .account-button { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 2.5rem; padding: 0.55rem 0.7rem; border: 1px solid var(--ink); border-radius: 10px; background: var(--yellow); color: var(--ink); font: inherit; font-weight: bold; cursor: pointer; white-space: nowrap; }
     .schedule-button:hover, .account-button:hover { background: var(--yellow-dark); }
@@ -126,6 +126,7 @@
       <form class="meeting-form" id="meeting-form" aria-label="Schedule a meeting">
         <input id="meeting-name" type="text" aria-label="Meeting title" placeholder="Meeting title" maxlength="120" required />
         <input id="meeting-date" type="date" aria-label="Meeting date" required />
+        <input id="meeting-time" type="time" aria-label="Meeting time" />
         <input id="meeting-location" type="text" aria-label="Meeting location" placeholder="Location or online link" maxlength="160" required />
         <button class="schedule-button" type="submit"><i class="action-icon" data-lucide="calendar-plus" aria-hidden="true"></i>Schedule</button>
       </form>
@@ -194,8 +195,17 @@
     }
 
     function formatDate(date) { return new Intl.DateTimeFormat('en-CA', { month: 'short', day: 'numeric' }).format(date); }
+    function formatTime(time) { return time ? new Intl.DateTimeFormat('en-CA', { hour: 'numeric', minute: '2-digit' }).format(new Date(`1970-01-01T${time}`)) : ''; }
     function eventsForDate(year, month, day) { const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; return calendarEvents.filter((event) => event.event_date === dateKey); }
     function googleCalendarUrl(event) {
+      if (event.event_time) {
+        const eventTime = event.event_time.slice(0, 5);
+        const start = new Date(`${event.event_date}T${eventTime}:00`);
+        const end = new Date(start.getTime() + 60 * 60 * 1000);
+        const formatDateTime = (date) => `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}00`;
+        const parameters = new URLSearchParams({ action: 'TEMPLATE', text: event.name, dates: `${formatDateTime(start)}/${formatDateTime(end)}`, location: event.location || '', ctz: Intl.DateTimeFormat().resolvedOptions().timeZone });
+        return `https://calendar.google.com/calendar/render?${parameters}`;
+      }
       const startDate = event.event_date.replaceAll('-', '');
       const endDate = new Date(`${event.event_date}T12:00:00`); endDate.setDate(endDate.getDate() + 1);
       const endDateKey = `${endDate.getFullYear()}${String(endDate.getMonth() + 1).padStart(2, '0')}${String(endDate.getDate()).padStart(2, '0')}`;
@@ -205,7 +215,7 @@
 
     function eventSummary(event) {
       const type = event.source === 'school' ? 'Official school date' : event.source === 'task' ? 'Task due' : event.event_type === 'meeting' ? 'Council meeting' : 'Council event';
-      return `${type}${event.location ? ` at ${event.location}` : ''}. ${formatDate(new Date(`${event.event_date}T12:00:00`))}`;
+      return `${type}${event.event_time ? ` at ${formatTime(event.event_time)}` : ''}${event.location ? ` at ${event.location}` : ''}. ${formatDate(new Date(`${event.event_date}T12:00:00`))}`;
     }
 
     function hideEventOverlay() {
@@ -290,7 +300,7 @@
       scheduled.forEach((event) => {
         const item = document.createElement('article'); item.className = `upcoming-item ${event.source === 'school' ? 'school' : event.source === 'task' ? 'task' : event.event_type === 'meeting' ? 'meeting' : ''}`;
         const date = document.createElement('time'); date.className = 'upcoming-date'; date.dateTime = event.event_date; date.textContent = formatDate(new Date(`${event.event_date}T12:00:00`));
-        const details = document.createElement('div'); const name = document.createElement('div'); name.className = 'upcoming-name'; name.textContent = event.name; const location = document.createElement('div'); location.className = 'upcoming-location'; location.textContent = event.location || 'Location to be confirmed'; details.append(name, location);
+        const details = document.createElement('div'); const name = document.createElement('div'); name.className = 'upcoming-name'; name.textContent = event.name; const location = document.createElement('div'); location.className = 'upcoming-location'; location.textContent = [formatTime(event.event_time), event.location || 'Location to be confirmed'].filter(Boolean).join(' | '); details.append(name, location);
         const type = document.createElement('span'); type.className = `type-label ${event.source === 'school' ? 'school' : event.source === 'task' ? 'task' : event.event_type === 'meeting' ? 'meeting' : ''}`; type.textContent = event.source === 'school' ? 'School date' : event.source === 'task' ? 'Task due' : event.event_type === 'meeting' ? 'Meeting' : 'Event';
         const actions = document.createElement('div'); actions.className = 'calendar-actions';
         if (event.source === 'school') {
@@ -324,7 +334,7 @@
     }
 
     async function loadCalendarEvents() {
-      const [{ data, error }, taskData, schoolEvents, nextYearSchoolEvents] = await Promise.all([supabaseClient.from('events').select('id, name, event_date, location, event_type').order('event_date'), loadDueTasks(), loadSchoolEvents().catch(() => []), loadSchoolEventsForYear(selectedYear + 1).catch(() => [])]);
+      const [{ data, error }, taskData, schoolEvents, nextYearSchoolEvents] = await Promise.all([supabaseClient.from('events').select('id, name, event_date, event_time, location, event_type').order('event_date'), loadDueTasks(), loadSchoolEvents().catch(() => []), loadSchoolEventsForYear(selectedYear + 1).catch(() => [])]);
       const dueTasks = taskData.map((task) => ({ name: task.title, event_date: task.due_date, location: 'Council task', event_type: 'task', source: 'task' }));
       calendarEvents = !error && data?.length ? [...data, ...dueTasks, ...schoolEvents, ...nextYearSchoolEvents] : [...fallbackEvents, ...dueTasks, ...schoolEvents, ...nextYearSchoolEvents];
       renderCalendar();
@@ -376,6 +386,7 @@
       event.preventDefault();
       const name = document.getElementById('meeting-name').value.trim();
       const eventDate = document.getElementById('meeting-date').value;
+      const eventTime = document.getElementById('meeting-time').value;
       const location = document.getElementById('meeting-location').value.trim();
       if (!name || !eventDate || !location) return;
       if (!await requireAuthentication()) {
@@ -385,7 +396,7 @@
       pendingMeetingAction = null;
       meetingFeedback.textContent = 'Scheduling meeting...';
       const eventKey = `meeting-${crypto.randomUUID ? crypto.randomUUID() : Date.now()}`;
-      const { data, error } = await supabaseClient.from('events').insert({ event_key: eventKey, name, event_date: eventDate, location, event_type: 'meeting' }).select('id, name, event_date, location, event_type');
+      const { data, error } = await supabaseClient.from('events').insert({ event_key: eventKey, name, event_date: eventDate, event_time: eventTime || null, location, event_type: 'meeting' }).select('id, name, event_date, event_time, location, event_type');
       if (error) { meetingFeedback.textContent = error.message; return; }
       const meeting = data?.[0];
       if (!meeting) {
