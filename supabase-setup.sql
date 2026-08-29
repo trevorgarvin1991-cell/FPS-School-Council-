@@ -515,6 +515,7 @@ using (bucket_id in ('budget-receipts', 'task-attachments', 'council-documents')
 
 alter policy "Public event insert access" on public.events to authenticated with check (auth.uid() is not null);
 alter policy "Public event delete access" on public.events to authenticated using (auth.uid() is not null);
+alter policy "Public event read access" on public.events to anon, authenticated using (true);
 alter policy "Public task read access" on public.event_tasks to authenticated using (true);
 alter policy "Guest task update access" on public.event_tasks to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
 alter policy "Public task attachment read access" on public.task_attachments to authenticated using (true);
