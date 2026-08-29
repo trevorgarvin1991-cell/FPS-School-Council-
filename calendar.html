@@ -128,6 +128,7 @@
     </section>
     <section class="calendar-panel" aria-label="Calendar months">
       <div class="legend" aria-label="Calendar legend"><span class="legend-item"><span class="legend-swatch" aria-hidden="true"></span>Event</span><span class="legend-item"><span class="legend-swatch meeting" aria-hidden="true"></span>Meeting</span><span class="legend-item"><span class="legend-swatch school" aria-hidden="true"></span>School date</span><span class="legend-item"><span class="legend-swatch task" aria-hidden="true"></span>Task due</span></div>
+      <div id="previous-month"></div>
       <div class="months" id="months"></div>
     </section>
     <section class="upcoming-panel" aria-labelledby="upcoming-title">
@@ -151,6 +152,7 @@
   <script>
     const supabaseClient = window.supabase.createClient('https://oueexkkwbkzynajpddxq.supabase.co', 'sb_publishable_utwHzWU7rkjWnQJuCIRrTQ_l_RhktGi');
     const months = document.getElementById('months');
+    const previousMonth = document.getElementById('previous-month');
     const calendarYear = document.getElementById('calendar-year');
     const upcomingList = document.getElementById('upcoming-list');
     const upcomingEmpty = document.getElementById('upcoming-empty');
@@ -198,6 +200,7 @@
     function renderCalendar() {
       calendarYear.textContent = selectedYear;
       months.replaceChildren();
+      previousMonth.replaceChildren();
       const previousMonthDetails = document.createElement('details'); previousMonthDetails.className = 'previous-month-details';
       const previousMonthSummary = document.createElement('summary'); previousMonthSummary.textContent = 'Show previous month'; previousMonthDetails.appendChild(previousMonthSummary);
       const today = new Date();
@@ -229,7 +232,7 @@
         monthElement.append(heading, weekdays, days);
         if (offset === 0) previousMonthDetails.appendChild(monthElement); else months.appendChild(monthElement);
       }
-      months.before(previousMonthDetails);
+      previousMonth.appendChild(previousMonthDetails);
       renderUpcoming();
     }
 
@@ -266,9 +269,16 @@
       return Array.isArray(schoolEvents) ? schoolEvents : [];
     }
 
+    async function loadDueTasks() {
+      const { data, error } = await supabaseClient.from('calendar_due_tasks').select('title, due_date');
+      if (!error) return data || [];
+      const { data: authenticatedTasks, error: authenticatedTaskError } = await supabaseClient.from('event_tasks').select('title, due_date, status').not('due_date', 'is', null).neq('status', 'completed');
+      return authenticatedTaskError ? [] : authenticatedTasks || [];
+    }
+
     async function loadCalendarEvents() {
-      const [{ data, error }, { data: taskData, error: taskError }, schoolEvents, nextYearSchoolEvents] = await Promise.all([supabaseClient.from('events').select('id, name, event_date, location, event_type').order('event_date'), supabaseClient.from('calendar_due_tasks').select('title, due_date'), loadSchoolEvents().catch(() => []), loadSchoolEventsForYear(selectedYear + 1).catch(() => [])]);
-      const dueTasks = !taskError && taskData ? taskData.map((task) => ({ name: task.title, event_date: task.due_date, location: 'Council task', event_type: 'task', source: 'task' })) : [];
+      const [{ data, error }, taskData, schoolEvents, nextYearSchoolEvents] = await Promise.all([supabaseClient.from('events').select('id, name, event_date, location, event_type').order('event_date'), loadDueTasks(), loadSchoolEvents().catch(() => []), loadSchoolEventsForYear(selectedYear + 1).catch(() => [])]);
+      const dueTasks = taskData.map((task) => ({ name: task.title, event_date: task.due_date, location: 'Council task', event_type: 'task', source: 'task' }));
       calendarEvents = !error && data?.length ? [...data, ...dueTasks, ...schoolEvents, ...nextYearSchoolEvents] : [...fallbackEvents, ...dueTasks, ...schoolEvents, ...nextYearSchoolEvents];
       renderCalendar();
     }
@@ -288,8 +298,12 @@
       pendingMeetingAction = null;
       if (!confirm(`Remove "${meeting.name}" from the calendar?`)) return;
       meetingFeedback.textContent = 'Removing meeting...';
-      const { error } = await supabaseClient.from('events').delete().eq('id', meeting.id);
+      const { data, error } = await supabaseClient.from('events').delete().eq('id', meeting.id).select('id');
       if (error) { meetingFeedback.textContent = error.message; return; }
+      if (!data?.some((deletedMeeting) => deletedMeeting.id === meeting.id)) {
+        meetingFeedback.textContent = 'Meeting could not be removed. Confirm that you are signed in, then try again.';
+        return;
+      }
       meetingFeedback.textContent = 'Meeting removed.';
       await loadCalendarEvents();
     }
