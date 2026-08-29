@@ -117,7 +117,7 @@
       </div>
     </section>
     <section class="meeting-panel" aria-labelledby="schedule-meeting-title">
-      <div class="meeting-heading"><h2 id="schedule-meeting-title">Schedule a meeting</h2><button class="account-button" id="account-button" type="button">Sign in</button></div>
+      <div class="meeting-heading"><h2 id="schedule-meeting-title">Schedule a meeting</h2></div>
       <form class="meeting-form" id="meeting-form" aria-label="Schedule a meeting">
         <input id="meeting-name" type="text" aria-label="Meeting title" placeholder="Meeting title" maxlength="120" required />
         <input id="meeting-date" type="date" aria-label="Meeting date" required />
@@ -158,7 +158,6 @@
     const upcomingEmpty = document.getElementById('upcoming-empty');
     const meetingForm = document.getElementById('meeting-form');
     const meetingFeedback = document.getElementById('meeting-feedback');
-    const accountButton = document.getElementById('account-button');
     const accountDialog = document.getElementById('account-dialog');
     const accountForm = document.getElementById('account-form');
     const accountFeedback = document.getElementById('account-feedback');
@@ -176,7 +175,6 @@
     async function refreshAuthentication() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       authenticatedUser = session?.user || null;
-      accountButton.textContent = authenticatedUser ? 'Sign out' : 'Sign in';
     }
 
     async function requireAuthentication() {
@@ -308,17 +306,6 @@
       await loadCalendarEvents();
     }
 
-    accountButton.addEventListener('click', async () => {
-      await refreshAuthentication();
-      if (authenticatedUser) {
-        await supabaseClient.auth.signOut();
-        await refreshAuthentication();
-        meetingFeedback.textContent = 'Signed out.';
-        return;
-      }
-      accountFeedback.textContent = '';
-      accountDialog.showModal();
-    });
     document.getElementById('close-account-dialog').addEventListener('click', () => accountDialog.close());
     accountForm.addEventListener('submit', async (event) => {
       event.preventDefault();
