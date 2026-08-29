@@ -336,12 +336,18 @@
       pendingMeetingAction = null;
       meetingFeedback.textContent = 'Scheduling meeting...';
       const eventKey = `meeting-${crypto.randomUUID ? crypto.randomUUID() : Date.now()}`;
-      const { error } = await supabaseClient.from('events').insert({ event_key: eventKey, name, event_date: eventDate, location, event_type: 'meeting' });
+      const { data, error } = await supabaseClient.from('events').insert({ event_key: eventKey, name, event_date: eventDate, location, event_type: 'meeting' }).select('id, name, event_date, location, event_type');
       if (error) { meetingFeedback.textContent = error.message; return; }
+      const meeting = data?.[0];
+      if (!meeting) {
+        meetingFeedback.textContent = 'Meeting was not saved. Please try again.';
+        return;
+      }
       meetingForm.reset();
       meetingFeedback.textContent = 'Meeting scheduled.';
       selectedYear = new Date(`${eventDate}T12:00:00`).getFullYear();
-      await loadCalendarEvents();
+      calendarEvents = [...calendarEvents, meeting];
+      renderCalendar();
     });
 
     document.getElementById('previous-year').addEventListener('click', () => { selectedYear -= 1; void loadCalendarEvents(); });
