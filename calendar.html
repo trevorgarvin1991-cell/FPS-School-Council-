@@ -64,12 +64,17 @@
     .day.has-school { border-color: var(--school); background: #edf8ef; }
     .day-number { display: block; color: var(--muted); font-weight: bold; }
     .day.today .day-number { display: grid; width: 1.35rem; height: 1.35rem; place-items: center; border-radius: 50%; background: var(--ink); color: #fff; }
-    .event-dot { display: block; width: 0.58rem; height: 0.58rem; margin: 0.18rem 0.14rem 0 0; border: 1px solid rgba(17, 17, 17, 0.4); border-radius: 50%; background: var(--yellow); box-shadow: 0 1px 2px rgba(17, 17, 17, 0.22); }
+    .event-dot { display: block; width: 0.58rem; height: 0.58rem; margin: 0.18rem 0.14rem 0 0; padding: 0; border: 1px solid rgba(17, 17, 17, 0.4); border-radius: 50%; background: var(--yellow); box-shadow: 0 1px 2px rgba(17, 17, 17, 0.22); cursor: pointer; }
     .event-dot.meeting { background: var(--meeting); }
     .event-dot.school { background: var(--school); }
     .event-dot.task { background: var(--task); }
     .day-events { display: flex; flex-wrap: wrap; }
-    .event-dot[title] { cursor: help; }
+    .event-overlay { position: fixed; z-index: 20; width: min(17rem, calc(100vw - 1.5rem)); padding: 0.75rem; border: 1px solid var(--ink); border-top: 4px solid var(--yellow); border-radius: 4px; background: #fff; box-shadow: 0 10px 24px rgba(17, 17, 17, 0.24); }
+    .event-overlay[hidden] { display: none; }
+    .event-overlay-name { margin: 0; font-size: 0.9rem; }
+    .event-overlay-summary { margin: 0.3rem 0 0.65rem; color: var(--muted); font-size: 0.78rem; line-height: 1.35; }
+    .event-overlay .calendar-action { background: var(--yellow); }
+    .event-overlay .calendar-action:hover { background: var(--yellow-dark); }
     .upcoming-panel { margin-top: 0.9rem; }
     .upcoming-list { display: grid; gap: 0.55rem; margin-top: 0.85rem; }
     .upcoming-item { display: grid; grid-template-columns: 4rem 1fr auto auto; gap: 0.65rem; align-items: center; padding: 0.7rem; border-left: 4px solid var(--yellow); background: #fffbea; }
@@ -138,6 +143,7 @@
     </section>
   </main>
   <footer>Frankford Public School Council</footer>
+  <div class="event-overlay" id="event-overlay" role="dialog" aria-live="polite" hidden></div>
   <dialog id="account-dialog" aria-labelledby="account-dialog-title">
     <div class="dialog-heading"><h2 id="account-dialog-title">Council sign in</h2><button id="close-account-dialog" class="dialog-close" type="button">Close</button></div>
     <form class="account-form" id="account-form" aria-label="Council sign in form">
@@ -156,6 +162,7 @@
     const calendarYear = document.getElementById('calendar-year');
     const upcomingList = document.getElementById('upcoming-list');
     const upcomingEmpty = document.getElementById('upcoming-empty');
+    const eventOverlay = document.getElementById('event-overlay');
     const meetingForm = document.getElementById('meeting-form');
     const meetingFeedback = document.getElementById('meeting-feedback');
     const accountDialog = document.getElementById('account-dialog');
@@ -171,6 +178,7 @@
     let calendarEvents = fallbackEvents;
     let authenticatedUser = null;
     let pendingMeetingAction = null;
+    let overlayHideTimer = null;
 
     async function refreshAuthentication() {
       const { data: { session } } = await supabaseClient.auth.getSession();
@@ -193,6 +201,38 @@
       const endDateKey = `${endDate.getFullYear()}${String(endDate.getMonth() + 1).padStart(2, '0')}${String(endDate.getDate()).padStart(2, '0')}`;
       const parameters = new URLSearchParams({ action: 'TEMPLATE', text: event.name, dates: `${startDate}/${endDateKey}`, location: event.location || '' });
       return `https://calendar.google.com/calendar/render?${parameters}`;
+    }
+
+    function eventSummary(event) {
+      const type = event.source === 'school' ? 'Official school date' : event.source === 'task' ? 'Task due' : event.event_type === 'meeting' ? 'Council meeting' : 'Council event';
+      return `${type}${event.location ? ` at ${event.location}` : ''}. ${formatDate(new Date(`${event.event_date}T12:00:00`))}`;
+    }
+
+    function hideEventOverlay() {
+      clearTimeout(overlayHideTimer);
+      eventOverlay.hidden = true;
+    }
+
+    function scheduleEventOverlayHide() {
+      clearTimeout(overlayHideTimer);
+      overlayHideTimer = setTimeout(hideEventOverlay, 180);
+    }
+
+    function showEventOverlay(event, trigger) {
+      clearTimeout(overlayHideTimer);
+      eventOverlay.replaceChildren();
+      const name = document.createElement('h3'); name.className = 'event-overlay-name'; name.textContent = event.name;
+      const summary = document.createElement('p'); summary.className = 'event-overlay-summary'; summary.textContent = eventSummary(event);
+      const addToGoogle = document.createElement('a'); addToGoogle.className = 'calendar-action'; addToGoogle.href = googleCalendarUrl(event); addToGoogle.target = '_blank'; addToGoogle.rel = 'noopener noreferrer'; addToGoogle.innerHTML = '<i class="action-icon" data-lucide="calendar-plus" aria-hidden="true"></i>Add to Google Calendar';
+      eventOverlay.append(name, summary, addToGoogle);
+      eventOverlay.hidden = false;
+      const triggerBox = trigger.getBoundingClientRect();
+      const overlayBox = eventOverlay.getBoundingClientRect();
+      const top = Math.min(window.innerHeight - overlayBox.height - 12, triggerBox.bottom + 8);
+      const left = Math.min(window.innerWidth - overlayBox.width - 12, Math.max(12, triggerBox.left));
+      eventOverlay.style.top = `${Math.max(12, top)}px`;
+      eventOverlay.style.left = `${left}px`;
+      lucide.createIcons();
     }
 
     function renderCalendar() {
@@ -224,7 +264,16 @@
             else if (dayEvents.some((event) => event.event_type === 'meeting')) dayElement.classList.add('has-meeting');
             else if (dayEvents.some((event) => event.source === 'school')) dayElement.classList.add('has-school');
           }
-          dayEvents.forEach((event) => { const dot = document.createElement('span'); dot.className = `event-dot ${event.source === 'school' ? 'school' : event.source === 'task' ? 'task' : event.event_type === 'meeting' ? 'meeting' : ''}`; dot.title = `${event.name}${event.location ? ` - ${event.location}` : ''}${event.source === 'school' ? ' - School date' : event.source === 'task' ? ' - Task due' : ''}`; dot.setAttribute('aria-label', dot.title); eventList.appendChild(dot); });
+          dayEvents.forEach((event) => {
+            const dot = document.createElement('button'); dot.type = 'button'; dot.className = `event-dot ${event.source === 'school' ? 'school' : event.source === 'task' ? 'task' : event.event_type === 'meeting' ? 'meeting' : ''}`;
+            dot.setAttribute('aria-label', `${event.name}. ${eventSummary(event)}`);
+            dot.addEventListener('mouseenter', () => showEventOverlay(event, dot));
+            dot.addEventListener('mouseleave', scheduleEventOverlayHide);
+            dot.addEventListener('focus', () => showEventOverlay(event, dot));
+            dot.addEventListener('blur', scheduleEventOverlayHide);
+            dot.addEventListener('click', () => eventOverlay.hidden ? showEventOverlay(event, dot) : hideEventOverlay());
+            eventList.appendChild(dot);
+          });
           dayElement.appendChild(eventList); days.appendChild(dayElement);
         }
         monthElement.append(heading, weekdays, days);
@@ -352,6 +401,9 @@
 
     document.getElementById('previous-year').addEventListener('click', () => { selectedYear -= 1; void loadCalendarEvents(); });
     document.getElementById('next-year').addEventListener('click', () => { selectedYear += 1; void loadCalendarEvents(); });
+    eventOverlay.addEventListener('mouseenter', () => clearTimeout(overlayHideTimer));
+    eventOverlay.addEventListener('mouseleave', scheduleEventOverlayHide);
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') hideEventOverlay(); });
     void loadCalendarEvents();
     void refreshAuthentication();
     lucide.createIcons();
