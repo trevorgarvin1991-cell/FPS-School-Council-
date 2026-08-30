@@ -79,7 +79,7 @@
   <dialog id="account-dialog" aria-labelledby="account-dialog-title">
     <div class="dialog-heading"><h2 id="account-dialog-title">Council sign in</h2><button class="dialog-close" id="close-account-dialog" type="button">Close</button></div>
     <form class="sign-in-form" id="account-form">
-      <input id="account-email" type="email" aria-label="Email address" autocomplete="email" placeholder="Email address" required />
+      <input id="account-email" type="text" aria-label="Email address or username" autocomplete="username" placeholder="Email address or username" required />
       <input id="account-password" type="password" aria-label="Password" autocomplete="current-password" placeholder="Password" required />
       <button type="submit">Sign in</button>
       <p class="feedback" id="account-feedback" role="alert"></p>
@@ -100,6 +100,11 @@
     const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
     let authenticatedUser = null;
     const VISITOR_ID_STORAGE_KEY = 'fps-visitor-id-v1';
+
+    function resolveAccountEmail(value) {
+      const accountIdentifier = value.trim();
+      return accountIdentifier.toLowerCase() === 'general' ? 'general@fpscouncil.com' : accountIdentifier;
+    }
 
     function getVisitorId() {
       const savedVisitorId = localStorage.getItem(VISITOR_ID_STORAGE_KEY);
@@ -231,7 +236,7 @@
     accountForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       accountFeedback.textContent = 'Signing in...';
-      const { error } = await supabaseClient.auth.signInWithPassword({ email: document.getElementById('account-email').value.trim(), password: document.getElementById('account-password').value });
+      const { error } = await supabaseClient.auth.signInWithPassword({ email: resolveAccountEmail(document.getElementById('account-email').value), password: document.getElementById('account-password').value });
       if (error) { accountFeedback.textContent = error.message; return; }
       accountForm.reset();
       accountDialog.close();

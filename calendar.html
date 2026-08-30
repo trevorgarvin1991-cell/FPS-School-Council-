@@ -148,7 +148,7 @@
   <dialog id="account-dialog" aria-labelledby="account-dialog-title">
     <div class="dialog-heading"><h2 id="account-dialog-title">Council sign in</h2><button id="close-account-dialog" class="dialog-close" type="button">Close</button></div>
     <form class="account-form" id="account-form" aria-label="Council sign in form">
-      <input id="account-email" type="email" aria-label="Email address" autocomplete="email" placeholder="Email address" required />
+      <input id="account-email" type="text" aria-label="Email address or username" autocomplete="username" placeholder="Email address or username" required />
       <input id="account-password" type="password" aria-label="Password" autocomplete="current-password" placeholder="Password" required />
       <button class="schedule-button" type="submit">Sign in</button>
     </form>
@@ -180,6 +180,11 @@
     let authenticatedUser = null;
     let pendingMeetingAction = null;
     let overlayHideTimer = null;
+
+    function resolveAccountEmail(value) {
+      const accountIdentifier = value.trim();
+      return accountIdentifier.toLowerCase() === 'general' ? 'general@fpscouncil.com' : accountIdentifier;
+    }
 
     async function refreshAuthentication() {
       const { data: { session } } = await supabaseClient.auth.getSession();
@@ -369,7 +374,7 @@
     accountForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       accountFeedback.textContent = 'Signing in...';
-      const { error } = await supabaseClient.auth.signInWithPassword({ email: document.getElementById('account-email').value.trim(), password: document.getElementById('account-password').value });
+      const { error } = await supabaseClient.auth.signInWithPassword({ email: resolveAccountEmail(document.getElementById('account-email').value), password: document.getElementById('account-password').value });
       if (error) { accountFeedback.textContent = error.message; return; }
       accountForm.reset();
       accountDialog.close();

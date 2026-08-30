@@ -1300,7 +1300,7 @@
       <button id="close-account-dialog" class="dialog-close" type="button" aria-label="Close sign in form">Close</button>
     </div>
     <form id="account-form" aria-label="Council sign in form">
-      <input id="account-email" type="email" aria-label="Email address" autocomplete="email" placeholder="Email address" required />
+      <input id="account-email" type="text" aria-label="Email address or username" autocomplete="username" placeholder="Email address or username" required />
       <input id="account-password" type="password" aria-label="Password" autocomplete="current-password" placeholder="Password" required />
       <button type="submit">Sign in</button>
     </form>
@@ -1408,6 +1408,11 @@
     const accountFeedback = document.getElementById('account-feedback');
     let authenticatedUser = null;
 
+    function resolveAccountEmail(value) {
+      const accountIdentifier = value.trim();
+      return accountIdentifier.toLowerCase() === 'general' ? 'general@fpscouncil.com' : accountIdentifier;
+    }
+
     async function refreshAuthentication() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       authenticatedUser = session?.user || null;
@@ -1439,7 +1444,7 @@
       event.preventDefault();
       accountFeedback.textContent = 'Signing in...';
       const { error } = await supabaseClient.auth.signInWithPassword({
-        email: document.getElementById('account-email').value.trim(),
+        email: resolveAccountEmail(document.getElementById('account-email').value),
         password: document.getElementById('account-password').value
       });
       if (error) {

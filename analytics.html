@@ -67,7 +67,7 @@
       <h2 id="lock-title">Analytics access</h2>
       <p>Sign in with a council account to continue.</p>
       <form class="lock-form" id="lock-form">
-        <input id="account-email" type="email" autocomplete="email" aria-label="Email address" required autofocus />
+        <input id="account-email" type="text" autocomplete="username" aria-label="Email address or username" placeholder="Email address or username" required autofocus />
         <input id="account-password" type="password" autocomplete="current-password" aria-label="Password" required />
         <button type="submit"><i class="action-icon" data-lucide="log-in" aria-hidden="true"></i>Sign in</button>
         <p class="lock-error" id="lock-error" role="alert"></p>
@@ -187,6 +187,11 @@
     const lockError = document.getElementById('lock-error');
     const skipLink = document.getElementById('skip-link');
 
+    function resolveAccountEmail(value) {
+      const accountIdentifier = value.trim();
+      return accountIdentifier.toLowerCase() === 'general' ? 'general@fpscouncil.com' : accountIdentifier;
+    }
+
     function unlockAnalytics() {
       lockScreen.hidden = true;
       analyticsContent.hidden = false;
@@ -198,7 +203,7 @@
     lockForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       lockError.textContent = '';
-      const { error } = await supabaseClient.auth.signInWithPassword({ email: accountEmail.value.trim(), password: accountPassword.value });
+      const { error } = await supabaseClient.auth.signInWithPassword({ email: resolveAccountEmail(accountEmail.value), password: accountPassword.value });
       if (error) {
         lockError.textContent = 'Unable to sign in. Check the email address and password.';
         accountPassword.select();
