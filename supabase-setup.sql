@@ -518,9 +518,13 @@ using (bucket_id in ('budget-receipts', 'task-attachments', 'council-documents')
 alter policy "Public event insert access" on public.events to authenticated with check (auth.uid() is not null);
 alter policy "Public event delete access" on public.events to authenticated using (auth.uid() is not null);
 alter policy "Public event read access" on public.events to anon, authenticated using (true);
+alter policy "Public event budget insert access" on public.event_budgets to authenticated with check (auth.uid() is not null);
+alter policy "Public event budget update access" on public.event_budgets to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
+alter policy "Public event budget delete access" on public.event_budgets to authenticated using (auth.uid() is not null);
 alter policy "Public task read access" on public.event_tasks to authenticated using (true);
 alter policy "Guest task update access" on public.event_tasks to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
 alter policy "Public task attachment read access" on public.task_attachments to authenticated using (true);
+alter policy "Public task attachment delete access" on public.task_attachments to authenticated using (auth.uid() is not null);
 alter policy "Public council document read access" on public.council_documents to authenticated using (true);
 alter policy "Public floor plan marker insert access" on public.floor_plan_markers to authenticated with check (auth.uid() is not null);
 alter policy "Public floor plan marker update access" on public.floor_plan_markers to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
