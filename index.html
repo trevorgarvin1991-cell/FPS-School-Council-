@@ -2714,21 +2714,34 @@
         return;
       }
       if (entry.id) {
+        const { error: linkedActualsError } = await supabaseClient
+          .from('budget_entries')
+          .delete()
+          .eq('forecast_entry_id', entry.id);
+
+        if (linkedActualsError) {
+          budgetFeedback.textContent = 'Unable to remove the linked actuals. Please try again.';
+          return;
+        }
+
         const { error } = await supabaseClient
           .from('budget_entries')
           .delete()
           .eq('id', entry.id);
 
         if (error) {
-          syncStatus.textContent = 'Unable to remove entry';
+          budgetFeedback.textContent = 'Unable to remove the budget item. Please try again.';
           return;
         }
       }
 
-      budgetEntries = budgetEntries.filter((savedEntry) => savedEntry.id !== entry.id);
+      budgetEntries = budgetEntries.filter((savedEntry) => (
+        savedEntry.id !== entry.id && savedEntry.forecastEntryId !== entry.id
+      ));
       saveBudgetEntries();
       renderBudgetEntries();
       updateEventBudget();
+      budgetFeedback.textContent = 'Budget item removed.';
       syncStatus.textContent = 'Synced';
     }
 
