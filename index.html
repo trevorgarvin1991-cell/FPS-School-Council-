@@ -177,8 +177,43 @@
     .budget-chart-bar-forecast { fill: #7a5b00; }
     .budget-chart-bar-actual { fill: #d71920; }
     .event-budget > table { display: block; max-width: 100%; overflow-x: auto; }
-    .event-budget .budget-form { margin: 1rem 0 0.75rem; }
+    .budget-entry-details { margin: 1rem 0 0.75rem; }
+    .budget-entry-details summary {
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: bold;
+    }
+    .event-budget .budget-form { margin: 0.75rem 0 0; }
     .budget-form [hidden] { display: none; }
+    .budget-variance {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.15rem;
+      margin-left: 0.35rem;
+      color: #625b38;
+      font-size: 0.72rem;
+      font-weight: normal;
+      white-space: nowrap;
+    }
+    .budget-variance.is-over { color: #b42318; }
+    .budget-variance.is-under { color: #397a2b; }
+    .budget-variance.is-over::before {
+      content: '↑';
+      font-size: 0.85rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+    .budget-variance.is-under::before {
+      content: '↓';
+      font-size: 0.85rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+    .budget-tax-row td {
+      border-top: 2px solid var(--line);
+      color: #625b38;
+      font-weight: bold;
+    }
     .remove-forecast {
       min-height: auto;
       padding: 0.3rem 0.5rem;
@@ -1102,8 +1137,13 @@
           </div>
           <svg id="budget-chart" viewBox="0 0 600 125" role="img" aria-label="Actual and forecast spending compared with the event budget"></svg>
         </section>
-        <h4 class="budget-add-heading">Add Budget Item</h4>
-        <form id="budget-form" class="budget-form" aria-label="Halloween event budget form">
+        <details class="budget-entry-details">
+          <summary>Add Budget Item</summary>
+          <form id="budget-form" class="budget-form" aria-label="Halloween event budget form">
+          <select id="budget-type" aria-label="Budget entry type">
+            <option value="forecast">Forecast</option>
+            <option value="actual">Actual</option>
+          </select>
           <input id="budget-item" type="text" aria-label="Budget item" placeholder="Budget item" required />
           <select id="budget-category" aria-label="Budget category" required>
             <option value="" selected disabled>Select category</option>
@@ -1111,10 +1151,6 @@
             <option value="Hardware">Hardware</option>
             <option value="Supplies">Supplies</option>
             <option value="Food">Food</option>
-          </select>
-          <select id="budget-type" aria-label="Budget entry type">
-            <option value="forecast">Forecast</option>
-            <option value="actual">Actual</option>
           </select>
           <select id="actual-forecast" aria-label="Forecasted budget item" hidden disabled>
             <option value="" selected disabled>Select forecasted item</option>
@@ -1125,7 +1161,8 @@
           </label>
           <input id="budget-amount" type="number" min="0" step="0.01" aria-label="Amount" placeholder="Amount" required />
           <button type="submit">Add Budget Item</button>
-        </form>
+          </form>
+        </details>
         <p class="sync-status" id="budget-feedback" aria-live="polite"></p>
         <table aria-label="Halloween event budget table">
           <thead>
@@ -2492,6 +2529,8 @@
     ];
     const MAX_BUDGET_AMOUNT = APPROVED_BUDGET_CENTS / 100;
     const MAX_TOTAL_BUDGET_CENTS = APPROVED_BUDGET_CENTS;
+    const SALES_TAX_RATE = 0.13;
+    const SALES_TAX_ACTUAL_CENTS = 11_067;
     const councilFundsTotal = document.getElementById('council-funds-total');
     const councilFundsCommitted = document.getElementById('council-funds-committed');
     const councilFundsAvailable = document.getElementById('council-funds-available');
@@ -2599,13 +2638,29 @@
       syncStatus.textContent = 'Synced';
     }
 
-    function updateEventBudget() {
-      const forecastCents = budgetEntries
+    function getBaseForecastCents() {
+      return budgetEntries
         .filter((entry) => entry.type === 'forecast')
         .reduce((total, entry) => total + entry.amountCents, 0);
-      const actualCents = budgetEntries
+    }
+
+    function getSalesTaxCents() {
+      return Math.round(APPROVED_BUDGET_CENTS * SALES_TAX_RATE);
+    }
+
+    function getForecastCents() {
+      return getBaseForecastCents() + getSalesTaxCents();
+    }
+
+    function getActualCents() {
+      return budgetEntries
         .filter((entry) => entry.type === 'actual')
-        .reduce((total, entry) => total + entry.amountCents, 0);
+        .reduce((total, entry) => total + entry.amountCents, SALES_TAX_ACTUAL_CENTS);
+    }
+
+    function updateEventBudget() {
+      const forecastCents = getForecastCents();
+      const actualCents = getActualCents();
       const committedSpendCents = Math.max(forecastCents, actualCents);
 
       eventAllocated.textContent = formatCurrency(APPROVED_BUDGET_CENTS);
@@ -2624,12 +2679,8 @@
         ? { top: 14, right: 54, bottom: 24, left: 62 }
         : { top: 14, right: 52, bottom: 24, left: 82 };
       const plotWidth = width - padding.left - padding.right;
-      const forecastTotal = budgetEntries
-        .filter((entry) => entry.type === 'forecast')
-        .reduce((total, entry) => total + entry.amountCents, 0);
-      const actualTotal = budgetEntries
-        .filter((entry) => entry.type === 'actual')
-        .reduce((total, entry) => total + entry.amountCents, 0);
+      const forecastTotal = getForecastCents();
+      const actualTotal = getActualCents();
       const maximum = Math.max(APPROVED_BUDGET_CENTS, forecastTotal, actualTotal, 1);
       const appendSvg = (name, attributes, text) => {
         const element = document.createElementNS(svgNamespace, name);
@@ -2702,11 +2753,33 @@
         } else {
           itemCell.textContent = entry.item;
         }
-        row.append(itemCell, ...[entry.category, formatCurrency(entry.amountCents), formatCurrency(actualCents)].map((text) => {
+        const variance = actualEntries.length === 0 || entry.amountCents === 0
+          ? null
+          : ((actualCents - entry.amountCents) / entry.amountCents) * 100;
+        const varianceText = variance === null
+          ? '-'
+          : `${Math.abs(variance).toFixed(0)}%`;
+        const detailCells = [
+          entry.category,
+          formatCurrency(entry.amountCents)
+        ].map((text) => {
           const cell = document.createElement('td');
           cell.textContent = text;
           return cell;
-        }));
+        });
+        const actualCell = document.createElement('td');
+        actualCell.textContent = formatCurrency(actualCents);
+        const varianceInsight = document.createElement('span');
+        varianceInsight.className = `budget-variance${variance > 0 ? ' is-over' : variance < 0 ? ' is-under' : ''}`;
+        varianceInsight.textContent = varianceText;
+        varianceInsight.setAttribute(
+          'aria-label',
+          variance === null
+            ? 'No actuals recorded'
+            : `${Math.abs(variance).toFixed(0)}% ${variance > 0 ? 'over' : variance < 0 ? 'under' : 'at'} forecast`
+        );
+        actualCell.appendChild(varianceInsight);
+        row.append(itemCell, ...detailCells, actualCell);
 
         const receiptCell = document.createElement('td');
         actualEntries.forEach((actual, index) => {
@@ -2731,6 +2804,25 @@
         row.appendChild(actionCell);
         budgetBody.appendChild(row);
       });
+
+      const salesTaxRow = document.createElement('tr');
+      salesTaxRow.className = 'budget-tax-row';
+      const salesTaxCells = ['Sales Tax', 'Tax', formatCurrency(getSalesTaxCents())];
+      salesTaxCells.forEach((text) => {
+        const cell = document.createElement('td');
+        cell.textContent = text;
+        salesTaxRow.appendChild(cell);
+      });
+      const salesTaxActualCell = document.createElement('td');
+      const salesTaxVariance = ((SALES_TAX_ACTUAL_CENTS - getSalesTaxCents()) / getSalesTaxCents()) * 100;
+      salesTaxActualCell.textContent = formatCurrency(SALES_TAX_ACTUAL_CENTS);
+      const salesTaxVarianceInsight = document.createElement('span');
+      salesTaxVarianceInsight.className = `budget-variance${salesTaxVariance > 0 ? ' is-over' : ' is-under'}`;
+      salesTaxVarianceInsight.textContent = `${Math.abs(salesTaxVariance).toFixed(0)}%`;
+      salesTaxVarianceInsight.setAttribute('aria-label', `${Math.abs(salesTaxVariance).toFixed(0)}% under forecast`);
+      salesTaxActualCell.appendChild(salesTaxVarianceInsight);
+      salesTaxRow.append(salesTaxActualCell, document.createElement('td'), document.createElement('td'));
+      budgetBody.appendChild(salesTaxRow);
     }
 
     function updateActualFields() {
@@ -2748,7 +2840,15 @@
 
       if (isActual) {
         actualForecast.replaceChildren(new Option('Select forecasted item', '', true, true));
-        budgetEntries.filter((entry) => entry.type === 'forecast').forEach((entry) => {
+        const forecastsWithActuals = new Set(
+          budgetEntries
+            .filter((entry) => entry.type === 'actual' && entry.forecastEntryId)
+            .map((entry) => entry.forecastEntryId)
+        );
+        budgetEntries
+          .filter((entry) => entry.type === 'forecast' && !forecastsWithActuals.has(entry.id))
+          .sort((firstEntry, secondEntry) => firstEntry.item.localeCompare(secondEntry.item))
+          .forEach((entry) => {
           actualForecast.add(new Option(`${entry.item} (${formatCurrency(entry.amountCents)})`, entry.id));
         });
       }
@@ -2787,12 +2887,8 @@
       const category = type === 'actual' ? forecastEntry?.category : budgetCategory.value.trim();
       const amountValue = Number(document.getElementById('budget-amount').value);
       const amountCents = Math.round(amountValue * 100);
-      const forecastCents = budgetEntries
-        .filter((entry) => entry.type === 'forecast')
-        .reduce((total, entry) => total + entry.amountCents, 0);
-      const actualCents = budgetEntries
-        .filter((entry) => entry.type === 'actual')
-        .reduce((total, entry) => total + entry.amountCents, 0);
+      const forecastCents = getForecastCents();
+      const actualCents = getActualCents();
       const nextForecastCents = forecastCents + (type === 'forecast' ? amountCents : 0);
       const nextActualCents = actualCents + (type === 'actual' ? amountCents : 0);
 
