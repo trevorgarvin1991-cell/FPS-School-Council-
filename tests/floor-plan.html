@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Floor plan regression tests</title>
+  <style>
+    body { font: 16px system-ui; margin: 1rem; }
+    iframe { display: block; width: 100%; height: 900px; border: 1px solid #ccc; }
+    .pass { color: #17652c; } .fail { color: #a01414; }
+  </style>
+</head>
+<body>
+  <h1>Floor plan regression tests</h1>
+  <p>Uses an in-memory Supabase substitute. No requests are sent to Supabase.</p>
+  <ol id="results" aria-live="polite"></ol>
+  <iframe id="fixture" title="Isolated floor-plan fixture"></iframe>
+  <script src="floor-plan.test.js"></script>
+</body>
+</html>

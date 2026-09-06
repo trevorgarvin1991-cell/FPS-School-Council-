@@ -532,178 +532,119 @@
       box-shadow: 0 -3px 0 var(--falcon-yellow);
     }
     .event-workspace-panel { padding-top: 0.15rem; }
-    .floor-plan-controls {
-      margin: 0.7rem 0 0.65rem;
-      border-bottom: 1px solid var(--line);
-    }
-    .floor-plan-controls summary {
-      display: flex;
-      align-items: center;
-      min-height: 2.3rem;
-      cursor: pointer;
-      color: #4a4427;
-      font-size: 0.85rem;
-      font-weight: bold;
-      list-style: none;
-    }
-    .floor-plan-controls summary::-webkit-details-marker { display: none; }
-    .floor-plan-controls summary::before { content: '+'; width: 1.2rem; color: #7a5b00; font-size: 1.15rem; text-align: center; }
-    .floor-plan-controls[open] summary::before { content: '-'; }
+    #floor-plan-panel [hidden] { display: none !important; }
+    #floor-plan-panel { color: var(--falcon-black); }
+    #floor-plan-panel *, #floor-plan-panel *::before, #floor-plan-panel *::after { box-sizing: border-box; }
+    #floor-plan-panel button, #floor-plan-panel input, #floor-plan-panel select { min-height: 44px; border-radius: 10px; font-size: 0.875rem; }
+    #floor-plan-panel button { white-space: normal; overflow-wrap: anywhere; }
+    #floor-plan-panel button:disabled, #floor-plan-panel fieldset:disabled button { opacity: 0.5; cursor: not-allowed; }
+    #floor-plan-panel :focus-visible { outline: 3px solid #005fcc; outline-offset: 3px; }
+    .floor-plan-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0; }
+    .floor-plan-heading h3 { margin: 0; font-size: 1.15rem; }
+    .floor-plan-eyebrow { margin: 0 0 0.3rem; color: #625b38; font-size: 0.7rem; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; }
+    .floor-plan-account-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    #floor-plan-panel .floor-plan-secondary { background: #fff; border-color: #d3cfbb; }
+    #floor-plan-panel .floor-plan-secondary:hover { background: #fffbea; border-color: #8c8050; }
     .floor-plan-toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-      margin: 0.45rem 0 0.65rem;
-    }
-    .floor-plan-toolbar label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.85rem;
-      font-weight: bold;
-    }
-    .floor-plan-toolbar input { padding: 0; }
-    .floor-plan-reset { min-height: 2rem; padding: 0.35rem 0.55rem; font-size: 0.82rem; }
-    .floor-plan-marker-form {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto auto;
-      gap: 0.5rem;
-      margin: 0 0 0.65rem;
+      grid-template-columns: minmax(140px, 1fr) minmax(140px, 200px) auto;
+      align-items: end;
+      gap: 0.75rem;
+      padding: 0.85rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #faf9f4;
     }
-    .floor-plan-marker-form input { min-width: 0; }
-    .floor-plan-marker-color {
-      width: 2.5rem;
-      min-height: 2.3rem;
-      padding: 0.15rem !important;
-      cursor: pointer;
-    }
-    .floor-plan-marker-form button { min-height: 2.3rem; }
-    .floor-plan-feedback {
-      min-height: 1.1rem;
-      margin: -0.3rem 0 0.5rem;
-      color: #625b38;
-      font-size: 0.82rem;
-    }
+    .floor-plan-field { display: grid; min-width: 0; gap: 0.4rem; }
+    .floor-plan-field label { font-size: 0.78rem; font-weight: bold; }
+    .floor-plan-field input, .floor-plan-field select { width: 100%; min-width: 0; background: #fff; color: var(--falcon-black); border-color: #c9c5b3; }
+    .floor-plan-navigation { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; }
+    #floor-plan-zoom-out, #floor-plan-zoom-in { width: 44px; padding: 0; font-size: 1.25rem; }
+    #floor-plan-zoom-value { min-width: 3.3rem; text-align: center; font-size: 0.85rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+    .floor-plan-status-row { display: flex; align-items: center; gap: 0.65rem; margin: 0.75rem 0; }
+    .floor-plan-feedback { flex: 1; min-width: 0; min-height: 1.3rem; margin: 0; color: #4e4934; font-size: 0.82rem; line-height: 1.5; overflow-wrap: anywhere; }
+    .floor-plan-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; align-items: start; gap: 1rem; }
+    .floor-plan-map { min-width: 0; }
     .floor-plan-viewport {
       position: relative;
+      width: 100%;
       aspect-ratio: 942 / 692;
       height: auto;
-      overflow: visible;
-      border: 1px solid var(--line);
+      overflow: hidden;
+      border: 1px solid #d3cfbb;
+      border-radius: 14px;
       background: #f7f4e6;
       cursor: grab;
       touch-action: none;
+      isolation: isolate;
     }
     .floor-plan-viewport.is-panning { cursor: grabbing; }
-    .floor-plan-viewport.is-placing { cursor: crosshair; }
-    .floor-plan-canvas-frame {
+    .floor-plan-viewport.is-placing { cursor: crosshair; box-shadow: 0 0 0 3px var(--falcon-yellow); }
+    .floor-plan-canvas { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 0 0; will-change: transform; }
+    .floor-plan-stage { position: relative; width: 100%; height: 100%; }
+    .floor-plan-image { display: block; width: 100%; height: 100%; object-fit: contain; -webkit-user-select: none; user-select: none; pointer-events: none; }
+    #floor-plan-panel .floor-plan-marker {
       position: absolute;
-      inset: 0;
-      overflow: hidden;
-    }
-    .floor-plan-canvas {
-      width: 100%;
-      height: 100%;
+      z-index: 1;
       display: grid;
+      width: 44px;
+      height: 44px;
+      min-height: 44px;
       place-items: center;
+      transform: translate(-50%, -50%) scale(var(--pin-scale, 1));
       transform-origin: center;
-      will-change: transform;
-    }
-    .floor-plan-stage {
-      position: relative;
-      height: 100%;
-      max-width: 100%;
-      aspect-ratio: 942 / 692;
-    }
-    .floor-plan-image {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      -webkit-user-select: none;
-      user-select: none;
-      pointer-events: none;
-    }
-    .floor-plan-marker {
-      position: absolute;
-      display: grid;
-      width: 1.25rem;
-      height: 1.25rem;
-      min-height: 0;
-      place-items: center;
-      transform: translate(-50%, -50%);
       padding: 0;
-      border: 2px solid #fff;
+      border: 0 !important;
+      background: transparent !important;
       border-radius: 50%;
-      color: #fff;
-      box-shadow: 0 1px 5px rgba(17, 17, 17, 0.35);
-      font-size: 0.75rem;
-      line-height: 0;
-    }
-    .floor-plan-marker:hover,
-    .floor-plan-marker.is-selected { outline: 2px solid var(--falcon-black); outline-offset: 1px; }
-    .floor-plan-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.45rem 0.8rem;
-      margin-top: 0.7rem;
-      font-size: 0.82rem;
-    }
-    .floor-plan-legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-    .floor-plan-legend-swatch {
-      width: 0.75rem;
-      height: 0.75rem;
-      border: 1px solid var(--falcon-black);
-      border-radius: 50%;
-    }
-    .floor-plan-marker-details {
-      position: absolute;
-      z-index: 2;
-      width: min(17rem, calc(100% - 1rem));
-      padding: 0.7rem;
-      border-left: 4px solid var(--falcon-yellow);
-      background: #fffbea;
-      box-shadow: 0 3px 10px rgba(17, 17, 17, 0.22);
-    }
-    .floor-plan-marker-details-heading {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.5rem;
-    }
-    .floor-plan-marker-details h4 { margin: 0; font-size: 0.95rem; }
-    .floor-plan-marker-close {
-      width: 1.75rem;
-      min-height: 1.75rem;
-      padding: 0;
-      border-color: #cfc8a6;
-      background: transparent;
-      color: #625b38;
-      font-size: 1.15rem;
-      font-weight: normal;
+      color: #111;
+      font-size: 0.72rem;
+      font-weight: bold;
       line-height: 1;
+      box-shadow: none;
+      isolation: isolate;
     }
-    .floor-plan-marker-close:hover { background: #f3f0df; }
-    .floor-plan-marker-edit-form { display: grid; gap: 0.45rem; margin-top: 0.55rem; }
-    .floor-plan-marker-edit-form input { min-height: 2rem; padding: 0.35rem 0.45rem; font-size: 0.82rem; }
-    .floor-plan-marker-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.45rem; }
-    .floor-plan-marker-save,
-    .floor-plan-marker-remove {
-      min-height: 2rem;
-      padding: 0.35rem 0.7rem;
-      font-size: 0.78rem;
+    .floor-plan-marker::before { content: ''; position: absolute; z-index: -1; width: 30px; height: 30px; border: 5px solid var(--marker-color, #d71920); border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px #fff, 0 2px 6px #0005; pointer-events: none; }
+    .floor-plan-marker:hover::before { box-shadow: 0 0 0 2px #111, 0 2px 6px #0005; }
+    .floor-plan-marker.is-selected { z-index: 2 !important; }
+    .floor-plan-marker.is-selected::before { box-shadow: 0 0 0 3px var(--falcon-yellow), 0 0 0 5px #111; }
+    .floor-plan-marker.is-draft { z-index: 3 !important; }
+    .floor-plan-marker.is-draft::before { border-style: dashed; box-shadow: 0 0 0 3px #fff, 0 0 0 5px #111; }
+    .floor-plan-sidebar { min-width: 0; padding: 1rem; border: 1px solid var(--line); border-top: 4px solid var(--falcon-yellow); border-radius: 14px; background: #fff; box-shadow: 0 4px 16px #11111108; }
+    .floor-plan-list-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .floor-plan-list-heading h4 { margin: 0; font-size: 1rem; }
+    #floor-plan-count { color: #625b38; font-size: 0.78rem; }
+    .floor-plan-legend { display: grid; gap: 0.5rem; max-height: 420px; overflow-y: auto; padding: 4px; margin: 0 -4px 0.75rem; font-size: 0.82rem; }
+    #floor-plan-panel .floor-plan-legend-item { display: flex; align-items: center; gap: 0.65rem; width: 100%; min-width: 0; padding: 0.65rem; border: 1px solid #e3dfcf; background: #faf9f5; text-align: left; line-height: 1.4; }
+    #floor-plan-panel .floor-plan-legend-item:hover { border-color: #a59a6e; background: #fffbea; }
+    #floor-plan-panel .floor-plan-legend-item.is-selected,
+    #floor-plan-panel .floor-plan-legend-item[aria-pressed="true"] { border-color: var(--falcon-black); background: #fff7bc; box-shadow: inset 3px 0 0 var(--falcon-black); }
+    .floor-plan-legend-swatch { display: grid; flex: 0 0 26px; width: 26px; height: 26px; place-items: center; border: 4px solid var(--marker-color, #d71920); border-radius: 50%; background: #fff; color: #111; font-size: 0.7rem; }
+    .floor-plan-marker-details { position: static; min-width: 0; overflow-wrap: anywhere; }
+    .floor-plan-marker-details h4, .floor-plan-editor h4 { margin: 1rem 0 0.5rem; font-size: 1.05rem; line-height: 1.4; overflow-wrap: anywhere; }
+    #floor-plan-marker-description { margin: 0 0 0.75rem; color: #4e4934; font-size: 0.875rem; line-height: 1.6; white-space: pre-wrap; }
+    #floor-plan-marker-link { display: flex; align-items: center; min-height: 44px; color: #574600; font-size: 0.875rem; text-underline-offset: 3px; overflow-wrap: anywhere; }
+    .floor-plan-marker-actions { display: grid; gap: 0.5rem; margin-top: 0.75rem; }
+    .floor-plan-marker-actions button, #floor-plan-clear, #floor-plan-place { width: 100%; }
+    .floor-plan-editor { display: block; min-width: 0; margin: 0; }
+    .floor-plan-editor h4 { margin-top: 0; }
+    #floor-plan-editor-fields { display: grid; gap: 0.85rem; min-width: 0; margin: 0; padding: 0; border: 0; }
+    #floor-plan-edit-color { width: 100%; padding: 0.3rem; cursor: pointer; }
+    .floor-plan-palette { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    #floor-plan-panel .floor-plan-palette button { width: 44px; padding: 0; background: #fff; border: 1px solid #c9c5b3; }
+    .floor-plan-palette button::before { content: ''; display: block; width: 22px; height: 22px; margin: auto; border-radius: 50%; background: var(--marker-color); }
+    #floor-plan-panel .floor-plan-palette button[aria-pressed="true"] { outline: 2px solid #111; outline-offset: 1px; }
+    .floor-plan-position { display: grid; gap: 0.5rem; padding: 0.75rem; border: 1px dashed #b9ac73; border-radius: 10px; background: #fffbea; }
+    #floor-plan-position { color: #4e4934; font-size: 0.78rem; line-height: 1.5; overflow-wrap: anywhere; }
+    #floor-plan-panel #floor-plan-remove { border-color: #a32929; background: #fff; color: #8a2020; }
+    #floor-plan-panel #floor-plan-remove:hover { background: #fce8e8; }
+    .floor-plan-note { margin: 0.75rem 0 0; color: #625b38; font-size: 0.78rem; line-height: 1.6; }
+    @media (width < 900px) {
+      .floor-plan-layout { grid-template-columns: minmax(0, 1fr); }
+      .floor-plan-toolbar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      .floor-plan-navigation { grid-column: 1 / -1; }
+      .floor-plan-legend { max-height: 300px; }
     }
-    .floor-plan-marker-open-event { width: 100%; min-height: 2rem; margin-top: 0.45rem; padding: 0.35rem 0.7rem; font-size: 0.78rem; }
-    .floor-plan-marker-save { background: var(--falcon-yellow); }
-    .floor-plan-marker-remove { border-color: #a32929; background: #fff; color: #8a2020; }
-    .floor-plan-marker-remove:hover { background: #fce8e8; }
-    .floor-plan-marker-details-link { font-size: 0.82rem; }
-    .floor-plan-note { margin: 0.65rem 0 0; }
     .planning-block {
       margin: 1rem 0;
       padding: 0.9rem 0;
@@ -1031,8 +972,8 @@
       .event-workspace-tab { min-height: 3.1rem; padding: 0.4rem; font-size: 0.75rem; }
       .kanban-board { grid-template-columns: repeat(3, minmax(12rem, 1fr)); overflow-x: auto; }
       .task-form { grid-template-columns: 1fr; }
-      .floor-plan-toolbar { align-items: start; flex-direction: column; }
-      .floor-plan-marker-form { grid-template-columns: 1fr; }
+      .floor-plan-toolbar { grid-template-columns: minmax(0, 1fr); padding: 0.65rem; }
+      .floor-plan-sidebar { padding: 0.85rem; }
     }
   </style>
 </head>
@@ -1265,46 +1206,105 @@
         </div>
       </div>
       <div class="event-workspace-panel" id="floor-plan-panel" role="tabpanel" aria-labelledby="floor-plan-tab">
-        <div class="floor-plan-viewport" id="floor-plan-viewport" tabindex="0" aria-label="Interactive floor plan. Drag to pan or place event markers.">
-          <div class="floor-plan-canvas-frame">
-            <div class="floor-plan-canvas" id="floor-plan-canvas">
-              <div class="floor-plan-stage" id="floor-plan-stage">
-                <img class="floor-plan-image" src="Assets/2026-08-27_00-59-52.jpg" alt="Frankford Public School Fun Fair floor plan showing accessible routes, Fun Fair areas, and no-access rooms" />
-              </div>
-            </div>
+        <div class="floor-plan-heading">
+          <div>
+            <p class="floor-plan-eyebrow">Explore the Fun Fair</p>
+            <h3>Find your next stop</h3>
           </div>
-          <div class="floor-plan-marker-details" id="floor-plan-marker-details-panel" hidden>
-            <div class="floor-plan-marker-details-heading">
-              <h4>Event location</h4>
-              <button class="floor-plan-marker-close" id="floor-plan-marker-close" type="button" aria-label="Close event location menu" title="Close">&times;</button>
-            </div>
-            <form class="floor-plan-marker-edit-form" id="floor-plan-marker-edit-form">
-              <input id="floor-plan-marker-edit-label" type="text" maxlength="80" aria-label="Event or station name" required />
-              <input class="floor-plan-marker-color" id="floor-plan-marker-edit-color" type="color" aria-label="Marker color" />
-              <div class="floor-plan-marker-actions">
-                <button class="floor-plan-marker-save" type="submit">Save</button>
-                <button class="floor-plan-marker-remove" id="floor-plan-marker-remove" type="button">Remove</button>
-              </div>
-              <button class="floor-plan-marker-open-event" id="floor-plan-marker-open-event" type="button">Open in Schedule &amp; Events</button>
-            </form>
+          <div class="floor-plan-account-actions">
+            <button id="floor-plan-add" type="button" hidden>+ Add station</button>
+            <button class="floor-plan-secondary" id="floor-plan-sign-in" type="button">Sign in to edit</button>
           </div>
         </div>
-        <div class="floor-plan-legend" id="floor-plan-legend" aria-label="Event location legend"></div>
-        <details class="floor-plan-controls">
-          <summary>Floor plan controls</summary>
-          <div class="floor-plan-toolbar">
-            <button class="floor-plan-reset" id="floor-plan-reset" type="button">Reset view</button>
+        <div class="floor-plan-toolbar" role="group" aria-label="Find stations and navigate the map">
+          <div class="floor-plan-field">
+            <label for="floor-plan-search">Search stations</label>
+            <input id="floor-plan-search" type="search" placeholder="Name or location…" autocomplete="off" />
           </div>
-          <form class="floor-plan-marker-form" id="floor-plan-marker-form" aria-label="Add an event location to the floor plan">
-            <input id="floor-plan-marker-label" type="text" aria-label="Event or station name" maxlength="80" placeholder="Event or station name" required />
-            <input id="floor-plan-marker-details" type="text" aria-label="Location details" maxlength="160" placeholder="Location details" />
-            <input id="floor-plan-marker-details-url" type="url" aria-label="More details link" maxlength="500" placeholder="More details link (optional)" />
-            <input class="floor-plan-marker-color" id="floor-plan-marker-color" type="color" value="#d71920" aria-label="Marker color" />
-            <button type="submit">Place marker</button>
-          </form>
-          <p class="floor-plan-feedback" id="floor-plan-feedback" aria-live="polite"></p>
-        </details>
-        <p class="hint floor-plan-note">Drag the plan to pan. Select Place marker, then click the plan to add an event location.</p>
+          <div class="floor-plan-field">
+            <label for="floor-plan-category">Category</label>
+            <select id="floor-plan-category">
+              <option value="">All</option>
+              <option value="Activities">Activities</option>
+              <option value="Food">Food</option>
+              <option value="Adult-Focused Activities">Adult-Focused Activities</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="floor-plan-navigation" role="group" aria-label="Map zoom">
+            <button class="floor-plan-secondary" id="floor-plan-zoom-out" type="button" aria-label="Zoom out" aria-controls="floor-plan-viewport">−</button>
+            <output id="floor-plan-zoom-value" aria-label="Zoom level">100%</output>
+            <button class="floor-plan-secondary" id="floor-plan-zoom-in" type="button" aria-label="Zoom in" aria-controls="floor-plan-viewport">+</button>
+            <button class="floor-plan-secondary" id="floor-plan-reset" type="button" aria-controls="floor-plan-viewport">Fit map</button>
+          </div>
+        </div>
+        <div class="floor-plan-status-row">
+          <p class="floor-plan-feedback" id="floor-plan-feedback" role="status" aria-live="polite" aria-atomic="true">Select a numbered pin or a station to see its details.</p>
+          <button class="floor-plan-secondary" id="floor-plan-retry" type="button" hidden>Retry</button>
+        </div>
+        <div class="floor-plan-layout">
+          <div class="floor-plan-map">
+            <div class="floor-plan-viewport" id="floor-plan-viewport" tabindex="0" role="region" aria-label="Interactive Fun Fair floor plan" aria-describedby="floor-plan-instructions">
+              <div class="floor-plan-canvas" id="floor-plan-canvas">
+                <div class="floor-plan-stage" id="floor-plan-stage">
+                  <img class="floor-plan-image" src="Assets/2026-08-27_00-59-52.jpg" alt="Frankford Public School Fun Fair floor plan showing accessible routes, Fun Fair areas, and no-access rooms" />
+                </div>
+              </div>
+            </div>
+            <p class="floor-plan-note" id="floor-plan-instructions">Drag to explore; pinch to zoom. Focus the map to zoom with the mouse wheel. Keyboard: arrow keys pan, + / − zoom, and Home fits the map. While placing a station, arrow keys adjust its position, Enter accepts it, and Escape cancels.</p>
+          </div>
+          <aside class="floor-plan-sidebar" aria-label="Stations and location details">
+            <div id="floor-plan-list-panel">
+              <div class="floor-plan-list-heading">
+                <h4>Stations</h4>
+                <span id="floor-plan-count" aria-live="polite" aria-atomic="true">Loading…</span>
+              </div>
+              <div class="floor-plan-legend" id="floor-plan-legend" role="group" aria-label="Station buttons"></div>
+              <button class="floor-plan-secondary" id="floor-plan-clear" type="button">Clear filters</button>
+            </div>
+            <div class="floor-plan-marker-details" id="floor-plan-marker-details-panel" aria-labelledby="floor-plan-marker-title" hidden>
+              <button class="floor-plan-secondary" id="floor-plan-marker-close" type="button">← Back to stations</button>
+              <h4 id="floor-plan-marker-title" tabindex="-1">Station details</h4>
+              <p id="floor-plan-marker-description"></p>
+              <a id="floor-plan-marker-link" target="_blank" rel="noopener noreferrer" hidden>More station details ↗</a>
+              <div class="floor-plan-marker-actions">
+                <button id="floor-plan-marker-open-event" type="button">Open in Schedule &amp; Events</button>
+                <button class="floor-plan-secondary" id="floor-plan-marker-edit" type="button" hidden>Edit station</button>
+              </div>
+            </div>
+            <form class="floor-plan-editor" id="floor-plan-editor" aria-labelledby="floor-plan-editor-title" hidden>
+              <h4 id="floor-plan-editor-title" tabindex="-1">Add station</h4>
+              <fieldset id="floor-plan-editor-fields" aria-labelledby="floor-plan-editor-title">
+                <div class="floor-plan-field">
+                  <label for="floor-plan-edit-label">Station name (required)</label>
+                  <input id="floor-plan-edit-label" name="label" type="text" maxlength="80" required />
+                </div>
+                <div class="floor-plan-field">
+                  <label for="floor-plan-edit-details">Location details</label>
+                  <input id="floor-plan-edit-details" name="details" type="text" maxlength="160" placeholder="e.g. Beside the gym entrance" />
+                </div>
+                <div class="floor-plan-field">
+                  <label for="floor-plan-edit-url">Details link (optional)</label>
+                  <input id="floor-plan-edit-url" name="details_url" type="url" maxlength="500" placeholder="https://" />
+                </div>
+                <div class="floor-plan-field">
+                  <label for="floor-plan-edit-color">Pin color</label>
+                  <div class="floor-plan-palette" id="floor-plan-palette" role="group" aria-label="Suggested pin colors"></div>
+                  <input id="floor-plan-edit-color" name="color" type="color" value="#d71920" />
+                </div>
+                <div class="floor-plan-position">
+                  <button class="floor-plan-secondary" id="floor-plan-place" type="button" aria-controls="floor-plan-viewport" aria-describedby="floor-plan-position">Place on map</button>
+                  <output id="floor-plan-position" aria-live="polite">No position selected. Choose a spot on the map before saving.</output>
+                </div>
+                <div class="floor-plan-marker-actions">
+                  <button id="floor-plan-save" type="submit">Save station</button>
+                  <button class="floor-plan-secondary" id="floor-plan-cancel" type="button">Cancel</button>
+                  <button id="floor-plan-remove" type="button" hidden>Remove station</button>
+                </div>
+              </fieldset>
+            </form>
+          </aside>
+        </div>
       </div>
     </section>
 
@@ -1346,6 +1346,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="floor-plan.js"></script>
   <script>
     function appendRow(cells, bodyElement) {
       const row = document.createElement('tr');
@@ -1625,30 +1626,7 @@
       });
     });
 
-    const floorPlanViewport = document.getElementById('floor-plan-viewport');
-    const floorPlanCanvas = document.getElementById('floor-plan-canvas');
-    const floorPlanStage = document.getElementById('floor-plan-stage');
-    const floorPlanReset = document.getElementById('floor-plan-reset');
-    const floorPlanMarkerForm = document.getElementById('floor-plan-marker-form');
-    const floorPlanMarkerLabel = document.getElementById('floor-plan-marker-label');
-    const floorPlanMarkerDetails = document.getElementById('floor-plan-marker-details');
-    const floorPlanMarkerDetailsUrl = document.getElementById('floor-plan-marker-details-url');
-    const floorPlanMarkerColor = document.getElementById('floor-plan-marker-color');
-    const floorPlanFeedback = document.getElementById('floor-plan-feedback');
-    const floorPlanLegend = document.getElementById('floor-plan-legend');
-    const floorPlanMarkerDetailsPanel = document.getElementById('floor-plan-marker-details-panel');
-    const floorPlanMarkerEditForm = document.getElementById('floor-plan-marker-edit-form');
-    const floorPlanMarkerEditLabel = document.getElementById('floor-plan-marker-edit-label');
-    const floorPlanMarkerEditColor = document.getElementById('floor-plan-marker-edit-color');
-    const floorPlanMarkerRemove = document.getElementById('floor-plan-marker-remove');
-    const floorPlanMarkerOpenEvent = document.getElementById('floor-plan-marker-open-event');
-    const floorPlanMarkerClose = document.getElementById('floor-plan-marker-close');
-    let floorPlanOffset = { x: 0, y: 0 };
-    let floorPlanPointerStart = null;
-    let floorPlanPlacementLabel = '';
-    let floorPlanMarkerSaveInProgress = false;
     let floorPlanMarkers = [];
-    let selectedFloorPlanMarker = null;
     const eventDetailGroups = document.getElementById('event-detail-groups');
     const markerEventAliases = {
       'bbq station': ['bbq fundraiser'],
@@ -1844,255 +1822,26 @@
     }
 
     function showFloorPlanMarker(marker) {
-      document.getElementById('floor-plan-tab').click();
-      resetFloorPlan();
-      showFloorPlanMarkerDetails(marker);
-      floorPlanViewport.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      floorPlanController.showMarker(marker.id);
     }
 
     renderEventDetails();
 
-    function renderFloorPlan() {
-      floorPlanCanvas.style.transform = `translate(${floorPlanOffset.x}px, ${floorPlanOffset.y}px)`;
-    }
-
-    function resetFloorPlan() {
-      floorPlanOffset = { x: 0, y: 0 };
-      renderFloorPlan();
-    }
-
-    function setFloorPlanFeedback(message) {
-      floorPlanFeedback.textContent = message;
-    }
-
-    function closeFloorPlanMarkerDetails() {
-      if (floorPlanMarkerDetailsPanel.hidden) {
-        return;
-      }
-
-      selectedFloorPlanMarker = null;
-      floorPlanMarkerDetailsPanel.hidden = true;
-      renderFloorPlanMarkers();
-    }
-
-    function renderFloorPlanMarkers() {
-      floorPlanStage.querySelectorAll('.floor-plan-marker').forEach((marker) => marker.remove());
-      floorPlanMarkers.forEach((marker) => {
-        const markerButton = document.createElement('button');
-        markerButton.className = 'floor-plan-marker';
-        markerButton.type = 'button';
-        markerButton.style.left = `${marker.xPercent}%`;
-        markerButton.style.top = `${marker.yPercent}%`;
-        markerButton.style.background = marker.color;
-        markerButton.title = marker.details ? `${marker.label}: ${marker.details}` : marker.label;
-        markerButton.setAttribute('aria-label', `Show details for ${marker.label}`);
-        markerButton.classList.toggle('is-selected', selectedFloorPlanMarker?.id === marker.id);
-        markerButton.addEventListener('mouseenter', () => showFloorPlanMarkerDetails(marker));
-        markerButton.addEventListener('click', (event) => {
-          event.stopPropagation();
-          showFloorPlanMarkerDetails(marker);
-          showMarkerEvents(marker);
-        });
-        floorPlanStage.appendChild(markerButton);
-      });
-      renderFloorPlanLegend();
-      renderEventPinStatus();
-    }
-
-    function renderFloorPlanLegend() {
-      floorPlanLegend.replaceChildren();
-      floorPlanMarkers.forEach((marker) => {
-        const item = document.createElement('span');
-        item.className = 'floor-plan-legend-item';
-        const swatch = document.createElement('span');
-        swatch.className = 'floor-plan-legend-swatch';
-        swatch.style.background = marker.color;
-        const label = document.createElement('span');
-        label.textContent = marker.label;
-        item.append(swatch, label);
-        floorPlanLegend.appendChild(item);
-      });
-    }
-
-    function showFloorPlanMarkerDetails(marker) {
-      selectedFloorPlanMarker = marker;
-      floorPlanMarkerEditLabel.value = marker.label;
-      floorPlanMarkerEditColor.value = marker.color;
-      floorPlanMarkerDetailsPanel.hidden = false;
-      const margin = 8;
-      const requestedLeft = (marker.xPercent / 100) * floorPlanViewport.clientWidth;
-      const requestedTop = (marker.yPercent / 100) * floorPlanViewport.clientHeight;
-      const maxLeft = floorPlanViewport.clientWidth - floorPlanMarkerDetailsPanel.offsetWidth - margin;
-      const maxTop = floorPlanViewport.clientHeight - floorPlanMarkerDetailsPanel.offsetHeight - margin;
-      floorPlanMarkerDetailsPanel.style.left = `${Math.max(margin, Math.min(requestedLeft, maxLeft))}px`;
-      floorPlanMarkerDetailsPanel.style.top = `${Math.max(margin, Math.min(requestedTop, maxTop))}px`;
-      renderFloorPlanMarkers();
-    }
-
-    async function synchronizeFloorPlanMarkers() {
-      const { data, error } = await supabaseClient
-        .from('floor_plan_markers')
-        .select('*')
-        .eq('event_key', EVENT_KEY)
-        .order('created_at');
-      if (error) {
-        return;
-      }
-
-      floorPlanMarkers = data.map((marker) => ({
-        id: marker.id,
-        label: marker.label,
-        details: marker.details || '',
-        color: marker.color || '#d71920',
-        detailsUrl: marker.details_url || '',
-        xPercent: Number(marker.x_percent),
-        yPercent: Number(marker.y_percent)
-      }));
-      renderFloorPlanMarkers();
-    }
-
-    async function addFloorPlanMarker(xPercent, yPercent) {
-      if (!floorPlanPlacementLabel || floorPlanMarkerSaveInProgress) {
-        return;
-      }
-
-      const label = floorPlanPlacementLabel;
-      const details = floorPlanMarkerDetails.value.trim();
-      const detailsUrl = floorPlanMarkerDetailsUrl.value.trim();
-      const color = floorPlanMarkerColor.value;
-      floorPlanPlacementLabel = '';
-      floorPlanMarkerSaveInProgress = true;
-      floorPlanViewport.classList.remove('is-placing');
-      floorPlanMarkerForm.reset();
-      const { error } = await supabaseClient
-        .from('floor_plan_markers')
-        .insert({ event_key: EVENT_KEY, label, details, details_url: detailsUrl, color, x_percent: xPercent, y_percent: yPercent });
-      floorPlanMarkerSaveInProgress = false;
-      if (error) {
-        setFloorPlanFeedback('Unable to save marker. Please try again.');
-        return;
-      }
-
-      setFloorPlanFeedback('Event marker added.');
-      await synchronizeFloorPlanMarkers();
-    }
-
-    async function deleteFloorPlanMarker(marker) {
-      const { error } = await supabaseClient
-        .from('floor_plan_markers')
-        .delete()
-        .eq('id', marker.id);
-      if (error) {
-        setFloorPlanFeedback('Unable to remove marker. Please try again.');
-        return;
-      }
-
-      setFloorPlanFeedback('Event marker removed.');
-      if (selectedFloorPlanMarker?.id === marker.id) {
-        selectedFloorPlanMarker = null;
-        floorPlanMarkerDetailsPanel.hidden = true;
-      }
-      await synchronizeFloorPlanMarkers();
-    }
-
-    floorPlanReset.addEventListener('click', resetFloorPlan);
-    floorPlanMarkerForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      floorPlanPlacementLabel = floorPlanMarkerLabel.value.trim();
-      if (!floorPlanPlacementLabel) {
-        return;
-      }
-
-      floorPlanViewport.classList.add('is-placing');
-      setFloorPlanFeedback(`Click the plan to place ${floorPlanPlacementLabel}.`);
-    });
-    floorPlanMarkerRemove.addEventListener('click', () => {
-      if (selectedFloorPlanMarker) {
-        void deleteFloorPlanMarker(selectedFloorPlanMarker);
+    const floorPlanController = window.createFloorPlan({
+      client: supabaseClient,
+      eventKey: EVENT_KEY,
+      eventCatalog,
+      getMarkerEventKeys,
+      showMarkerEvents,
+      onMarkersChange(markers) {
+        floorPlanMarkers = markers;
+        renderEventPinStatus();
+      },
+      onSignIn() {
+        accountFeedback.textContent = 'Sign in to edit floor-plan stations.';
+        accountDialog.showModal();
       }
     });
-    floorPlanMarkerClose.addEventListener('click', closeFloorPlanMarkerDetails);
-    floorPlanMarkerOpenEvent.addEventListener('click', () => {
-      if (selectedFloorPlanMarker) {
-        showMarkerEvents(selectedFloorPlanMarker);
-      }
-    });
-    floorPlanMarkerDetailsPanel.addEventListener('pointerdown', (event) => event.stopPropagation());
-    document.addEventListener('pointerdown', (event) => {
-      if (event.target instanceof Element && !event.target.closest('.floor-plan-marker')) {
-        closeFloorPlanMarkerDetails();
-      }
-    });
-    floorPlanMarkerEditForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if (!selectedFloorPlanMarker) {
-        return;
-      }
-
-      const updates = {
-        label: floorPlanMarkerEditLabel.value.trim(),
-        color: floorPlanMarkerEditColor.value
-      };
-      const { error } = await supabaseClient
-        .from('floor_plan_markers')
-        .update(updates)
-        .eq('id', selectedFloorPlanMarker.id);
-      if (error) {
-        setFloorPlanFeedback('Unable to update marker. Please try again.');
-        return;
-      }
-
-      selectedFloorPlanMarker = {
-        ...selectedFloorPlanMarker,
-        label: updates.label,
-        color: updates.color
-      };
-      showFloorPlanMarkerDetails(selectedFloorPlanMarker);
-      setFloorPlanFeedback('Event marker updated.');
-      await synchronizeFloorPlanMarkers();
-    });
-    floorPlanViewport.addEventListener('pointerdown', (event) => {
-      if (floorPlanPlacementLabel) {
-        const stageBounds = floorPlanStage.getBoundingClientRect();
-        const xPercent = Math.min(100, Math.max(0, ((event.clientX - stageBounds.left) / stageBounds.width) * 100));
-        const yPercent = Math.min(100, Math.max(0, ((event.clientY - stageBounds.top) / stageBounds.height) * 100));
-        void addFloorPlanMarker(xPercent, yPercent);
-        return;
-      }
-
-      floorPlanPointerStart = { x: event.clientX, y: event.clientY, offsetX: floorPlanOffset.x, offsetY: floorPlanOffset.y };
-      floorPlanViewport.setPointerCapture(event.pointerId);
-      floorPlanViewport.classList.add('is-panning');
-    });
-    floorPlanViewport.addEventListener('pointermove', (event) => {
-      if (!floorPlanPointerStart) {
-        return;
-      }
-
-      floorPlanOffset = {
-        x: floorPlanPointerStart.offsetX + event.clientX - floorPlanPointerStart.x,
-        y: floorPlanPointerStart.offsetY + event.clientY - floorPlanPointerStart.y
-      };
-      renderFloorPlan();
-    });
-    floorPlanViewport.addEventListener('pointerup', () => {
-      floorPlanPointerStart = null;
-      floorPlanViewport.classList.remove('is-panning');
-    });
-    floorPlanViewport.addEventListener('pointercancel', () => {
-      floorPlanPointerStart = null;
-      floorPlanViewport.classList.remove('is-panning');
-    });
-    void synchronizeFloorPlanMarkers();
-
-    supabaseClient
-      .channel('halloween-floor-plan-markers')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'floor_plan_markers', filter: `event_key=eq.${EVENT_KEY}` },
-        synchronizeFloorPlanMarkers
-      )
-      .subscribe();
 
     const TASK_STORAGE_KEY = 'fps-halloween-tasks-v1';
     const TASK_STATUSES = ['todo', 'in-progress', 'completed'];

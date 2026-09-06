@@ -474,19 +474,19 @@ using (true);
 
 create policy "Public floor plan marker insert access"
 on public.floor_plan_markers for insert
-to anon
-with check (true);
+to authenticated
+with check (auth.uid() is not null);
 
 create policy "Public floor plan marker update access"
 on public.floor_plan_markers for update
-to anon
-using (true)
-with check (true);
+to authenticated
+using (auth.uid() is not null)
+with check (auth.uid() is not null);
 
 create policy "Public floor plan marker delete access"
 on public.floor_plan_markers for delete
-to anon
-using (true);
+to authenticated
+using (auth.uid() is not null);
 
 create policy "Public visit insert access"
 on public.page_visits for insert
