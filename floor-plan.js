@@ -143,7 +143,8 @@
       editor.hidden = !draft;
       if (marker && !draft) {
         el('marker-title').textContent = marker.label;
-        el('marker-description').textContent = marker.details || 'No location notes have been added yet.';
+        const eventLocation = markerEvents(marker).map((event) => event.location).filter(Boolean).join(' ');
+        el('marker-description').textContent = marker.details || eventLocation || 'No location notes have been added yet.';
         const url = safeUrl(marker.detailsUrl);
         el('marker-link').hidden = !url;
         el('marker-link').removeAttribute('href');
